@@ -137,4 +137,34 @@ class U_Object:
         #todo stub
         pass
 
+def analyze(input, feature_options, model_options, output_options):
+    """Runs the whole pipeline on some input
+
+    args and returns TBD
     
+    """
+    #TODO stub
+    model_out = model(features(load(input), **feature_options), 
+        **model_options)
+    graph_out(model_out, **output_options)
+    text_out(model_out, **output_options)
+
+def load(input):
+    #TODO stub
+    pass
+
+def features(input, options):
+    #TODO stub
+    pass
+
+def model(input, options):
+    #TODO stub
+    pass
+
+def graph_out(input, options):
+    #TODO stub
+    pass
+
+def text_out(input, options):
+    #TODO stub
+    pass
