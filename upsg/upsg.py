@@ -66,6 +66,19 @@ class U_Object:
         """Returns the path of this U_Object's .upsg file."""
         #TODO stub
         return ''
+
+    def is_finalized(self):
+        """
+
+        If the U_Object is being written, returns a boolean signifying
+        whether or not one of the "from_" methods has been called yet.
+
+        If the U_Object is being read, returns a boolean specifying
+        whether or not one of the "to_" methods has been called yet.
+
+        """
+        #TODO stub
+        return False
     
     def to_postgresql(self): 
         """Makes the universal object available in postgres.
@@ -84,6 +97,19 @@ class U_Object:
         """
         #TODO stub
         return None
+    
+    def to_tuple_of_dicts(self):
+        """Makes the universal object available in a tuple of dictionaries.
+
+        returns a tuple of dictionaries containing a representation of the
+        object.
+
+        This is probably the choice to use when a universal object encodes
+        parameters for a model.
+        
+        """
+        #TODO stub
+        return ()
 
     def from_postgres(self, con_string, query):
         """Writes the results of a query to the universal object and prepares
@@ -94,9 +120,21 @@ class U_Object:
         pass
 
     def from_dataframe(self, dataframe):
-        """Writes contents of table_name to the universal object and prepares
-        the .upsg file.
+        """Writes contents of a Pandas dataframe to the universal object and 
+        prepares the .upsg file.
 
         """
         #TODO stub
         pass
+
+    def from_tuple_of_dicts(self, tuple_of_dicts):
+        """Writes contents of a tuple of dictionaries to the universal object
+        and prepares the .upsg file.
+
+        This is probably the choice to use when a universal object encodes
+        parameters for a model.
+        """
+        #todo stub
+        pass
+
+    
