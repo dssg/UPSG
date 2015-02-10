@@ -85,8 +85,8 @@ class U_Object:
         #TODO stub
         return None
 
-    def from_postgres(self, con_string, table_name):
-        """Writes contents of table_name to the universal object and prepares
+    def from_postgres(self, con_string, query):
+        """Writes the results of a query to the universal object and prepares
         the .upsg file.
 
         """
