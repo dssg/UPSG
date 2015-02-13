@@ -38,11 +38,12 @@ class UObject:
         read or written to in the rest of the program. Each instance of 
         UObject must be either read-only or write-only. 
 
-        arguments:
-        phase -- A member of UObjectPhase specifying whether the U_object
+        Parameters
+        ----------
+        phase: A member of UObjectPhase specifying whether the U_object
             is being written or read. Should be either UObjectPhase.Write
             or UObjectPhase.Read, respectively.
-        file_name -- The name of the .upsg file representing this universal
+        file_name: The name of the .upsg file representing this universal
             intermediary object. 
 
             If the file is being written, this argument is optional. If not 
@@ -83,7 +84,9 @@ class UObject:
     def to_postgresql(self): 
         """Makes the universal object available in postgres.
 
-        returns a tuple (connection_string, table_name)
+        Returns 
+        -------
+        A tuple (connection_string, table_name)
 
         """
         #TODO stub
@@ -92,7 +95,9 @@ class UObject:
     def to_dataframe(self):
         """Makes the universal object available in a Python dataframe.
 
-        returns a Pandas dataframe containing a representation of the object.
+        Returns 
+        -------
+        A Pandas dataframe containing a representation of the object.
 
         """
         #TODO stub
@@ -101,7 +106,9 @@ class UObject:
     def to_tuple_of_dicts(self):
         """Makes the universal object available in a tuple of dictionaries.
 
-        returns a tuple of dictionaries containing a representation of the
+        Returns 
+        -------
+        A tuple of dictionaries containing a representation of the
         object.
 
         This is probably the choice to use when a universal object encodes
