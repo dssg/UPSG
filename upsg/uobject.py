@@ -1,26 +1,26 @@
-class U_Object_Phase:
-    """Enumeration of U_Object phases
+class UObjectPhase:
+    """Enumeration of UObject phases
 
-    U_Objects are write-once. They must be written, then read.
+    UObjects are write-once. They must be written, then read.
     This enumeration specifies what is happening at present. 
 
     """
     Write, Read = range(2)
 
-class U_Object:
+class UObject:
     """A universal object signifying intermediary state in a pipeline.
 
     Conceptually, this object is a write-once table. It can be written
     and read using a number of interfaces. For example, it can be treated
     as a table in a PostgreSQL database or a Pandas dataframe residing in
     memory. The internal representation is up to UPSG. Regardless of 
-    internal representation, each U_Object will be represented by a
+    internal representation, each UObject will be represented by a
     .upsg file that resides on the local disk. This .upsg file will be used
     to communicate between different steps in the pipeline.
 
-    The interface to use will be chosen once when the U_Object is being
-    written and once when the U_Object is being read. In order to choose
-    an interface, first create a U_Object instance, and then invoke one of
+    The interface to use will be chosen once when the UObject is being
+    written and once when the UObject is being read. In order to choose
+    an interface, first create a UObject instance, and then invoke one of
     its methods prefixed with "to_" to read or "from_" to write. 
     For example, to_postgres or from_dataframe. 
 
@@ -33,15 +33,15 @@ class U_Object:
     def __init__(self, phase, file_name = None):
         """initializer
 
-        Prepares a U_Object to be further used in a program. After a U_Object
+        Prepares a UObject to be further used in a program. After a UObject
         instance is created, then the interface can be chosen and it can be
         read or written to in the rest of the program. Each instance of 
-        U_Object must be either read-only or write-only. 
+        UObject must be either read-only or write-only. 
 
         arguments:
-        phase -- A member of U_Object_Phase specifying whether the U_object
-            is being written or read. Should be either U_Object_Phase.Write
-            or U_Object_Phase.Read, respectively.
+        phase -- A member of UObjectPhase specifying whether the U_object
+            is being written or read. Should be either UObjectPhase.Write
+            or UObjectPhase.Read, respectively.
         file_name -- The name of the .upsg file representing this universal
             intermediary object. 
 
@@ -57,23 +57,23 @@ class U_Object:
         pass
 
     def get_phase(self):
-        """returns a member of U_Object_Phase signifying whether the U_Object
+        """returns a member of UObjectPhase signifying whether the UObject
         is being read or written."""
         #TODO stub
-        return U_Object_Phase.Read
+        return UObjectPhase.Read
     
     def get_file_name(self):
-        """Returns the path of this U_Object's .upsg file."""
+        """Returns the path of this UObject's .upsg file."""
         #TODO stub
         return ''
 
     def is_finalized(self):
         """
 
-        If the U_Object is being written, returns a boolean signifying
+        If the UObject is being written, returns a boolean signifying
         whether or not one of the "from_" methods has been called yet.
 
-        If the U_Object is being read, returns a boolean specifying
+        If the UObject is being read, returns a boolean specifying
         whether or not one of the "to_" methods has been called yet.
 
         """
@@ -136,35 +136,3 @@ class U_Object:
         """
         #todo stub
         pass
-
-def analyze(input, feature_options, model_options, output_options):
-    """Runs the whole pipeline on some input
-
-    args and returns TBD
-    
-    """
-    #TODO stub
-    model_out = model(features(load(input), **feature_options), 
-        **model_options)
-    graph_out(model_out, **output_options)
-    text_out(model_out, **output_options)
-
-def load(input):
-    #TODO stub
-    pass
-
-def features(input, options):
-    #TODO stub
-    pass
-
-def model(input, options):
-    #TODO stub
-    pass
-
-def graph_out(input, options):
-    #TODO stub
-    pass
-
-def text_out(input, options):
-    #TODO stub
-    pass
