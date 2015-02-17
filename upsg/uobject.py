@@ -1,3 +1,10 @@
+import tables
+import uuid
+
+class UObjectException(Exception):
+    """Exception related to UObjects"""
+    pass
+
 class UObjectPhase:
     """Enumeration of UObject phases
 
@@ -6,6 +13,7 @@ class UObjectPhase:
 
     """
     Write, Read = range(2)
+    All = (Write, Read)
 
 class UObject:
     """A universal object signifying intermediary state in a pipeline.
@@ -54,19 +62,40 @@ class UObject:
             to specify the argument will result in an exception.
 
         """
-        #TODO stub
-        pass
+        self.__phase = phase
+        self.__finalized = False
+
+        if phase == UObjectPhase.Write:
+            if file_name is None:
+                file_name = str(uuid.uuid4()) + '.upsg'
+            self.__data = None
+            self.__internal_rep = 'INCOMPLETE'
+            self.__file = tables.open_file(file_name, mode = 'w')
+            upsg_inf_grp = self.__file.create_group('/', 'upsg_inf')
+            self.__file.set_node_attr(upsg_inf_grp, 'internal_rep', self.__internal_rep)
+            self.__file.flush()
+            return
+            
+        if phase == UObjectPhase.Read:
+            if file_name is None:
+                raise UObjectException('Specified read phase without providing file name')
+            self.__file = tables.open_file(file_name, mode = 'r')
+            self.__internal_rep = self.__file.get_node_attr('/upsg_inf', 'internal_rep')
+            if self.__internal_rep == 'np': # file with a numpy table
+                self.__data = self.__file.root.data.table.read()
+                return
+            raise UObjectException('Unsupported internal representation')
+
+        raise UObjectException('Invalid phase provided')
 
     def get_phase(self):
         """returns a member of UObjectPhase signifying whether the UObject
         is being read or written."""
-        #TODO stub
-        return UObjectPhase.Read
+        return self.__phase
     
     def get_file_name(self):
         """Returns the path of this UObject's .upsg file."""
-        #TODO stub
-        return ''
+        return self.__file_name
 
     def is_finalized(self):
         """
@@ -78,8 +107,9 @@ class UObject:
         whether or not one of the "to_" methods has been called yet.
 
         """
-        #TODO stub
-        return False
+        return self.__finalized
+
+    def 
     
     def to_postgresql(self): 
         """Makes the universal object available in postgres.
