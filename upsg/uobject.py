@@ -1,5 +1,6 @@
 import tables
 import uuid
+import numpy as np
 
 class UObjectException(Exception):
     """Exception related to UObjects"""
@@ -64,27 +65,21 @@ class UObject:
         """
         self.__phase = phase
         self.__finalized = False
+        self.__file_name = file_name
 
         if phase == UObjectPhase.Write:
-            if file_name is None:
-                file_name = str(uuid.uuid4()) + '.upsg'
-            self.__data = None
-            self.__internal_rep = 'INCOMPLETE'
-            self.__file = tables.open_file(file_name, mode = 'w')
+            if self.__file_name is None:
+                self.__file_name = str(uuid.uuid4()) + '.upsg'
+            self.__file = tables.open_file(self.__file_name, mode = 'w')
             upsg_inf_grp = self.__file.create_group('/', 'upsg_inf')
-            self.__file.set_node_attr(upsg_inf_grp, 'internal_rep', self.__internal_rep)
+            self.__file.set_node_attr(upsg_inf_grp, 'storage_method', 'INCOMPLETE')
             self.__file.flush()
             return
             
         if phase == UObjectPhase.Read:
-            if file_name is None:
+            if self.__file_name is None:
                 raise UObjectException('Specified read phase without providing file name')
-            self.__file = tables.open_file(file_name, mode = 'r')
-            self.__internal_rep = self.__file.get_node_attr('/upsg_inf', 'internal_rep')
-            if self.__internal_rep == 'np': # file with a numpy table
-                self.__data = self.__file.root.data.table.read()
-                return
-            raise UObjectException('Unsupported internal representation')
+            self.__file = tables.open_file(self.__file_name, mode = 'r')
 
         raise UObjectException('Invalid phase provided')
 
@@ -109,7 +104,66 @@ class UObject:
         """
         return self.__finalized
 
-    def 
+    def to_read_phase(self):
+        """Converts a finalized UObject in its write phase into a UObject
+        in its read phase.
+
+        Use this function to pass the Python representation of a UObject
+        between pipeline stages rather than just using the .upsg file.
+
+        """
+        if self.__phase != UObjectPhase.Write:
+            raise UObjectException('UObject is not in write phase')
+        if not self.__finalized:
+            raise UObjectException('UObject is not finalized')
+
+        self.__file = tables.open_file(self.__file_name)
+        self.__phase = UObjectPhase.Read
+        self.__finalized = False
+
+    def __to(self, converter):
+        """Does generic book-keeping when a "to_" function is invoked.
+
+        Every public-facing "to_" function should invoke this function. 
+
+        Parameters
+        ----------
+        converter:  (string, tables.File) -> ?
+            A function that produces the return value of the to_ 
+            function. The first parameter is the storage method. The
+            second is pytables file in which the data is stored. 
+
+        Returns
+        -------
+        The return value of converter
+
+        """
+
+        if self.__phase != UObjectPhase.Read:
+            raise UObjectException('UObject is not in the read phase')
+        if self.__finalized:
+            raise UObjectException('UObject is already finalized')
+
+        storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
+        to_return = converter(storage_method, self.__file)
+        self.__file.close()
+        self.__finalized = True 
+        return to_return
+
+    def to_np(self):
+        """Makes the universal object available in a numpy array.
+
+        Returns
+        -------
+        A numpy array encoding the data in this UObject
+
+        """
+        def converter(storage_method, hfile):
+            if storage_method == 'np':
+                return hfile.root.np.table.read()
+            raise UObjectException('Unsupported internal representation')
+
+        return self.__to(converter)
     
     def to_postgresql(self): 
         """Makes the universal object available in postgres.
@@ -147,6 +201,53 @@ class UObject:
         """
         #TODO stub
         return ()
+
+    def __from(self, converter):
+        """Does generic book-keeping when a "from_function is invoked.
+
+        Every public-facing "from_" function should invoke this function.
+
+        Parameters
+        ----------
+        converter: tables.File -> string
+            A function that updates the passed file as specified
+            by the from_ function. It should return the storage method
+            being used
+
+        """
+        
+        if self.__phase != UObjectPhase.Write:
+            raise UObjectException('UObject is not in write phase')
+        if self.__finalized:
+            raise UObjectException('UObject is already finalized')
+
+        storage_method = converter(self.__file)
+
+        self.__file.set_node_attr('/upsg_inf', 'storage_method', storage_method)
+        self.__file.flush()
+        self.__file.close()
+        self.__finalized = True
+
+    def from_csv(self, filename):
+        """Writes the contents of a CSV to the UOBject and prepares the .upsg
+        file.
+
+        Parameters
+        ----------
+        filename: string
+            The name of the csv file.
+
+        """
+        #TODO this is going to need to take more parameters
+
+        def converter(hfile):
+            
+            data = np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
+            np_group = hfile.create_group('/', 'np')
+            hfile.create_table(np_group, 'table', obj=data)
+            return 'np'
+
+        self.__from(converter)
 
     def from_postgres(self, con_string, query):
         """Writes the results of a query to the universal object and prepares
