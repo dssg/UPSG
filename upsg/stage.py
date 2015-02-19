@@ -1,11 +1,11 @@
-from abs import ABCMeta
+import abc
 
 class Stage:
     """Base class of all pipeline stages"""
-    __metaclass__ = ABCMeta
+    __metaclass__ = abc.ABCMeta
 
-    @abstractproperty
-    def input_keys:
+    @abc.abstractproperty
+    def input_keys():
         """A dictionary signifying what this Stage will be expecting as input.
        
         Each key in the dictionary should be the name of a keyword in the 
@@ -15,8 +15,8 @@ class Stage:
         """
         return {}
 
-    @abstractproperty
-    def output_keys:
+    @abc.abstractproperty
+    def output_keys():
         """A list signifying the output that this Stage will produce.
 
         The Stage will be expected to return a dictionary of UObjects where
@@ -24,7 +24,7 @@ class Stage:
         """
         return []
 
-    @abstractmethod
+    @abc.abstractmethod
     def run(self, **kwargs):
         """Run this phase of the pipeline.
 

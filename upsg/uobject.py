@@ -174,25 +174,15 @@ class UObject:
 
         """
         #TODO stub
+        raise NotImplementedError()
         return ('', '')
     
-    def to_dataframe(self):
-        """Makes the universal object available in a Python dataframe.
+    def to_dict(self):
+        """Makes the universal object available in a dictionary.
 
         Returns 
         -------
-        A Pandas dataframe containing a representation of the object.
-
-        """
-        #TODO stub
-        return None
-    
-    def to_tuple_of_dicts(self):
-        """Makes the universal object available in a tuple of dictionaries.
-
-        Returns 
-        -------
-        A tuple of dictionaries containing a representation of the
+        A dictionary containing a representation of the
         object.
 
         This is probably the choice to use when a universal object encodes
@@ -200,7 +190,8 @@ class UObject:
         
         """
         #TODO stub
-        return ()
+        raise NotImplementedError()
+        return {}
 
     def __from(self, converter):
         """Does generic book-keeping when a "from_function is invoked.
@@ -249,28 +240,38 @@ class UObject:
 
         self.__from(converter)
 
+    def from_np(self, A):
+        """Writes the contents of a numpy array to a UObject and prepares the
+        .upsg file.
+
+        Parameters
+        ----------
+        A: numpy.array
+
+        """
+
+        def converter(hfile):
+            np_group = hfile.create_group('/', 'np')
+            hfile.create_table(np_group, 'table', obj=A)
+            return 'np'
+
+        self.__from(converter)
+
     def from_postgres(self, con_string, query):
         """Writes the results of a query to the universal object and prepares
         the .upsg file.
 
         """
         #TODO stub
-        pass
+        raise NotImplementedError()
 
-    def from_dataframe(self, dataframe):
-        """Writes contents of a Pandas dataframe to the universal object and 
-        prepares the .upsg file.
 
-        """
-        #TODO stub
-        pass
-
-    def from_tuple_of_dicts(self, tuple_of_dicts):
-        """Writes contents of a tuple of dictionaries to the universal object
+    def from_dict(self, d):
+        """Writes contents dictionary to the universal object
         and prepares the .upsg file.
 
         This is probably the choice to use when a universal object encodes
         parameters for a model.
         """
         #todo stub
-        pass
+        raise NotImplementedError()
