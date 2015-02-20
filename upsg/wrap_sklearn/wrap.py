@@ -1,7 +1,9 @@
 import importlib
 
-from ..stage import Stage
 import sklearn.base
+import numpy as np
+
+from ..stage import Stage
 from ..uobject import UObject, UObjectPhase
 
 
@@ -18,8 +20,9 @@ def __wrap_class(sk_cls):
             __input_keys = {'X': True, 'y' : False, 'fit_params' : False}
             __output_keys = ['X_new']
             def run(self, **kwargs):
-                X = kwargs['X'].to_np()
-                print X
+                X_sa = kwargs['X'].to_np()
+                X = X_sa.view(dtype=X_sa[0][0].dtype).reshape(
+                    len(X_sa), -1)
                 try:
                     y = kwargs['y'].to_np()
                 except KeyError:
@@ -30,8 +33,9 @@ def __wrap_class(sk_cls):
                 #except KeyError:
                 #    fit_params = {}
                 fit_params = {}
-                X_new = self.__sk_instance.fit_transform(X, y, **fit_params)
-                print X_new
+                X_new_nd = self.__sk_instance.fit_transform(X, y, **fit_params)
+                X_new = X_new_nd.view(dtype=X_sa.dtype).reshape(
+                    len(X_sa))
                 uo_out = UObject(UObjectPhase.Write)
                 uo_out.from_np(X_new)
                 return {'X_new' : uo_out}                

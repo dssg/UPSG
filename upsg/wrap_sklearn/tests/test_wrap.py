@@ -24,9 +24,13 @@ class TestWrap(unittest.TestCase):
         uo_in.to_read_phase()
 
         ctrl_imputer = Imputer()
-        ctrl_X = np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
-        control = ctrl_imputer.fit_transform(ctrl_X)
-        print control
+        ctrl_X_sa = np.genfromtxt(filename, dtype=None, delimiter=",", 
+            names=True)
+        ctrl_X = ctrl_X_sa.view(dtype=ctrl_X_sa[0][0].dtype).reshape(
+            len(ctrl_X_sa), -1)
+        control_sa = ctrl_imputer.fit_transform(ctrl_X)
+        control = control_sa.view(dtype=ctrl_X_sa.dtype).reshape(
+                    len(ctrl_X_sa))
 
         uo_out = impute_stage.run(X=uo_in)['X_new']
         uo_out.to_read_phase()
