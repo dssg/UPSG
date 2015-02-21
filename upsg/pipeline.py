@@ -6,6 +6,22 @@ class Pipeline:
     
     """
 
+    class __Node:
+        def __init__(self, stage):
+            self.__stage = stage
+            self.__in = dict.fromkeys(stage.input_keys.keys(), None)
+            self.__out = dict.fromkeys(stage.output_keys, None)  
+
+        def add_input(other, other_key, my_key):
+            self.__in[my_key] = (other, other_key)
+
+        def add_output(other, other_key, my_key):
+            self.__out[my_key] = (other, other_key)
+
+    def __init__(self):
+        self.__next_node_uid = 0
+        self.__nodes = {}
+
     def add(self, stage):
         """Add a stage to the pipeline
 
@@ -21,7 +37,10 @@ class Pipeline:
         A unique identifier for this stage to be used to connect this Stage
         to other Stages in the pipeline.
         """
-        pass
+        uid = self.__next_node_uid
+        self.__nodes[uid] = Node(stage)
+        self.__next_node_uid += 1
+        return uid
 
     def connect(self, from_stage_uid, from_stage_output_key, to_stage_uid,
         to_stage_input_key):
@@ -43,7 +62,14 @@ class Pipeline:
             corresponds to the output Stage's output.
 
         """
-        pass
+        from_node = self.__nodes[from_stage_uid]
+        to_node = self.__nodes[to_stage_uid]
+        from_node.add_output(to_node, to_stage_input_key, 
+            from_stage_output_key)
+        to_node.add_input(from_node, from_stage_output_key, 
+            to_stage_input_key)
 
     def run(self):
         """Run the pipeline"""
+        #TODO stub
+        raise NotImplementedError()
