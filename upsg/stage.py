@@ -5,7 +5,7 @@ class Stage:
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
-    def input_keys():
+    def input_keys(self):
         """A dictionary signifying what this Stage will be expecting as input.
        
         Each key in the dictionary should be the name of a keyword in the 
@@ -16,7 +16,7 @@ class Stage:
         return {}
 
     @abc.abstractproperty
-    def output_keys():
+    def output_keys(self):
         """A list signifying the output that this Stage will produce.
 
         The Stage will be expected to return a dictionary of UObjects where

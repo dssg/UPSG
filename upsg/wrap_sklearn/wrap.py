@@ -46,14 +46,15 @@ def __wrap_class(sk_cls):
         
 
         @property 
-        def input_keys():
+        def input_keys(self):
             return __input_keys
 
         @property
-        def output_keys():
+        def output_keys(self):
             return __output_keys
 
-            
+        def get_sklearn_instance(self):
+            return self.__sk_instance           
 
     return Wrapped
 
@@ -90,3 +91,30 @@ def wrap(target):
         raise TypeError(('wrap takes a sklearn.base.BaseEstimator class ' 
             'or a string'))
     return __wrap_class(skl_class)
+
+def wrap_instance(target, *args, **kwargs):
+    """returns an instance of a Stage class that wraps an sklearn object.
+
+    Parameters
+    ----------
+    target: sklearn.base.BaseEstimator class | string
+        Either a BaseEstimator subclass or the fully qualified package name
+        of a BaseEstimater subclass.
+    args: 
+        positional arguments to pass to constructor.
+    kwargs:
+        keyword arguments to pass to constructor
+
+    Examples
+    --------
+    >>> from sklearn.preprocessing import Imputer
+    >>> impute_stage = wrap_instance(Imputer, missing_values=0) 
+    
+    or
+
+    >>> impute_stage = wrap_instance('sklearn.preprocessing.Imputer',
+            strategy='median') 
+    
+    """
+    cls = wrap(target)
+    return cls(*args, **kwargs)
