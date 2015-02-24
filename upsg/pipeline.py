@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 class Pipeline:
     """Internal representation of a UPSG pipeline.
 
@@ -7,16 +9,18 @@ class Pipeline:
     """
 
     class __Node:
+        Connection = namedtuple('Connection', ('other', 'other_key'))
+    
         def __init__(self, stage):
             self.__stage = stage
             self.__in = dict.fromkeys(stage.input_keys.keys(), None)
             self.__out = dict.fromkeys(stage.output_keys, None)  
 
         def add_input(self, other, other_key, my_key):
-            self.__in[my_key] = {'other' : other, 'other_key' : other_key}
+            self.__in[my_key] = self.Connection(other, other_key)
 
         def add_output(self, other, other_key, my_key):
-            self.__out[my_key] = {'other' : other, 'other_key' : other_key}
+            self.__out[my_key] = self.Connection(other, other_key)
 
         def get_stage(self):
             return self.__stage
@@ -98,7 +102,7 @@ class Pipeline:
                 continue
             node = self.__nodes[uid]
             node_inputs = node.get_inputs()
-            input_uids = frozenset([node_inputs[input_key]['other'] for 
+            input_uids = frozenset([node_inputs[input_key].other for 
                 input_key in node_inputs])
             unfinished_dependencies = [uid_in for uid_in in input_uids 
                 if state[uid_in] is None] 
@@ -108,8 +112,8 @@ class Pipeline:
                 continue
             input_args = {input_key: state[other][other_key] 
                 for input_key, other, other_key 
-                in map(lambda k: (k, node_inputs[k]['other'], 
-                    node_inputs[k]['other_key']), node_inputs)}
+                in map(lambda k: (k, node_inputs[k].other, 
+                    node_inputs[k].other_key), node_inputs)}
             output_args = node.get_stage().run(**input_args)
             map(lambda k: output_args[k].to_read_phase(), output_args)
             state[uid] = output_args

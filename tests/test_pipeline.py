@@ -6,11 +6,13 @@ from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
 from upsg.wrap_sklearn.wrap import wrap_instance
+from upsg.stage import Stage
 from utils import path_of_data
 
 outfile_name = path_of_data('_out.csv')
 
-class TestUObject(unittest.TestCase):
+
+class TestPipleline(unittest.TestCase):
     def test_rw(self):
         infile_name = path_of_data('mixed_csv.csv')        
 
@@ -59,8 +61,6 @@ class TestUObject(unittest.TestCase):
             names=True)
         result = res_sa.view(dtype = num_type).reshape(len(res_sa), -1)
         
-        print result
-        print control
         self.assertTrue(np.allclose(result, control))
 
     def tearDown(self):
