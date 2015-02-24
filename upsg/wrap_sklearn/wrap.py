@@ -15,11 +15,19 @@ def __wrap_class(sk_cls):
 
         def __init__(self, **kwargs):
             self.__sk_instance = self.__sk_cls(**kwargs)
-
-        if issubclass(sk_cls, sklearn.base.TransformerMixin):
-            __input_keys = {'X': True, 'y' : False, 'fit_params' : False}
-            __output_keys = ['X_new']
-            def run(self, **kwargs):
+        
+        __input_keys = {}
+        __output_keys = set()
+        __funcs_to_run = {}
+        # It would be nicer to use class hierarchy than hasattr, but sklearn
+        # doesn't put everything in interfaces
+        #if issubclass(sk_cls, sklearn.base.TransformerMixin):
+        if hasattr(sk_cls, 'fit_transform'):
+            __input_keys['X'] = True 
+            __input_keys['y'] = False 
+            __input_keys['fit_params'] = False
+            __output_keys.add('X_new')
+            def do_fit_transform(self, **kwargs):
                 X_sa = kwargs['X'].to_np()
                 X = X_sa.view(dtype=X_sa[0][0].dtype).reshape(
                     len(X_sa), -1)
@@ -38,12 +46,13 @@ def __wrap_class(sk_cls):
                     len(X_sa))
                 uo_out = UObject(UObjectPhase.Write)
                 uo_out.from_np(X_new)
-                return {'X_new' : uo_out}                
+                return uo_out                
+            __funcs_to_run['X_new'] = do_fit_transform
    
-        else:
-            #TODO we should be able to accomidate different sorts of classes
-            raise NotImplementedError('For now, we can only wrap scikit transformers')
-        
+        def run(self, outputs_requested, **kwargs):
+            return {output_key : 
+                self.__funcs_to_run[output_key](self, **kwargs) 
+                for output_key in outputs_requested}
 
         @property 
         def input_keys(self):
@@ -51,7 +60,7 @@ def __wrap_class(sk_cls):
 
         @property
         def output_keys(self):
-            return self.__output_keys
+            return list(self.__output_keys)
 
         def get_sklearn_instance(self):
             return self.__sk_instance           

@@ -115,7 +115,8 @@ class Pipeline:
                 for input_key, other, other_key 
                 in map(lambda k: (k, node_inputs[k].other, 
                     node_inputs[k].other_key), node_inputs)}
-            output_args = node.get_stage().run(**input_args)
+            output_args = node.get_stage().run(node.get_outputs().keys(), 
+                **input_args)
             map(lambda k: output_args[k].to_read_phase(), output_args)
             state[uid] = output_args
 

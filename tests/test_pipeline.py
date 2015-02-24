@@ -32,7 +32,7 @@ class LambdaStage(Stage):
     def output_keys(self):
         return self.__output_keys
 
-    def run(self, **kwargs):
+    def run(self, outputs_requested, **kwargs):
         fx = self.__lam(**{key : kwargs[key].to_np()[0][0] 
             for key in kwargs}) 
         if self.__fout:

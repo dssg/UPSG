@@ -13,7 +13,7 @@ class CSVRead(Stage):
     def output_keys(self):
         return ['out']
 
-    def run(self, **kwargs):
+    def run(self, outputs_requested, **kwargs):
         uo = UObject(UObjectPhase.Write)
         uo.from_csv(self.__filename)
         return {'out' : uo}

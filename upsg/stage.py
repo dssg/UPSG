@@ -25,11 +25,15 @@ class Stage:
         return []
 
     @abc.abstractmethod
-    def run(self, **kwargs):
+    def run(self, outputs_requested, **kwargs):
         """Run this phase of the pipeline.
 
         Parameters
         ---------- 
+        outputs_requested:
+            A list of the output keys that are connected to another Stage of
+            the pipeline. A Stage may choose to do less work if some of the
+            outputs that it offers will not be used
         kwargs: A collection of keyword arguments corresponding to
             those specified in input_keys. Each argument will provide a 
             readable UObject.
