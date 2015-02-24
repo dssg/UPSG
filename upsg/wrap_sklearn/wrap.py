@@ -15,7 +15,25 @@ def __wrap_class(sk_cls):
 
         def __init__(self, **kwargs):
             self.__sk_instance = self.__sk_cls(**kwargs)
-        
+            self.__cached_uos = {}
+
+        def __uo_to_np(self, uo):
+            try:
+                A = self.__cached_uos[uo]
+            except KeyError:
+                A_sa = uo.to_np()
+                A = A_sa.view(dtype=A_sa[0][0].dtype).reshape(
+                    len(A_sa), -1)
+                self.__cached_uos[uo] = A
+            return (A, A_sa.dtype)  
+
+        def __np_to_uo(self, A, dtype):
+            A_sa = A.view(dtype=dtype).reshape(
+                A.shape[0])
+            uo_out = UObject(UObjectPhase.Write)
+            uo_out.from_np(A_sa)
+            return uo_out
+
         __input_keys = {}
         __output_keys = set()
         __funcs_to_run = {}
@@ -28,11 +46,9 @@ def __wrap_class(sk_cls):
             __input_keys['fit_params'] = False
             __output_keys.add('X_new')
             def do_fit_transform(self, **kwargs):
-                X_sa = kwargs['X'].to_np()
-                X = X_sa.view(dtype=X_sa[0][0].dtype).reshape(
-                    len(X_sa), -1)
+                (X, X_dtype) = self.__uo_to_np(kwargs['X'])
                 try:
-                    y = kwargs['y'].to_np()
+                    (y, y_dtype) = self.__uo_to_np(kwargs['y'])
                 except KeyError:
                     y = None
                 #TODO
@@ -42,12 +58,12 @@ def __wrap_class(sk_cls):
                 #    fit_params = {}
                 fit_params = {}
                 X_new_nd = self.__sk_instance.fit_transform(X, y, **fit_params)
-                X_new = X_new_nd.view(dtype=X_sa.dtype).reshape(
-                    len(X_sa))
-                uo_out = UObject(UObjectPhase.Write)
-                uo_out.from_np(X_new)
-                return uo_out                
+                return self.__np_to_uo(X_new_nd, X_dtype)
             __funcs_to_run['X_new'] = do_fit_transform
+        if hasattr(sk_cls, 'score'):
+            def do_score(self, **kwargs):
+                pass
+                #TODO sub
    
         def run(self, outputs_requested, **kwargs):
             return {output_key : 
