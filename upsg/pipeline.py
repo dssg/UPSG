@@ -86,11 +86,12 @@ class Pipeline:
         to_node.add_input(from_stage_uid, from_stage_output_key, 
             to_stage_input_key)
 
-    def run(self):
+    def run_debug(self):
         """Run the pipeline in the current Python process.
 
-        This method is provided for debugging purposes for use with small jobs.
-        For larger and more performant jobs, use a different method.
+        This method of running the job runs everything in serial on a single 
+        process. It is provided for debugging purposes for use with small jobs.
+        For larger and more performant jobs, use the run method.
         """
         #TODO what should the user call rather than run?
         node_queue = [uid for uid in self.__nodes 
@@ -117,3 +118,8 @@ class Pipeline:
             output_args = node.get_stage().run(**input_args)
             map(lambda k: output_args[k].to_read_phase(), output_args)
             state[uid] = output_args
+
+    def run(self):
+        """Run the pipeline"""
+        #TODO a better method of scheduling/running than this
+        self.run_debug()
