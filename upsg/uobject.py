@@ -28,10 +28,10 @@ class UObject:
     to communicate between different steps in the pipeline.
 
     The interface to use will be chosen once when the UObject is being
-    written and once when the UObject is being read. In order to choose
-    an interface, first create a UObject instance, and then invoke one of
-    its methods prefixed with "to_" to read or "from_" to write. 
-    For example, to_postgres or from_dataframe. 
+    written and at least once when the UObject is being read. In order to 
+    choose an interface, first create a UObject instance, and then invoke one
+    of its methods prefixed with "to_" to read or "from_" to write.  For 
+    example, to_postgres or from_dataframe. 
 
     If an object is invoked in write mode, it must be finalized
     before it can be read by another phase in the pipeline using one of
@@ -82,6 +82,9 @@ class UObject:
             self.__file = tables.open_file(self.__file_name, mode = 'r')
 
         raise UObjectException('Invalid phase provided')
+
+    def __del__(self):
+        self.__file.close()
 
     def get_phase(self):
         """returns a member of UObjectPhase signifying whether the UObject
@@ -141,12 +144,9 @@ class UObject:
 
         if self.__phase != UObjectPhase.Read:
             raise UObjectException('UObject is not in the read phase')
-        if self.__finalized:
-            raise UObjectException('UObject is already finalized')
 
         storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
         to_return = converter(storage_method, self.__file)
-        self.__file.close()
         self.__finalized = True 
         return to_return
 

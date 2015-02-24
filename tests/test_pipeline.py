@@ -1,16 +1,47 @@
 import numpy as np
 from os import system
 import unittest
+import inspect
+from StringIO import StringIO
 
 from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
 from upsg.wrap_sklearn.wrap import wrap_instance
 from upsg.stage import Stage
+from upsg.uobject import UObject, UObjectPhase
 from utils import path_of_data
 
 outfile_name = path_of_data('_out.csv')
 
+class LambdaStage(Stage):
+    def __init__(self, lam, fout = None):
+        self.__lam = lam
+        self.__input_keys = dict.fromkeys(inspect.getargspec(lam).args, True)
+        self.__fout = fout
+        if fout:
+            self.__output_keys = []
+        else:
+            self.__output_keys = ['fx']
+
+    @property
+    def input_keys(self):
+        return self.__input_keys
+
+    @property
+    def output_keys(self):
+        return self.__output_keys
+
+    def run(self, **kwargs):
+        fx = self.__lam(**{key : kwargs[key].to_np()[0][0] 
+            for key in kwargs}) 
+        if self.__fout:
+            self.__fout.write(str(fx))
+            return {}
+        fx_np = np.core.records.fromrecords([(fx,)])
+        uo = UObject(UObjectPhase.Write)
+        uo.from_np(fx_np)
+        return {'fx': uo}
 
 class TestPipleline(unittest.TestCase):
     def test_rw(self):
@@ -62,6 +93,37 @@ class TestPipleline(unittest.TestCase):
         result = res_sa.view(dtype = num_type).reshape(len(res_sa), -1)
         
         self.assertTrue(np.allclose(result, control))
+
+    def test_DAG(self):
+        p = Pipeline()
+
+        s0 = LambdaStage(lambda: 'S0')
+        s1 = LambdaStage(lambda: 'S1')
+        s2 = LambdaStage(lambda: 'S2')
+        s3 = LambdaStage(lambda x, y: '({},{})->I{}'.format(x, y, '3'))
+        s4 = LambdaStage(lambda x, y: '({},{})->I{}'.format(x, y, '4'))
+        s5out = StringIO()
+        s6out = StringIO()
+        s5 = LambdaStage(lambda x, y: '({},{})->T{}'.format(x, y, '5'), 
+            fout = s5out)
+        s6 = LambdaStage(lambda x: '({})->T{}'.format(x, '6'), 
+            fout = s6out)
+        uids = [p.add(s) for s in (s0, s1, s2, s3, s4, s5, s6)]
+
+        p.connect(uids[0], 'fx', uids[3], 'x')
+        p.connect(uids[1], 'fx', uids[3], 'y')
+        p.connect(uids[1], 'fx', uids[4], 'x')
+        p.connect(uids[2], 'fx', uids[4], 'y')
+        p.connect(uids[3], 'fx', uids[5], 'x')
+        p.connect(uids[4], 'fx', uids[5], 'y')
+        p.connect(uids[4], 'fx', uids[6], 'x')
+
+        p.run()
+
+        self.assertEqual(s5out.getvalue(), 
+            "((S0,S1)->I3,(S1,S2)->I4)->T5")
+        self.assertEqual(s6out.getvalue(),
+            "((S1,S2)->I4)->T6")
 
     def tearDown(self):
         system('rm *.upsg')
