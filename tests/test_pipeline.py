@@ -16,8 +16,8 @@ class TestUObject(unittest.TestCase):
 
         p = Pipeline()
 
-        csv_read_uid = p.add(infile_name)
-        csv_write_uid = p.add(outfile_name)
+        csv_read_uid = p.add(CSVRead(infile_name))
+        csv_write_uid = p.add(CSVWrite(outfile_name))
 
         p.connect(csv_read_uid, 'out', csv_write_uid, 'in')
 
@@ -37,8 +37,8 @@ class TestUObject(unittest.TestCase):
 
         p = Pipeline()
 
-        csv_read_uid = p.add(infile_name)
-        csv_write_uid = p.add(outfile_name)
+        csv_read_uid = p.add(CSVRead(infile_name))
+        csv_write_uid = p.add(CSVWrite(outfile_name))
         impute_uid = p.add(wrap_instance(Imputer))
 
         p.connect(csv_read_uid, 'out', impute_uid, 'X')
@@ -49,16 +49,19 @@ class TestUObject(unittest.TestCase):
         ctrl_imputer = Imputer()
         ctrl_X_sa = np.genfromtxt(infile_name, dtype=None, delimiter=",", 
             names=True)
-        ctrl_X_nd = ctrl_X_sa.view(dtype=ctrl_X_sa[0][0].dtype).reshape(
+        num_type = ctrl_X_sa[0][0].dtype
+        ctrl_X_nd = ctrl_X_sa.view(dtype = num_type).reshape(
             len(ctrl_X_sa), -1)
         ctrl_X_new_nd = ctrl_imputer.fit_transform(ctrl_X_nd)
-        control = ctrl_X_new_nd.view(dtype=ctrl_X_sa.dtype).reshape(
-                    len(ctrl_X_new_nd))
+        control = ctrl_X_new_nd
 
-        result = np.genfromtxt(outfile_name, dtype=None, delimiter=",", 
+        res_sa = np.genfromtxt(outfile_name, dtype=None, delimiter=",", 
             names=True)
+        result = res_sa.view(dtype = num_type).reshape(len(res_sa), -1)
         
-        self.assertTrue(np.array_equal(result, control))
+        print result
+        print control
+        self.assertTrue(np.allclose(result, control))
 
     def tearDown(self):
         system('rm *.upsg')

@@ -6,7 +6,7 @@ class CSVWrite(Stage):
     
     @property
     def input_keys(self):
-        return {'in'}
+        return {'in': True}
 
     @property
     def output_keys(self):

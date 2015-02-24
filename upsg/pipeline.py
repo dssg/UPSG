@@ -12,11 +12,24 @@ class Pipeline:
             self.__in = dict.fromkeys(stage.input_keys.keys(), None)
             self.__out = dict.fromkeys(stage.output_keys, None)  
 
-        def add_input(other, other_key, my_key):
-            self.__in[my_key] = (other, other_key)
+        def add_input(self, other, other_key, my_key):
+            self.__in[my_key] = {'other' : other, 'other_key' : other_key}
 
-        def add_output(other, other_key, my_key):
-            self.__out[my_key] = (other, other_key)
+        def add_output(self, other, other_key, my_key):
+            self.__out[my_key] = {'other' : other, 'other_key' : other_key}
+
+        def get_stage(self):
+            return self.__stage
+
+        def get_inputs(self):
+            #TODO raise an error if all of the required inputs have not been
+            # connected yet
+            return {key: self.__in[key] for key in self.__in if self.__in[key] 
+                is not None}
+
+        def get_outputs(self):
+            return {key: self.__out[key] for key in self.__out if 
+                self.__out[key] is not None}
 
     def __init__(self):
         self.__next_node_uid = 0
@@ -38,7 +51,7 @@ class Pipeline:
         to other Stages in the pipeline.
         """
         uid = self.__next_node_uid
-        self.__nodes[uid] = Node(stage)
+        self.__nodes[uid] = self.__Node(stage)
         self.__next_node_uid += 1
         return uid
 
@@ -64,12 +77,39 @@ class Pipeline:
         """
         from_node = self.__nodes[from_stage_uid]
         to_node = self.__nodes[to_stage_uid]
-        from_node.add_output(to_node, to_stage_input_key, 
+        from_node.add_output(to_stage_uid, to_stage_input_key, 
             from_stage_output_key)
-        to_node.add_input(from_node, from_stage_output_key, 
+        to_node.add_input(from_stage_uid, from_stage_output_key, 
             to_stage_input_key)
 
     def run(self):
-        """Run the pipeline"""
-        #TODO stub
-        raise NotImplementedError()
+        """Run the pipeline in the current Python process.
+
+        This method is provided for debugging purposes for use with small jobs.
+        For larger and more performant jobs, use a different method.
+        """
+        #TODO what should the user call rather than run?
+        node_queue = [uid for uid in self.__nodes 
+            if not self.__nodes[uid].get_outputs()] # start with the root nodes
+        state = dict.fromkeys(self.__nodes.keys(), None)  
+        while node_queue:
+            uid = node_queue.pop()
+            if state[uid] is not None: # already computed
+                continue
+            node = self.__nodes[uid]
+            node_inputs = node.get_inputs()
+            input_uids = frozenset([node_inputs[input_key]['other'] for 
+                input_key in node_inputs])
+            unfinished_dependencies = [uid_in for uid_in in input_uids 
+                if state[uid_in] is None] 
+            if unfinished_dependencies:
+                node_queue.append(uid)
+                node_queue += unfinished_dependencies
+                continue
+            input_args = {input_key: state[other][other_key] 
+                for input_key, other, other_key 
+                in map(lambda k: (k, node_inputs[k]['other'], 
+                    node_inputs[k]['other_key']), node_inputs)}
+            output_args = node.get_stage().run(**input_args)
+            map(lambda k: output_args[k].to_read_phase(), output_args)
+            state[uid] = output_args

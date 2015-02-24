@@ -164,6 +164,28 @@ class UObject:
             raise UObjectException('Unsupported internal representation')
 
         return self.__to(converter)
+
+    def to_csv(self, file_name):
+        """Makes the universal object available in a csv.
+
+        Returns
+        -------
+        The path of the csv file
+
+        """
+        def converter(storage_method, hfile):
+            if storage_method == 'np':
+                table = hfile.root.np.table.read()
+                header = ",".join(map(
+                    lambda field_name: '"{}"'.format(field_name),
+                    table.dtype.names))
+                np.savetxt(file_name, table, delimiter = ',', header = header,
+                    fmt = "%s")
+                return file_name
+            raise UObjectException('Unsupported internal representation')
+
+        return self.__to(converter)
+        
     
     def to_postgresql(self): 
         """Makes the universal object available in postgres.

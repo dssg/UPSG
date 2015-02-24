@@ -47,11 +47,11 @@ def __wrap_class(sk_cls):
 
         @property 
         def input_keys(self):
-            return __input_keys
+            return self.__input_keys
 
         @property
         def output_keys(self):
-            return __output_keys
+            return self.__output_keys
 
         def get_sklearn_instance(self):
             return self.__sk_instance           

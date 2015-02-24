@@ -1,5 +1,5 @@
 from upsg.stage import Stage
-from upsg.UObject import UObject, UObjectPhase
+from upsg.uobject import UObject, UObjectPhase
 
 class CSVRead(Stage):
     def __init__(self, filename):
