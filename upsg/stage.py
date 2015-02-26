@@ -6,14 +6,17 @@ class Stage:
 
     @abc.abstractproperty
     def input_keys(self):
-        """A dictionary signifying what this Stage will be expecting as input.
-       
-        Each key in the dictionary should be the name of a keyword in the 
-        keyword arguments will be provided as input. The value of the key
-        should be a boolean signifying whether or not the argument is optional.
+        """A list of keys signifying what this Stage will be expecting as input.
 
+            For some stages, all inputs need not be required. At present, if 
+            an input is required but not provided in the pipeline, the user
+            will have to deal with a runtime error. In the future, we intend
+            to build a way to enforce requirements at the pipeline building
+            stage
+       
         """
-        return {}
+        #TODO enforce required input
+        return []
 
     @abc.abstractproperty
     def output_keys(self):

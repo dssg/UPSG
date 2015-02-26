@@ -74,7 +74,7 @@ class TestPipleline(unittest.TestCase):
         csv_write_uid = p.add(CSVWrite(outfile_name))
         impute_uid = p.add(wrap_instance(Imputer))
 
-        p.connect(csv_read_uid, 'out', impute_uid, 'X')
+        p.connect(csv_read_uid, 'out', impute_uid, 'X_train')
         p.connect(impute_uid, 'X_new', csv_write_uid, 'in')
 
         p.run()

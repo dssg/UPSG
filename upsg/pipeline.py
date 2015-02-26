@@ -13,7 +13,7 @@ class Pipeline:
     
         def __init__(self, stage):
             self.__stage = stage
-            self.__in = dict.fromkeys(stage.input_keys.keys(), None)
+            self.__in = dict.fromkeys(stage.input_keys, None)
             self.__out = dict.fromkeys(stage.output_keys, None)  
 
         def add_input(self, other, other_key, my_key):

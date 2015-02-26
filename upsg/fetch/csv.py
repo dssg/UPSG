@@ -7,7 +7,7 @@ class CSVRead(Stage):
     
     @property
     def input_keys(self):
-        return {}
+        return []
 
     @property
     def output_keys(self):

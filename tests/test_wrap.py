@@ -40,7 +40,7 @@ class TestWrap(unittest.TestCase):
         control = ctrl_X_new_nd.view(dtype=ctrl_X_sa.dtype).reshape(
                     len(ctrl_X_new_nd))
 
-        uo_out = impute_stage.run(['X_new'], X=uo_in)['X_new']
+        uo_out = impute_stage.run(['X_new'], X_train=uo_in)['X_new']
         uo_out.to_read_phase()
         result = uo_out.to_np()
 
