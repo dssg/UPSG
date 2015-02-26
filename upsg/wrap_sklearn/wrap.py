@@ -73,7 +73,8 @@ def __wrap_class(sk_cls):
                 (X_train, X_train_dtype) = self.__uo_to_np(kwargs['X_train'])
                 (y_train, y_train_dtype) = self.__uo_to_np(kwargs['y_train'])
                 try:
-                    (sample_weight, sample_weight_dtype) = self.__uo_to_np(kwargs['sample_weight'])
+                    (sample_weight, sample_weight_dtype) = self.__uo_to_np(
+                        kwargs['sample_weight'])
                 except KeyError:
                     sample_weight = None
                 self.__sk_instance.fit(X_train, Y_train, sample_weight)
@@ -87,7 +88,8 @@ def __wrap_class(sk_cls):
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     (y_test, y_test_dtype) = self.__uo_to_np(kwargs['y_test'])
                     score = self.__sk_instance.score(X_test, y_test, sample_weight)
-                    return self.__np_to_uo(np.array([[score]]), [('score', type(score))])
+                    return self.__np_to_uo(np.array([[score]]), [('score', 
+                        type(score))])
                 __funcs_to_run['score'] = __do_score 
             if hasattr(sk_cls, 'predict'):
                 __output_keys.add('y_pred')
