@@ -14,6 +14,13 @@ class TestUObject(unittest.TestCase):
         result = uo.to_np()
         control = np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
         self.assertTrue(np.array_equal(result, control))
+    def test_dict_load_store(self):
+        d = {'k1' : 'A String that is fairly long', 'k2' : 42.1, 'k3' : 7}
+        uo = UObject(UObjectPhase.Write)
+        uo.from_dict(d)
+        uo.to_read_phase()
+        result = uo.to_dict()
+        self.assertEqual(d, result)
     def tearDown(self):
         system('rm *.upsg')
 

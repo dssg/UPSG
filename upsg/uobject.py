@@ -211,9 +211,15 @@ class UObject:
         parameters for a model.
         
         """
-        #TODO stub
-        raise NotImplementedError()
-        return {}
+        def converter(storage_method, hfile):
+            if storage_method == 'dict':
+                array = hfile.root.dict.keys
+                keys = array.read()
+                return {key : hfile.get_node_attr(array, key) for 
+                    key in keys}
+            raise UObjectException('Unsupported internal representation')
+
+        return self.__to(converter)
 
     def __from(self, converter):
         """Does generic book-keeping when a "from_function is invoked.
@@ -295,5 +301,13 @@ class UObject:
         This is probably the choice to use when a universal object encodes
         parameters for a model.
         """
-        #todo stub
-        raise NotImplementedError()
+        
+        def converter(hfile):
+            dict_group = hfile.create_group('/', 'dict')
+            keys_array = np.array(d.keys())
+            keys_array = hfile.create_array(dict_group, 'keys', 
+                obj=keys_array)
+            map(lambda k: hfile.set_node_attr(keys_array, k, d[k]), d)
+            return 'dict'
+        
+        self.__from(converter)
