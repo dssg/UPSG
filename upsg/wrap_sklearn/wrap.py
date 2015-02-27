@@ -77,7 +77,7 @@ def __wrap_class(sk_cls):
                         kwargs['sample_weight'])
                 except KeyError:
                     sample_weight = None
-                self.__sk_instance.fit(X_train, Y_train, sample_weight)
+                self.__sk_instance.fit(X_train, y_train, sample_weight)
                 self.__fitted = True
             if hasattr(sk_cls, 'score'):
                 __output_keys.add('score')

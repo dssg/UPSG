@@ -86,7 +86,7 @@ class Pipeline:
         to_node.add_input(from_stage_uid, from_stage_output_key, 
             to_stage_input_key)
 
-    def run_debug(self):
+    def run_debug(self, verbose = False):
         """Run the pipeline in the current Python process.
 
         This method of running the job runs everything in serial on a single 
@@ -118,9 +118,13 @@ class Pipeline:
             output_args = node.get_stage().run(node.get_outputs().keys(), 
                 **input_args)
             map(lambda k: output_args[k].to_read_phase(), output_args)
+            if verbose:
+                print 'uid: {}'.format(uid)
+                for arg in output_args:
+                    print "--{}: {}".format(arg, output_args[arg].to_np())
             state[uid] = output_args
 
-    def run(self):
+    def run(self, **kwargs):
         """Run the pipeline"""
         #TODO a better method of scheduling/running than this
-        self.run_debug()
+        self.run_debug(**kwargs)
