@@ -213,9 +213,10 @@ class UObject:
         """
         def converter(storage_method, hfile):
             if storage_method == 'dict':
-                array = hfile.root.dict.keys
+                group = hfile.root.dict
+                array = group.keys
                 keys = array.read()
-                return {key : hfile.get_node_attr(array, key) for 
+                return {key : hfile.get_node_attr(group, key) for 
                     key in keys}
             raise UObjectException('Unsupported internal representation')
 
@@ -303,11 +304,12 @@ class UObject:
         """
         
         def converter(hfile):
+            #TODO make sure we're not overwriting pytables reserved attributes
             dict_group = hfile.create_group('/', 'dict')
             keys_array = np.array(d.keys())
             keys_array = hfile.create_array(dict_group, 'keys', 
                 obj=keys_array)
-            map(lambda k: hfile.set_node_attr(keys_array, k, d[k]), d)
+            map(lambda k: hfile.set_node_attr(dict_group, k, d[k]), d)
             return 'dict'
         
         self.__from(converter)
