@@ -7,7 +7,7 @@ from StringIO import StringIO
 from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
-from upsg.wrap_sklearn.wrap import wrap_instance
+from upsg.wrap.wrap_sklearn import wrap_instance
 from upsg.stage import Stage
 from upsg.uobject import UObject, UObjectPhase
 from utils import path_of_data

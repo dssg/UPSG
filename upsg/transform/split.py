@@ -42,7 +42,7 @@ class SplitColumn(Stage):
         
 class SplitTrainTest(Stage):
     """Splits a table 'in' into two tables 'train' and 'test' by rows."""
-    #TODO wrap sklearn in a more general way, like in wrap_sklearn.wrap
+    #TODO wrap.wrap_sklearn in a more general way, like in wrap.wrap_sklearn
     #TODO split more than one array at a time
 
     def __init__(self, **kwargs):

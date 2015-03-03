@@ -45,6 +45,11 @@ def np_nd_to_sa(nd, dtype = None):
 
     if dtype is None:
         cols = np.shape[1]
-        dtype = np.dtype({'names' : map('F{}'.format, xrange(1, cols + 1)), 
+        dtype = np.dtype({'names' : map('F{}'.format, xrange(cols)), 
             'formats' : [np.dtype] * cols})
     return nd.view(dtype).reshape(len(nd))
+
+def is_sa(A):
+    """Returns true if the numpy.ndarray A is a structured array, false 
+    otherwise."""
+    return A.dtype.isbuiltin == 0

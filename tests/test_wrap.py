@@ -5,7 +5,7 @@ from inspect import getargspec
 
 from sklearn.cross_validation import train_test_split
 
-from upsg.wrap_sklearn.wrap import wrap, wrap_instance
+from upsg.wrap.wrap_sklearn import wrap, wrap_instance
 from upsg.uobject import UObject, UObjectPhase
 from upsg.pipeline import Pipeline
 from upsg.fetch.csv import CSVRead
