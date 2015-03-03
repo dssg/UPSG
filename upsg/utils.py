@@ -44,9 +44,9 @@ def np_nd_to_sa(nd, dtype = None):
         raise TypeError('np_nd_to_sa only takes 2-dimensional arrays')
 
     if dtype is None:
-        cols = np.shape[1]
-        dtype = np.dtype({'names' : map('F{}'.format, xrange(cols)), 
-            'formats' : [np.dtype] * cols})
+        cols = nd.shape[1]
+        dtype = np.dtype({'names' : map('f{}'.format, xrange(cols)), 
+            'formats' : [nd.dtype] * cols})
     return nd.view(dtype).reshape(len(nd))
 
 def is_sa(A):

@@ -1,7 +1,7 @@
 from ..stage import Stage
 from ..uobject import UObject, UObjectPhase, UObjectException
 
-class CSVRead(Stage):
+class UObjectRead(Stage):
     def __init__(self, uo):
         if uo.get_phase() != UObjectPhase.Write or not uo.is_finalized():
             raise UObjectException(('Provided UObject must be finalized '

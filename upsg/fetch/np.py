@@ -3,7 +3,7 @@ from ..uobject import UObject, UObjectPhase
 
 from upsg.utils import is_sa, np_nd_to_sa
 
-class FromNumpy(Stage):
+class NumpyRead(Stage):
     def __init__(self, A):
         if is_sa(A):
             self.__A = A
