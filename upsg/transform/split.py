@@ -1,7 +1,7 @@
 from sklearn.cross_validation import train_test_split
 
-from upsg.stage import Stage
-from upsg.uobject import UObject, UObjectPhase
+from ..stage import Stage
+from ..uobject import UObject, UObjectPhase
 
 class SplitColumn(Stage):
     """Splits a table 'in' into two tables 'X' and 'y' where y is one column of

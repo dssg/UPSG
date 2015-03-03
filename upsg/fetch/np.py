@@ -1,5 +1,5 @@
-from upsg.stage import Stage
-from upsg.uobject import UObject, UObjectPhase
+from ..stage import Stage
+from ..uobject import UObject, UObjectPhase
 
 from upsg.utils import is_sa, np_nd_to_sa
 

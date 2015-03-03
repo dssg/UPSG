@@ -1,4 +1,4 @@
-from upsg.stage import Stage
+from ..stage import Stage
 
 class CSVWrite(Stage):
     def __init__(self, filename):

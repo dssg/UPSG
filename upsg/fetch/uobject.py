@@ -1,5 +1,5 @@
-from upsg.stage import Stage
-from upsg.uobject import UObject, UObjectPhase, UObjectException
+from ..stage import Stage
+from ..uobject import UObject, UObjectPhase, UObjectException
 
 class CSVRead(Stage):
     def __init__(self, uo):
