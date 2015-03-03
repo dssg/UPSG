@@ -7,6 +7,9 @@ from ..stage import Stage
 from ..uobject import UObject, UObjectPhase
 from ..utils import np_nd_to_sa, np_sa_to_nd
 
+def unpickle_constructor(sk_instance):
+    cls = __wrap_class(type(sk_instance))
+    return cls(sk_instance) 
 
 def __wrap_class(sk_cls):
     """Wraps a scikit BaseEstimator class inside a UPSG Stage and returns it
@@ -14,10 +17,15 @@ def __wrap_class(sk_cls):
     class Wrapped(Stage):
         __sk_cls = sk_cls
 
-        def __init__(self, **kwargs):
-            self.__sk_instance = self.__sk_cls(**kwargs)
+        def __init__(self, sk_instance = None, **kwargs):
+            if sk_instance is None:
+                self.__sk_instance = self.__sk_cls(**kwargs)
+            else:
+                self.__sk_instance = sk_instance
             self.__cached_uos = {}
-            self.__fitted = False
+
+        def __reduce__(self):
+            return (unpickle_constructor, (self.__sk_instance,))
 
         def __uo_to_np(self, uo):
             try:
@@ -102,6 +110,7 @@ def __wrap_class(sk_cls):
                 __funcs_to_run['y_pred'] = __do_predict
             
         def run(self, outputs_requested, **kwargs):
+            self.__fitted = False
             return {output_key : 
                 self.__funcs_to_run[output_key](self, **kwargs) 
                 for output_key in outputs_requested}
