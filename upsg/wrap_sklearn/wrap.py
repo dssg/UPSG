@@ -5,6 +5,7 @@ import numpy as np
 
 from ..stage import Stage
 from ..uobject import UObject, UObjectPhase
+from ..utils import np_nd_to_sa, np_sa_to_nd
 
 
 def __wrap_class(sk_cls):
@@ -20,17 +21,15 @@ def __wrap_class(sk_cls):
 
         def __uo_to_np(self, uo):
             try:
-                A = self.__cached_uos[uo]
+                (A, dtype) = self.__cached_uos[uo]
             except KeyError:
                 A_sa = uo.to_np()
-                A = A_sa.view(dtype=A_sa[0][0].dtype).reshape(
-                    len(A_sa), -1)
-                self.__cached_uos[uo] = A
-            return (A, A_sa.dtype)  
+                A, dtype = np_sa_to_nd(A_sa)
+                self.__cached_uos[uo] = (A, dtype)
+            return (A, dtype)  
 
         def __np_to_uo(self, A, dtype):
-            A_sa = A.view(dtype=dtype).reshape(
-                A.shape[0])
+            A_sa = np_nd_to_sa(A, dtype)
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(A_sa)
             return uo_out

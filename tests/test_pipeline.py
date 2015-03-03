@@ -11,6 +11,7 @@ from upsg.wrap_sklearn.wrap import wrap_instance
 from upsg.stage import Stage
 from upsg.uobject import UObject, UObjectPhase
 from utils import path_of_data
+from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
 outfile_name = path_of_data('_out.csv')
 
@@ -83,14 +84,13 @@ class TestPipleline(unittest.TestCase):
         ctrl_X_sa = np.genfromtxt(infile_name, dtype=None, delimiter=",", 
             names=True)
         num_type = ctrl_X_sa[0][0].dtype
-        ctrl_X_nd = ctrl_X_sa.view(dtype = num_type).reshape(
-            len(ctrl_X_sa), -1)
+        ctrl_X_nd, ctrl_X_sa_type = np_sa_to_nd(ctrl_X_sa)
         ctrl_X_new_nd = ctrl_imputer.fit_transform(ctrl_X_nd)
         control = ctrl_X_new_nd
 
         res_sa = np.genfromtxt(outfile_name, dtype=None, delimiter=",", 
             names=True)
-        result = res_sa.view(dtype = num_type).reshape(len(res_sa), -1)
+        result, res_sa_dtype = np_sa_to_nd(res_sa)
         
         self.assertTrue(np.allclose(result, control))
 

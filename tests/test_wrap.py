@@ -11,6 +11,7 @@ from upsg.pipeline import Pipeline
 from upsg.fetch.csv import CSVRead
 from upsg.export.csv import CSVWrite
 from upsg.transform.split import SplitColumn, SplitTrainTest
+from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
 from utils import path_of_data
 
@@ -65,8 +66,7 @@ class TestWrap(unittest.TestCase):
         ctrl_sk_inst = sk_cls(*init_args, **init_kwargs)
         ctrl_in_sa = np.genfromtxt(infile_name, dtype=None, delimiter=",", 
             names=True)
-        ctrl_in_nd = ctrl_in_sa.view(dtype=ctrl_in_sa[0][0].dtype).reshape(
-            len(ctrl_in_sa), -1)
+        ctrl_in_nd, ctrl_in_sa_dtype = np_sa_to_nd(ctrl_in_sa)
         ctrl_y_nd = ctrl_in_nd[:,-1]
         ctrl_X_nd = ctrl_in_nd[:,:-1]
         ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
