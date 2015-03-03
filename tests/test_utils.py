@@ -4,7 +4,7 @@ import unittest
 
 from upsg.utils import *
 
-class TestUObject(unittest.TestCase):
+class TestUtils(unittest.TestCase):
     def test_nd_to_sa_w_type(self):
         nd = np.array([[1,2,3],[4,5,6]], dtype = int)
         dtype = np.dtype({'names' : map('f{}'.format, xrange(3)), 

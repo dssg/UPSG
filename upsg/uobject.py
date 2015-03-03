@@ -1,6 +1,7 @@
 import tables
 import uuid
 import numpy as np
+from utils import np_nd_to_sa, is_sa
 
 class UObjectException(Exception):
     """Exception related to UObjects"""
@@ -80,6 +81,7 @@ class UObject:
             if self.__file_name is None:
                 raise UObjectException('Specified read phase without providing file name')
             self.__file = tables.open_file(self.__file_name, mode = 'r')
+            return
 
         raise UObjectException('Invalid phase provided')
 
@@ -280,8 +282,12 @@ class UObject:
         """
 
         def converter(hfile):
+            if is_sa(A):
+                to_write = A
+            else:
+                to_write = np_nd_to_sa(A)
             np_group = hfile.create_group('/', 'np')
-            hfile.create_table(np_group, 'table', obj=A)
+            hfile.create_table(np_group, 'table', obj=to_write)
             return 'np'
 
         self.__from(converter)

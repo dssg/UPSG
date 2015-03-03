@@ -5,10 +5,7 @@ from upsg.utils import is_sa, np_nd_to_sa
 
 class NumpyRead(Stage):
     def __init__(self, A):
-        if is_sa(A):
-            self.__A = A
-        else:
-            self.__A = np_nd_to_sa(A)
+        self.__A = A
     
     @property
     def input_keys(self):
