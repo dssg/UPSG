@@ -45,31 +45,41 @@ class SplitTrainTest(Stage):
     #TODO wrap.wrap_sklearn in a more general way, like in wrap.wrap_sklearn
     #TODO split more than one array at a time
 
-    def __init__(self, **kwargs):
+    def __init__(self, n_arrays = 1, **kwargs):
         """
 
         parameters
         ----------
-        kwargs: 
+        n_arrays: int (default 1)
+            the number of arrays that will be split
+        kwargs:
             arguments corresponding to the keyword arguments of 
             sklearn.cross_validation.train_test_split 
 
         """
         self.__kwargs = kwargs
+        self.__n_arrays = n_arrays
+
+        self.__input_keys = map('in{}'.format, xrange(n_arrays)) 
+        self.__output_keys = (map('train{}'.format, xrange(n_arrays)) +
+            map('test{}'.format, xrange(n_arrays)))
 
     @property
     def input_keys(self):
-        return ['in']
+        return self.__input_keys
 
     @property
     def output_keys(self):
-        return ['train', 'test']
+        return self.__output_keys
 
     def run(self, outputs_requested, **kwargs):
-        uo_train = UObject(UObjectPhase.Write)
-        uo_test = UObject(UObjectPhase.Write)
-        in_array = kwargs['in'].to_np()
-        train, test = train_test_split(in_array, **self.__kwargs)
-        uo_train.from_np(train)
-        uo_test.from_np(test)
-        return {'train' : uo_train, 'test' : uo_test}
+        in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
+        splits = train_test_split(*in_arrays, **self.__kwargs)
+        results = {key : UObject(UObjectPhase.Write) for key 
+            in self.__output_keys}
+        for index, in_key in enumerate(self.__input_keys):
+            key_number = int(in_key.replace('in', ''))
+            print '+++++' + str(index)
+            results['train{}'.format(key_number)].from_np(splits[2 * index])
+            results['test{}'.format(key_number)].from_np(splits[2 * index + 1])
+        return results

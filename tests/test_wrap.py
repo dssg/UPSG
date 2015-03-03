@@ -37,29 +37,28 @@ class TestWrap(unittest.TestCase):
 
         stage0 = CSVRead(infile_name)
         stage1 = SplitColumn(-1)
-        stage2 = SplitTrainTest(random_state = 0)
-        stage3 = SplitTrainTest(random_state = 0)
+        stage2 = SplitTrainTest(2, random_state = 0)
         wrapped_sk_cls = wrap(sk_cls) 
-        stage4 = wrapped_sk_cls(*init_args, **init_kwargs)
-        stage5 = CSVWrite(outfile_name)
+        stage3 = wrapped_sk_cls(*init_args, **init_kwargs)
+        stage4 = CSVWrite(outfile_name)
 
         p = Pipeline()
 
-        uids = map(p.add, [stage0, stage1, stage2, stage3, stage4, stage5])
+        uids = map(p.add, [stage0, stage1, stage2, stage3, stage4])
 
         p.connect(uids[0], 'out', uids[1], 'in')
-        p.connect(uids[1], 'X', uids[2], 'in')
-        p.connect(uids[1], 'y', uids[3], 'in')
-        input_keys = stage4.input_keys
+        p.connect(uids[1], 'X', uids[2], 'in0')
+        p.connect(uids[1], 'y', uids[2], 'in1')
+        input_keys = stage3.input_keys
         if 'X_train' in input_keys:
-            p.connect(uids[2], 'train', uids[4], 'X_train')
+            p.connect(uids[2], 'train0', uids[3], 'X_train')
         if 'X_test' in input_keys:
-            p.connect(uids[2], 'test', uids[4], 'X_test')
+            p.connect(uids[2], 'test0', uids[3], 'X_test')
         if 'y_train' in input_keys:
-            p.connect(uids[3], 'train', uids[4], 'y_train')
+            p.connect(uids[2], 'train1', uids[3], 'y_train')
         if 'y_test' in input_keys:
-            p.connect(uids[3], 'test', uids[4], 'y_test')
-        p.connect(uids[4], out_key, uids[5], 'in')
+            p.connect(uids[2], 'test1', uids[3], 'y_test')
+        p.connect(uids[3], out_key, uids[4], 'in')
 
         p.run()
 
