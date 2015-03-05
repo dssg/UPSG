@@ -1,5 +1,7 @@
 import abc
 
+from pipeline import Pipeline
+
 class Stage:
     """Base class of all pipeline stages"""
     __metaclass__ = abc.ABCMeta
@@ -49,3 +51,14 @@ class Stage:
         """
         return {}
         
+class MetaStage(Stage):
+    """A Stage that will internally consist of multiple stages connected
+    together."""
+    
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractproperty
+    def pipeline(self):
+        """A upsg.Pipeline signifying the subgraph associated with this 
+        Metastage"""
+        return Pipeline()
