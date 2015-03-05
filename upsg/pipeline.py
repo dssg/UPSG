@@ -9,8 +9,23 @@ class Pipeline:
     """
 
     class __Node:
-        Connection = namedtuple('Connection', ('other', 'other_key'))
-    
+        class __Connection:
+            def __init__(self, my_key):
+                self.__my_key = my_key
+                self.__other = None
+            def connect(other):
+                """
+
+                Parameters
+                ----------
+                other : __Connection
+
+                """
+                self.__other = other
+                other.__other = self
+            def __sub__(self, other):
+                self.connect(other)
+            
         def __init__(self, stage):
             self.__stage = stage
             self.__in = dict.fromkeys(stage.input_keys, None)
@@ -85,6 +100,22 @@ class Pipeline:
             from_stage_output_key)
         to_node.add_input(from_stage_uid, from_stage_output_key, 
             to_stage_input_key)
+
+    def __integrate(self, other):
+        """Integrates another pipeline into this one and creates a virtual
+        uid to access the sub-pipeline.
+
+        Parameters
+        ----------
+        other : Pipeline
+
+        Returns
+        -------
+        uid which can be used to connect nodes to sub-pipeline as if the 
+            sub-pipeline were a single node.
+
+        """
+        return NotImplementedError()
 
     def run_debug(self, verbose = False):
         """Run the pipeline in the current Python process.
