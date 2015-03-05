@@ -84,7 +84,8 @@ def __wrap_class(sk_cls):
                         kwargs['sample_weight'])
                 except KeyError:
                     sample_weight = None
-                self.__sk_instance.fit(X_train, y_train, sample_weight)
+                self.__sk_instance.fit(X_train, np.ravel(y_train), 
+                    sample_weight)
                 self.__fitted = True
             if hasattr(sk_cls, 'score'):
                 __output_keys.add('score')
@@ -94,7 +95,8 @@ def __wrap_class(sk_cls):
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     (y_test, y_test_dtype) = self.__uo_to_np(kwargs['y_test'])
-                    score = self.__sk_instance.score(X_test, y_test, sample_weight)
+                    score = self.__sk_instance.score(X_test, np.ravel(y_test), 
+                        sample_weight)
                     return self.__np_to_uo(np.array([[score]]), [('score', 
                         type(score))])
                 __funcs_to_run['score'] = __do_score 
@@ -125,6 +127,9 @@ def __wrap_class(sk_cls):
 
         def get_sklearn_instance(self):
             return self.__sk_instance           
+
+        def get_params(self):
+            return self.__sk_instance.get_params()
 
     return Wrapped
 

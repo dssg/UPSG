@@ -79,7 +79,6 @@ class SplitTrainTest(Stage):
             in self.__output_keys}
         for index, in_key in enumerate(self.__input_keys):
             key_number = int(in_key.replace('in', ''))
-            print '+++++' + str(index)
             results['train{}'.format(key_number)].from_np(splits[2 * index])
             results['test{}'.format(key_number)].from_np(splits[2 * index + 1])
         return results

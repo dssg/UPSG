@@ -46,8 +46,10 @@ def np_nd_to_sa(nd, dtype = None):
     if dtype is None:
         cols = nd.shape[1]
         dtype = np.dtype({'names' : map('f{}'.format, xrange(cols)), 
-            'formats' : [nd.dtype] * cols})
-    return nd.view(dtype).reshape(len(nd))
+            'formats' : [nd.dtype for i in xrange(cols)]})
+
+    #import pdb; pdb.set_trace()
+    return nd.reshape(nd.size).view(dtype)
 
 def is_sa(A):
     """Returns true if the numpy.ndarray A is a structured array, false 
