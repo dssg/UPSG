@@ -36,7 +36,7 @@ def __wrap_class(sk_cls):
                 self.__cached_uos[uo] = (A, dtype)
             return (A, dtype)  
 
-        def __np_to_uo(self, A, dtype):
+        def __np_to_uo(self, A, dtype = None):
             A_sa = np_nd_to_sa(A, dtype)
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(A_sa)
@@ -107,8 +107,7 @@ def __wrap_class(sk_cls):
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     y_pred = self.__sk_instance.predict(X_test)
-                    return self.__np_to_uo(y_pred.reshape(len(y_pred), -1), 
-                        [('y_pred', X_test_dtype[0])])
+                    return self.__np_to_uo(y_pred.reshape(len(y_pred), -1))
                 __funcs_to_run['y_pred'] = __do_predict
             
         def run(self, outputs_requested, **kwargs):
