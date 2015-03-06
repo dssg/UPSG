@@ -1,4 +1,5 @@
 from collections import namedtuple
+import weakref
 
 class PipelineException(Exception):
     pass
@@ -8,7 +9,8 @@ class Connection:
         self.__key = key
         self.__other = None
         self.__outgoing = outgoing
-        self.__node = node
+        self.__node = weakref.ref(node)
+
     def connect_to(self, other):
         """
 
@@ -42,7 +44,7 @@ class Connection:
 
     @property
     def node(self):
-        return self.__node
+        return self.__node()
 
 class Node:
         
