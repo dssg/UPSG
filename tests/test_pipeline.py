@@ -50,10 +50,10 @@ class TestPipleline(unittest.TestCase):
 
         p = Pipeline()
 
-        csv_read_uid = p.add(CSVRead(infile_name))
-        csv_write_uid = p.add(CSVWrite(outfile_name))
+        csv_read_node = p.add(CSVRead(infile_name))
+        csv_write_node = p.add(CSVWrite(outfile_name))
 
-        p.connect(csv_read_uid, 'out', csv_write_uid, 'in')
+        csv_read_node['out'] > csv_write_node['in']
 
         p.run()
 
@@ -71,12 +71,12 @@ class TestPipleline(unittest.TestCase):
 
         p = Pipeline()
 
-        csv_read_uid = p.add(CSVRead(infile_name))
-        csv_write_uid = p.add(CSVWrite(outfile_name))
-        impute_uid = p.add(wrap_instance(Imputer))
+        csv_read_node = p.add(CSVRead(infile_name))
+        csv_write_node = p.add(CSVWrite(outfile_name))
+        impute_node = p.add(wrap_instance(Imputer))
 
-        p.connect(csv_read_uid, 'out', impute_uid, 'X_train')
-        p.connect(impute_uid, 'X_new', csv_write_uid, 'in')
+        csv_read_node['out'] > impute_node['X_train']
+        impute_node['X_new'] > csv_write_node['in']
 
         p.run()
 
@@ -108,15 +108,15 @@ class TestPipleline(unittest.TestCase):
             fout = s5out)
         s6 = LambdaStage(lambda x: '({})->T{}'.format(x, '6'), 
             fout = s6out)
-        uids = [p.add(s) for s in (s0, s1, s2, s3, s4, s5, s6)]
+        nodes = [p.add(s) for s in (s0, s1, s2, s3, s4, s5, s6)]
 
-        p.connect(uids[0], 'fx', uids[3], 'x')
-        p.connect(uids[1], 'fx', uids[3], 'y')
-        p.connect(uids[1], 'fx', uids[4], 'x')
-        p.connect(uids[2], 'fx', uids[4], 'y')
-        p.connect(uids[3], 'fx', uids[5], 'x')
-        p.connect(uids[4], 'fx', uids[5], 'y')
-        p.connect(uids[4], 'fx', uids[6], 'x')
+        nodes[0]['fx'] > nodes[3]['x']
+        nodes[1]['fx'] > nodes[3]['y']
+        nodes[1]['fx'] > nodes[4]['x']
+        nodes[2]['fx'] > nodes[4]['y']
+        nodes[3]['fx'] > nodes[5]['x']
+        nodes[4]['fx'] > nodes[5]['y']
+        nodes[4]['fx'] > nodes[6]['x']
 
         p.run()
 
