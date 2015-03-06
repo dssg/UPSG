@@ -18,12 +18,12 @@ class TestTransform(unittest.TestCase):
 
         p = Pipeline()
 
-        csv_read_uid = p.add(CSVRead(infile_name))
-        trans_uid = p.add(RenameCols(rename_dict))
-        csv_write_uid = p.add(CSVWrite(outfile_name))
+        csv_read_node = p.add(CSVRead(infile_name))
+        trans_node = p.add(RenameCols(rename_dict))
+        csv_write_node = p.add(CSVWrite(outfile_name))
 
-        p.connect(csv_read_uid, 'out', trans_uid, 'in')
-        p.connect(trans_uid, 'out', csv_write_uid, 'in')
+        csv_read_node['out'] > trans_node['in']
+        trans_node['out'] > csv_write_node['in']
 
         p.run()
 

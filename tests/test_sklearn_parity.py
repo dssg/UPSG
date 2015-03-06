@@ -46,17 +46,24 @@ class TestSKLearnParity(unittest.TestCase):
         # output to a csv
         stage_csv = CSVWrite(outfile_name)
         
-        uid_data, uid_target, uid_split, uid_clf, uid_csv = map(p.add, 
+        node_data, node_target, node_split, node_clf, node_csv = map(p.add, 
             [stage_data, stage_target, stage_split_data, stage_clf, 
             stage_csv])
 
         # connect the pipeline stages together
-        p.connect(uid_data, 'out', uid_split, 'in0')
-        p.connect(uid_target, 'out', uid_split, 'in1')
-        p.connect(uid_split, 'train0', uid_clf, 'X_train')
-        p.connect(uid_split, 'train1', uid_clf, 'y_train')
-        p.connect(uid_split, 'test0', uid_clf, 'X_test')
-        p.connect(uid_clf, 'y_pred', uid_csv, 'in')
+        node_data['out'] > node_split['in0']
+        node_target['out'] > node_split['in1']
+        node_split['train0'] > node_clf['X_train']
+        node_split['train1'] > node_clf['y_train']
+        node_split['test0'] > node_clf['X_test']
+        node_clf['y_pred'] > node_csv['in']
+
+#        p.connect(uid_data, 'out', uid_split, 'in0')
+#        p.connect(uid_target, 'out', uid_split, 'in1')
+#        p.connect(uid_split, 'train0', uid_clf, 'X_train')
+#        p.connect(uid_split, 'train1', uid_clf, 'y_train')
+#        p.connect(uid_split, 'test0', uid_clf, 'X_test')
+#        p.connect(uid_clf, 'y_pred', uid_csv, 'in')
 
         p.run()
       
