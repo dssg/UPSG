@@ -13,7 +13,8 @@ class Pipeline:
             def __init__(self, my_key):
                 self.__my_key = my_key
                 self.__other = None
-            def connect(other):
+                self.__outgoing = False
+            def connect_to(other):
                 """
 
                 Parameters
@@ -22,9 +23,11 @@ class Pipeline:
 
                 """
                 self.__other = other
+                self.__outgoing = True
                 other.__other = self
-            def __sub__(self, other):
-                self.connect(other)
+                other.__outgoing = False
+            def __gt__(self, other):
+                self.connect_to(other)
             
         def __init__(self, stage):
             self.__stage = stage
