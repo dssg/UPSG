@@ -44,21 +44,21 @@ class TestWrap(unittest.TestCase):
 
         p = Pipeline()
 
-        uids = map(p.add, [stage0, stage1, stage2, stage3, stage4])
+        nodes = map(p.add, [stage0, stage1, stage2, stage3, stage4])
 
-        p.connect(uids[0], 'out', uids[1], 'in')
-        p.connect(uids[1], 'X', uids[2], 'in0')
-        p.connect(uids[1], 'y', uids[2], 'in1')
+        nodes[0]['out'] > nodes[1]['in']
+        nodes[1]['X'] > nodes[2]['in0']
+        nodes[1]['y'] > nodes[2]['in1']
         input_keys = stage3.input_keys
         if 'X_train' in input_keys:
-            p.connect(uids[2], 'train0', uids[3], 'X_train')
+            nodes[2]['train0'] > nodes[3]['X_train']
         if 'X_test' in input_keys:
-            p.connect(uids[2], 'test0', uids[3], 'X_test')
+            nodes[2]['test0'] > nodes[3]['X_test']
         if 'y_train' in input_keys:
-            p.connect(uids[2], 'train1', uids[3], 'y_train')
+            nodes[2]['train1'] > nodes[3]['y_train']
         if 'y_test' in input_keys:
-            p.connect(uids[2], 'test1', uids[3], 'y_test')
-        p.connect(uids[3], out_key, uids[4], 'in')
+            nodes[2]['test1'] > nodes[3]['y_test']
+        nodes[3][out_key] > nodes[4]['in']
 
         p.run()
 
@@ -98,10 +98,12 @@ class TestWrap(unittest.TestCase):
 
         p = Pipeline()
 
-        uids = map(p.add, [stage0, stage1, stage2])
+        nodes = map(p.add, [stage0, stage1, stage2])
 
-        p.connect(uids[0], 'out', uids[1], 'X_train')
-        p.connect(uids[1], 'X_new', uids[2], 'in')
+        nodes[0]['out'] > nodes[1]['X_train']
+        nodes[1]['X_new'] > nodes[2]['in']
+#        p.connect(uids[0], 'out', uids[1], 'X_train')
+#        p.connect(uids[1], 'X_new', uids[2], 'in')
 
         p.run()
 
