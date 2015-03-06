@@ -48,12 +48,16 @@ class Connection:
 
 class Node:
         
-    def __init__(self, stage):
+    def __init__(self, stage, connections = None):
         self.__stage = stage
-        self.__connections = {key : Connection(key, False, self) for key 
-            in stage.input_keys}
-        self.__connections.update({key : Connection(key, True, self) 
-            for key in stage.output_keys})
+        self.__connections = {}
+        if connections is None:
+            self.__connections.update({key : Connection(key, False, self) 
+                for key in stage.input_keys})
+            self.__connections.update({key : Connection(key, True, self) 
+                for key in stage.output_keys})
+        else:
+            self.__connections.update(connections)
 
     def __getitem__(self, key):
         return self.__connections[key]
@@ -64,17 +68,17 @@ class Node:
     def get_stage(self):
         return self.__stage
 
-    def get_inputs(self):
+    def get_inputs(self, live_only = True):
         #TODO raise an error if all of the required inputs have not been
         # connected yet
         return {key: self.__connections[key] for key in self.__connections
-             if self.__connections[key].other is not None and not
-                self.__connections[key].outgoing}
+             if not self.__connections[key].outgoing and
+                 (not live_only or self.__connections[key].other is not None)}
 
-    def get_outputs(self):
+    def get_outputs(self, live_only = True):
         return {key: self.__connections[key] for key in self.__connections
-             if self.__connections[key].other is not None and
-                self.__connections[key].outgoing}
+             if self.__connections[key].outgoing and
+                 (not live_only or self.__connections[key].other is not None)}
 
 class Pipeline:
     """Internal representation of a UPSG pipeline.
@@ -105,7 +109,7 @@ class Pipeline:
         return node
 
 
-    def __integrate(self, other):
+    def __integrate(self, other, in_node, out_node):
         """Integrates another pipeline into this one and creates a virtual
         uid to access the sub-pipeline.
 
@@ -115,11 +119,15 @@ class Pipeline:
 
         Returns
         -------
-        uid which can be used to connect nodes to sub-pipeline as if the 
-            sub-pipeline were a single node.
+        Node which can be used to connect nodes to sub-pipeline as if 
+            the sub-pipeline were a single node.
 
         """
-        return NotImplementedError()
+        self.__nodes += other_nodes
+        connections = {}
+        connections.update(in_node.get_inputs(False))
+        connections.update(out_node.get_outputs(False))
+        return Node(None, connections)
 
     def run_debug(self, verbose = False):
         """Run the pipeline in the current Python process.

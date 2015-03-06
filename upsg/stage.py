@@ -60,5 +60,10 @@ class MetaStage(Stage):
     @abc.abstractproperty
     def pipeline(self):
         """A upsg.Pipeline signifying the subgraph associated with this 
-        Metastage"""
-        return Pipeline()
+        Metastage
+        
+        Returns
+        -------
+        A tuple: (Pipeline, in_node, out_node) 
+        """
+        return (Pipeline(), None, None)

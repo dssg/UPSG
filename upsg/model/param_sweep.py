@@ -69,14 +69,16 @@ class ParamSweep(MetaStage):
         width = len(self.__params_prod)
         p = Pipeline()
         self.__pipeline = p
-        uid_map = p.add(__MapStage(width))
-        uid_reduce = p.add(__ReduceStage(width))
+        node_map = p.add(__MapStage(width))
+        node_reduce = p.add(__ReduceStage(width))
         for i, params in enumerate(self.__params_prod):
-            uid = p.add(clf_stage(**params))
-            [p.connect(uid_map, key, uid, key) for key in 
+            node = p.add(clf_stage(**params))
+            [uid_map[key] > node[key]) for key in 
                 ['X_train', 'X_test', 'y_train', 'y_test']]
-            p.connect(uid, 'score', uid_reduce, 'score{}'.format(i))
+            node['score'] > node_reduce['score{}'.format(i)]
         #TODO respect score_key
+        self.__in_node = node_map
+        self.__out_node = node_reduce
     
     @property
     def input_keys(self):
@@ -88,7 +90,7 @@ class ParamSweep(MetaStage):
 
     @property
     def pipeline(self):
-        return self.__pipeline
+        return (self.__pipeline, self__in_node, self.__out_node)
 
     def run(self, outputs_requested, **kwargs):
         pass
