@@ -88,8 +88,34 @@ class TestWrap(unittest.TestCase):
             np.allclose(result, control))
     def test_transform(self):
         from sklearn.preprocessing import Imputer
-        self.__simple_pipeline('missing_vals.csv', Imputer, (), 
-            {'strategy' : 'mean', 'missing_values' : 'NaN'}, 'X_new', 'transform')
+        kwargs = {'strategy' : 'mean', 'missing_values' : 'NaN'}
+        infile_name = path_of_data('missing_vals.csv')
+
+        stage0 = CSVRead(infile_name)
+        wrapped_sk_cls = wrap(Imputer) 
+        stage1 = wrapped_sk_cls(**kwargs)
+        stage2 = CSVWrite(outfile_name)
+
+        p = Pipeline()
+
+        uids = map(p.add, [stage0, stage1, stage2])
+
+        p.connect(uids[0], 'out', uids[1], 'X_train')
+        p.connect(uids[1], 'X_new', uids[2], 'in')
+
+        p.run()
+
+        ctrl_sk_inst = Imputer(**kwargs)
+        ctrl_in_sa = np.genfromtxt(infile_name, dtype=None, delimiter=",", 
+            names=True)
+        ctrl_in_nd, ctrl_in_sa_dtype = np_sa_to_nd(ctrl_in_sa)
+        control = ctrl_sk_inst.fit_transform(ctrl_in_nd)
+        
+        result = np.genfromtxt(outfile_name, dtype=None, delimiter=',',
+            names=True).view(dtype = control.dtype).reshape(control.shape)
+
+        self.assertTrue(np.array_equal(result, control) or 
+            np.allclose(result, control))
     def test_predict(self):
         from sklearn.svm import SVC
         self.__simple_pipeline('numbers.csv', SVC, (), {}, 'y_pred', 'predict')
