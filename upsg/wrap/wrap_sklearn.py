@@ -60,11 +60,11 @@ def __wrap_class(sk_cls):
                         self.__uo_to_np(kwargs['y_train']))
                 except KeyError:
                     y_train = None
-                #TODO
-                #try:
-                #    fit_params = kwargs['fit_params'].to_dict()
-                #except KeyError:
-                #    fit_params = {}
+                #TODO test this part
+                try:
+                    fit_params = kwargs['fit_params'].to_dict()
+                except KeyError:
+                    fit_params = {}
                 fit_params = {}
                 X_new_nd = self.__sk_instance.fit_transform(X_train, y_train, 
                     **fit_params)
