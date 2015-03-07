@@ -5,18 +5,47 @@ class PipelineException(Exception):
     pass
 
 class Connection:
+    """Object signifying a connection between two Nodes in a pipeline.
+
+    A Connection is not a graph edge. It's more accurate to say that a 
+    Connection is one side of an edge. For example, say we have Nodes A
+    and B. Node A has an output key 'out' and Node B has an input key 'in'.
+    Then, node A has a Connection A['out'] and Node B has a Connection B['in'].
+    In order to create an edge between Node A and Node B, we do:
+
+    A['out'].connect_to(B['in'])
+
+    or, alternatively,
+
+    A['out'] > B['in']
+
+    """
     def __init__(self, key, outgoing, node):
+        """
+
+        Parameters
+        ----------
+        key: str
+            The name of the input key or output key that that this Connection
+            signifies
+        outgoing: bool
+            True if the edge is outgoing, False if the edge is incoming
+        node: Node
+            The Node that owns this connection
+
+        """
         self.__key = key
         self.__other = None
         self.__outgoing = outgoing
         self.__node = weakref.ref(node)
 
     def connect_to(self, other):
-        """
+        """Create an edge between self.node and other.node using a link
+        between the Connections self and other
 
         Parameters
         ----------
-        other : __Connection
+        other : Connection
 
         """
         if not self.outgoing:
@@ -27,7 +56,9 @@ class Connection:
                 "edge") 
         self.__other = other
         other.__other = self
+
     def __gt__(self, other):
+        """Synonym for self.connect_to(other)"""
         self.connect_to(other)
 
     @property
@@ -47,8 +78,22 @@ class Connection:
         return self.__node()
 
 class Node:
+    """A real or virtual Node the Pipeline graph"""
         
     def __init__(self, stage, connections = None):
+        """
+
+        Parameters
+        ----------
+        stage: Stage
+            The Stage to be run when this Node is executed
+        connections: dict of {str : Connection} 
+            If provided, the Node will use the provided connections rather than
+            making its own. This is useful for virtual nodes which manage
+            Connections for a subgraph of the Pipeline rather than for an
+            individual stage.
+
+        """
         self.__stage = stage
         self.__connections = {}
         if connections is None:
@@ -60,6 +105,7 @@ class Node:
             self.__connections.update(connections)
 
     def __getitem__(self, key):
+        """Gets the COnnections specified by key"""
         return self.__connections[key]
 
     def __repr__(self):
@@ -69,6 +115,16 @@ class Node:
         return self.__stage
 
     def get_inputs(self, live_only = True):
+        """Returns a dictionary of {key : Connection} for all Connections
+        that are incoming.
+
+        Parameters
+        ----------
+        live_only: bool
+            if True, will only return Connections that are actually connected
+                to another node.
+
+        """
         #TODO raise an error if all of the required inputs have not been
         # connected yet
         return {key: self.__connections[key] for key in self.__connections
@@ -76,6 +132,16 @@ class Node:
                  (not live_only or self.__connections[key].other is not None)}
 
     def get_outputs(self, live_only = True):
+        """Returns a dictionary of {key : Connection} for all Connections
+        that are outgoing.
+
+        Parameters
+        ----------
+        live_only: bool
+            if True, will only return Connections that are actually connected
+                to another node.
+
+        """
         return {key: self.__connections[key] for key in self.__connections
              if self.__connections[key].outgoing and
                  (not live_only or self.__connections[key].other is not None)}
