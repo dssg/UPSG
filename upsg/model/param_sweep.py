@@ -41,8 +41,10 @@ class ParamSweep(MetaStage):
     class __ReduceStage(RunnableStage):
         def __init__(self, n_parents):
             self.__n_parents = n_parents
-            self.__input_keys = map('score{}'.format, range(n_parents))
-            self.__output_keys = ['scores']
+            self.__score_keys = map('score{}'.format, range(n_parents))
+            self.__params_keys = map('params_in{}'.format, range(n_parents))
+            self.__input_keys = self.__score_keys + self.__params_keys
+            self.__output_keys = ['params_out']
 
         @property
         def input_keys(self):
@@ -54,11 +56,11 @@ class ParamSweep(MetaStage):
 
         def run(self, outputs_requested, **kwargs):
             #TODO return data in a format that tells you what the params were
-            array = np.array(
-                [kwargs[key].to_np()[0,:] for key in self.__input_keys])
-            scores = UObject(UObjectPhase.Write)
-            scores.from_np(array)
-            return {'scores' : scores}
+            
+            scores_array = np.array(
+                [kwargs[key].to_np()[0,0] for key in self.__score_keys])
+            best = kwargs[self.__params_keys[np.argsort(scores_array)]]
+            return {'params_out' : best}
 
     def __init__(self, clf_stage, score_key, param_dict):
         #TODO respect score_key
@@ -72,13 +74,20 @@ class ParamSweep(MetaStage):
         self.__pipeline = p
         node_map = p.add(__MapStage(width))
         node_reduce = p.add(__ReduceStage(width))
+        node_final = p.add(clf_stage())
+
         for i, params in enumerate(self.__params_prod):
             node = p.add(clf_stage(**params))
-            [uid_map[key] > node[key]) for key in 
+            [node_map[key] > node[key]) for key in 
                 ['X_train', 'X_test', 'y_train', 'y_test']]
             node['score'] > node_reduce['score{}'.format(i)]
+            node['params_out'] > node_reduce['params{}_in'.format(i)]
+
+        [node_map[key] > node_final[key]) for key in 
+            ['X_train', 'X_test', 'y_train']]
+        node_reduce['params_out'] > node_final['params_in']
         self.__in_node = node_map
-        self.__out_node = node_reduce
+        self.__out_node = node_final
     
     @property
     def input_keys(self):
@@ -92,6 +101,3 @@ class ParamSweep(MetaStage):
     def pipeline(self):
         return (self.__pipeline, self__in_node, self.__out_node)
 
-    def run(self, outputs_requested, **kwargs):
-        pass
-        #TODO run doesn't really make sense here. Maybe we should restructure
