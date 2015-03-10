@@ -1,6 +1,7 @@
 from collections import namedtuple
 import weakref
 
+
 class PipelineException(Exception):
     pass
 
@@ -170,9 +171,16 @@ class Pipeline:
         A Node encapsulating the given stage       
 
         """
-        node = Node(stage)
-        self.__nodes.append(node)
-        return node
+        # TODO this is here to avoid a circular import. Should refactor
+        from stage import MetaStage, RunnableStage
+        if isinstance(stage, RunnableStage):
+            node = Node(stage)
+            self.__nodes.append(node)
+            return node
+        if isinstance(stage, MetaStage):
+            metanode = self.__integrate(*stage.pipeline)
+            return metanode
+        raise TypeError('Not a valid RunnableStage or MetaStage')
 
 
     def __integrate(self, other, in_node, out_node):
