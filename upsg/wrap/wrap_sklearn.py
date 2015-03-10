@@ -45,9 +45,16 @@ def __wrap_class(sk_cls):
         __input_keys = set()
         __output_keys = set()
         __funcs_to_run = {}
+
+        __output_keys.add('params')
+        def __do_get_params(self, **kwargs):
+            uo = UObject(UObjectPhase.Write)
+            uo.from_dict(self.__sk_instance.get_params())
+            return uo
+        __funcs_to_run['params'] = __do_get_params
+            
         # It would be nicer to use class hierarchy than hasattr, but sklearn
         # doesn't put everything in interfaces
-        #if issubclass(sk_cls, sklearn.base.TransformerMixin):
         if hasattr(sk_cls, 'fit_transform'):
             __input_keys.add('X_train') 
             __input_keys.add('y_train') 

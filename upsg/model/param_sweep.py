@@ -61,6 +61,7 @@ class ParamSweep(MetaStage):
             return {'scores' : scores}
 
     def __init__(self, clf_stage, score_key, param_dict):
+        #TODO respect score_key
         self.__clf_stage = clf_stage
         # produces dictionaries of the cartesian product of our parameters.
         # from http://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
@@ -76,7 +77,6 @@ class ParamSweep(MetaStage):
             [uid_map[key] > node[key]) for key in 
                 ['X_train', 'X_test', 'y_train', 'y_test']]
             node['score'] > node_reduce['score{}'.format(i)]
-        #TODO respect score_key
         self.__in_node = node_map
         self.__out_node = node_reduce
     
@@ -86,7 +86,7 @@ class ParamSweep(MetaStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['y_pred', 'params']
 
     @property
     def pipeline(self):

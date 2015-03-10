@@ -19,7 +19,6 @@ outfile_name = path_of_data('_out.csv')
 
 class TestSKLearnParity(unittest.TestCase):
     def test_tutorial(self):
-    #TODO
         """
 
         Verifies we can do what sklearn does here:
