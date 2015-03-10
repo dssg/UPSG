@@ -189,7 +189,7 @@ class Pipeline:
             the sub-pipeline were a single node.
 
         """
-        self.__nodes += other_nodes
+        self.__nodes += other.__nodes
         connections = {}
         connections.update(in_node.get_inputs(False))
         connections.update(out_node.get_outputs(False))

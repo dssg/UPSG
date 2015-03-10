@@ -16,14 +16,19 @@ from upsg.utils import np_nd_to_sa, np_sa_to_nd
 outfile_name = path_of_data('_out.csv')
 
 class LambdaStage(RunnableStage):
-    def __init__(self, lam, fout = None):
+    def __init__(self, lam, fout = None, n_results = 1):
         self.__lam = lam
-        self.__input_keys = dict.fromkeys(inspect.getargspec(lam).args, True)
+        self.__input_keys = inspect.getargspec(lam).args
         self.__fout = fout
+        self.__n_results = n_results
         if fout:
             self.__output_keys = []
         else:
-            self.__output_keys = ['fx']
+            if n_results > 1:
+                self.__output_keys = ['fx{}'.format(i) 
+                    for i in xrange(n_results)]
+            else:
+                self.__output_keys = ['fx']
 
     @property
     def input_keys(self):
@@ -34,15 +39,19 @@ class LambdaStage(RunnableStage):
         return self.__output_keys
 
     def run(self, outputs_requested, **kwargs):
-        fx = self.__lam(**{key : kwargs[key].to_np()[0][0] 
+        fxs = self.__lam(**{key : kwargs[key].to_np()[0][0] 
             for key in kwargs}) 
         if self.__fout:
-            self.__fout.write(str(fx))
+            self.__fout.write(str(fxs))
             return {}
-        fx_np = np.core.records.fromrecords([(fx,)])
-        uo = UObject(UObjectPhase.Write)
-        uo.from_np(fx_np)
-        return {'fx': uo}
+        if self.__n_results <= 1:
+            fxs = [fxs]
+        fxs_np = map(lambda fx: np.core.records.fromrecords([(fx,)]), 
+            fxs)
+        ret = {key : UObject(UObjectPhase.Write) for key in self.__output_keys}
+        [ret[key].from_np(fxs_np[i]) 
+            for i, key in enumerate(self.__output_keys)]
+        return ret
 
 class TestPipleline(unittest.TestCase):
     def test_rw(self):
@@ -124,6 +133,43 @@ class TestPipleline(unittest.TestCase):
             "((S0,S1)->I3,(S1,S2)->I4)->T5")
         self.assertEqual(s6out.getvalue(),
             "((S1,S2)->I4)->T6")
+
+    def test_integrate(self):
+        p_outer = Pipeline()
+        p_inner = Pipeline()
+
+        out0 = LambdaStage(lambda: 'hamster,elderberry')
+        out1 = LambdaStage(lambda x: ''.join(sorted(x.replace(',',''))) 
+            + '_out1')
+        sio = StringIO()
+        out2 = LambdaStage(lambda x, y: '[{},{}]'.format(x, y), fout = sio)
+
+        in0 = LambdaStage(lambda x: x.split(','), n_results = 2)
+        in1 = LambdaStage(lambda x: ''.join(sorted(x)) + '_in1')
+        in2 = LambdaStage(lambda x: ''.join(sorted(x)) + '_in2')
+        in3 = LambdaStage(lambda x, y: '({},{})'.format(x, y))
+
+        in_nodes = [p_inner.add(s) for s in (in0, in1, in2, in3)]
+        out_nodes = [p_outer.add(s) for s in (out0, out1, out2)]
+
+        in_nodes[0]['fx0'] > in_nodes[1]['x'] 
+        in_nodes[0]['fx1'] > in_nodes[2]['x'] 
+        in_nodes[1]['fx'] > in_nodes[3]['x'] 
+        in_nodes[2]['fx'] > in_nodes[3]['y'] 
+
+        in_node_proxy = p_outer._Pipeline__integrate(p_inner, in_nodes[0], 
+            in_nodes[3])
+        
+        out_nodes[0]['fx'] > in_node_proxy['x']
+        out_nodes[0]['fx'] > out_nodes[1]['x']
+        in_node_proxy['fx'] > out_nodes[2]['x']
+        out_nodes[1]['fx'] > out_nodes[2]['y']
+
+        p_outer.run()
+
+        control = '[(aehmrst_in1,bdeeelrrry_in2),abdeeeehlmrrrrsty_out1]'
+
+        self.assertEqual(sio.getvalue(), control)
 
     def tearDown(self):
         system('rm *.upsg')
