@@ -9,6 +9,7 @@ from upsg.wrap.wrap_sklearn import wrap, wrap_instance
 from upsg.uobject import UObject, UObjectPhase
 from upsg.pipeline import Pipeline
 from upsg.fetch.csv import CSVRead
+from upsg.fetch.np import NumpyRead
 from upsg.export.csv import CSVWrite
 from upsg.transform.split import SplitColumn, SplitTrainTest
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
@@ -102,8 +103,6 @@ class TestWrap(unittest.TestCase):
 
         nodes[0]['out'] > nodes[1]['X_train']
         nodes[1]['X_new'] > nodes[2]['in']
-#        p.connect(uids[0], 'out', uids[1], 'X_train')
-#        p.connect(uids[1], 'X_new', uids[2], 'in')
 
         p.run()
 
@@ -121,6 +120,61 @@ class TestWrap(unittest.TestCase):
     def test_predict(self):
         from sklearn.svm import SVC
         self.__simple_pipeline('numbers.csv', SVC, (), {}, 'y_pred', 'predict')
+    def test_moving_params(self):
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn import datasets
+        digits = datasets.load_digits()
+        digits_data = digits.data[:4,:]
+        digits_target = np.array([digits.target]).T[:4,:]
+    
+        p = Pipeline()
+
+        node_data = p.add(NumpyRead(digits_data))
+        node_target = p.add(NumpyRead(digits_target))
+        node_split = p.add(SplitTrainTest(2, random_state = 0))
+        # parameters from http://scikit-learn.org/stable/auto_examples/plot_classifier_comparison.html
+        node_clf1 = p.add(wrap_instance(RandomForestClassifier, max_depth=5, 
+            n_estimators=10, max_features=1))
+        node_clf2 = p.add(wrap_instance(RandomForestClassifier, max_depth=12,
+            n_estimators=100, max_features=1000))
+        node_params_out_1 = p.add(CSVWrite('_out_params_1.csv'))
+        node_params_out_2 = p.add(CSVWrite('_out_params_2.csv'))
+        node_pred_out_1 = p.add(CSVWrite('_out_pred_1.csv'))
+        node_pred_out_2 = p.add(CSVWrite('_out_pred_2.csv'))
+
+        node_data['out'] > node_split['in0']
+        node_target['out'] > node_split['in1']
+
+        node_split['train0'] > node_clf1['X_train']
+        node_split['train1'] > node_clf1['y_train']
+        node_split['test0'] > node_clf1['X_test']
+
+        node_split['train0'] > node_clf2['X_train']
+        node_split['train1'] > node_clf2['y_train']
+        node_split['test0'] > node_clf2['X_test']
+
+        node_clf1['params_out'] > node_clf2['params_in']
+
+        node_clf1['params_out'] > node_params_out_1['in']
+        node_clf2['params_out'] > node_params_out_2['in']
+
+        node_clf1['y_pred'] > node_pred_out_1['in']
+        node_clf2['y_pred'] > node_pred_out_2['in']
+
+        p.run()
+
+        params_1 = np.genfromtxt('_out_params_1.csv', dtype=None, delimiter=',',
+            names=True)
+        params_2 = np.genfromtxt('_out_params_2.csv', dtype=None, delimiter=',',
+            names=True)
+        self.assertTrue(np.array_equal(params_1, params_2))
+
+        y_pred_1 = np.genfromtxt('_out_pred_1.csv', dtype=None, delimiter=',',
+            names=True)
+        y_pred_2 = np.genfromtxt('_out_pred_2.csv', dtype=None, delimiter=',',
+            names=True)
+        self.assertTrue(np.array_equal(y_pred_1, y_pred_2))
+        
     def tearDown(self):
         system('rm *.upsg')
         system('rm {}'.format(outfile_name))

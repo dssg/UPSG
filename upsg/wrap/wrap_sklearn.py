@@ -51,14 +51,14 @@ def __wrap_class(sk_cls):
         __output_keys = set()
         __funcs_to_run = {}
 
-        __input_keys.add('params')
+        __input_keys.add('params_in')
 
-        __output_keys.add('params')
+        __output_keys.add('params_out')
         def __do_get_params(self, **kwargs):
             uo = UObject(UObjectPhase.Write)
-            uo.from_dict(self.__sk_instance.get_params())
+            uo.from_dict(self.get_params())
             return uo
-        __funcs_to_run['params'] = __do_get_params
+        __funcs_to_run['params_out'] = __do_get_params
             
         # It would be nicer to use class hierarchy than hasattr, but sklearn
         # doesn't put everything in interfaces
@@ -125,6 +125,10 @@ def __wrap_class(sk_cls):
                 __funcs_to_run['y_pred'] = __do_predict
             
         def run(self, outputs_requested, **kwargs):
+            try:
+                self.__params = kwargs['params_in'].to_dict()
+            except KeyError:
+                pass
             self.__sk_instance = self.__sk_cls(**self.__params)
             self.__fitted = False
             return {output_key : 
