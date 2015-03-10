@@ -109,7 +109,7 @@ class UObject:
         """
         return self.__finalized
 
-    def to_read_phase(self):
+    def write_to_read_phase(self):
         """Converts a finalized UObject in its write phase into a UObject
         in its read phase.
 

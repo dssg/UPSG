@@ -10,7 +10,7 @@ class TestUObject(unittest.TestCase):
         filename = path_of_data('mixed_csv.csv')
         uo = UObject(UObjectPhase.Write)
         uo.from_csv(filename)
-        uo.to_read_phase()
+        uo.write_to_read_phase()
         result = uo.to_np()
         control = np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
         self.assertTrue(np.array_equal(result, control))
@@ -18,7 +18,7 @@ class TestUObject(unittest.TestCase):
         d = {'k1' : 'A String that is fairly long', 'k2' : 42.1, 'k3' : 7}
         uo = UObject(UObjectPhase.Write)
         uo.from_dict(d)
-        uo.to_read_phase()
+        uo.write_to_read_phase()
         result = uo.to_dict()
         self.assertEqual(d, result)
     def tearDown(self):

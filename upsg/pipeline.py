@@ -233,7 +233,7 @@ class Pipeline:
                     input_connections[k].other.key), input_connections)}
             output_args = node.get_stage().run(node.get_outputs().keys(), 
                 **input_args)
-            map(lambda k: output_args[k].to_read_phase(), output_args)
+            map(lambda k: output_args[k].write_to_read_phase(), output_args)
             if verbose:
                 print node
                 for arg in input_args:
