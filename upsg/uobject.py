@@ -117,8 +117,9 @@ class UObject:
         between pipeline stages rather than just using the .upsg file.
 
         """
-        if self.__phase != UObjectPhase.Write:
-            raise UObjectException('UObject is not in write phase')
+        if self.__phase == UObjectPhase.Read:
+            return
+
         if not self.__finalized:
             raise UObjectException('UObject is not finalized')
 

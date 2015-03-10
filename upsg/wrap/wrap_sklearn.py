@@ -109,6 +109,11 @@ def __wrap_class(sk_cls):
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     (y_test, y_test_dtype) = self.__uo_to_np(kwargs['y_test'])
+                    try:
+                        sample_weight, sample_weight_dtype = self.__uo_to_np(
+                            kwargs['sample_weight'])
+                    except KeyError:
+                        sample_weight = None
                     score = self.__sk_instance.score(X_test, np.ravel(y_test), 
                         sample_weight)
                     return self.__np_to_uo(np.array([[score]]), [('score', 

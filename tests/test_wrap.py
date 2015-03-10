@@ -178,6 +178,10 @@ class TestWrap(unittest.TestCase):
     def tearDown(self):
         system('rm *.upsg')
         system('rm {}'.format(outfile_name))
+        system('rm _out_params_1.csv')
+        system('rm _out_params_2.csv')
+        system('rm _out_pred_1.csv')
+        system('rm _out_pred_2.csv')
 
 if __name__ == '__main__':
     unittest.main()

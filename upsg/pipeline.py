@@ -129,8 +129,8 @@ class Node:
         #TODO raise an error if all of the required inputs have not been
         # connected yet
         return {key: self.__connections[key] for key in self.__connections
-             if not self.__connections[key].outgoing and
-                 (not live_only or self.__connections[key].other is not None)}
+             if (not self.__connections[key].outgoing) and
+                 ((not live_only) or (self.__connections[key].other is not None))}
 
     def get_outputs(self, live_only = True):
         """Returns a dictionary of {key : Connection} for all Connections

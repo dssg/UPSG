@@ -3,14 +3,15 @@ import numpy as np
 
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
+from ..pipeline import Pipeline
 
 
 class ParamSweep(MetaStage):
     # TODO dynamically generate input and output keys according to the clf
 
     class __MapStage(RunnableStage):
-    """Translates metastage input keys to input stage required by the stage"""
-    # Just passes the values on for now. It might need to modify them later
+        """Translates metastage input keys to input stage required by the stage"""
+        # Just passes the values on for now. It might need to modify them later
         def __init__(self, n_children):
             self.__n_children = n_children
             self.__input_keys = ['X_train', 'y_train', 'X_test', 'y_test']
@@ -19,7 +20,8 @@ class ParamSweep(MetaStage):
 #                for in_key in self.__input_keys}
 #            self.__output_keys = list(it.chain.from_iterable(
 #                self.__output_keys_hier.values()))
-            self.__output_keys = self.__input_keys
+            self.__output_keys = ['{}_out'.format(key) for key 
+                in self.__input_keys]
 
         @property
         def input_keys(self):
@@ -36,7 +38,7 @@ class ParamSweep(MetaStage):
 #            ret = {}
 #            map(ret.update, ret_hier)
 #            return ret    
-            return kwargs
+            return {'{}_out'.format(key) : kwargs[key] for key in kwargs}
     
     class __ReduceStage(RunnableStage):
         def __init__(self, n_parents):
@@ -58,12 +60,13 @@ class ParamSweep(MetaStage):
             #TODO return data in a format that tells you what the params were
             
             scores_array = np.array(
-                [kwargs[key].to_np()[0,0] for key in self.__score_keys])
-            best = kwargs[self.__params_keys[np.argsort(scores_array)]]
+                [kwargs[key].to_np()[0][0] for key in self.__score_keys])
+            best = kwargs[self.__params_keys[np.argsort(scores_array)[0]]]
             return {'params_out' : best}
 
-    def __init__(self, clf_stage, score_key, param_dict):
+    def __init__(self, clf_stage, score_key, params_dict):
         #TODO respect score_key
+        #TODO documentation
         self.__clf_stage = clf_stage
         # produces dictionaries of the cartesian product of our parameters.
         # from http://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
@@ -72,18 +75,18 @@ class ParamSweep(MetaStage):
         width = len(self.__params_prod)
         p = Pipeline()
         self.__pipeline = p
-        node_map = p.add(__MapStage(width))
-        node_reduce = p.add(__ReduceStage(width))
+        node_map = p.add(self.__MapStage(width))
+        node_reduce = p.add(self.__ReduceStage(width))
         node_final = p.add(clf_stage())
 
         for i, params in enumerate(self.__params_prod):
             node = p.add(clf_stage(**params))
-            [node_map[key] > node[key]) for key in 
+            [node_map['{}_out'.format(key)] > node[key] for key in 
                 ['X_train', 'X_test', 'y_train', 'y_test']]
             node['score'] > node_reduce['score{}'.format(i)]
-            node['params_out'] > node_reduce['params{}_in'.format(i)]
+            node['params_out'] > node_reduce['params_in{}'.format(i)]
 
-        [node_map[key] > node_final[key]) for key in 
+        [node_map['{}_out'.format(key)] > node_final[key] for key in 
             ['X_train', 'X_test', 'y_train']]
         node_reduce['params_out'] > node_final['params_in']
         self.__in_node = node_map
@@ -99,5 +102,5 @@ class ParamSweep(MetaStage):
 
     @property
     def pipeline(self):
-        return (self.__pipeline, self__in_node, self.__out_node)
+        return (self.__pipeline, self.__in_node, self.__out_node)
 
