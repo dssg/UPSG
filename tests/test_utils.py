@@ -38,6 +38,10 @@ class TestUtils(unittest.TestCase):
         sa = np.array([(-1.0, 2.0, -1.0), (0.0, -1.0, 2.0)], dtype = dtype)
         self.assertFalse(is_sa(nd))
         self.assertTrue(is_sa(sa))
+    def test_np_type(self):
+        self.assertEqual(np.dtype(np_type(7)), np.dtype(int))
+        self.assertEqual(np.dtype(np_type(7.2)), np.dtype(float))
+        self.assertEqual(np.dtype(np_type("hello")), np.dtype("S5"))
             
 if __name__ == '__main__':
     unittest.main()

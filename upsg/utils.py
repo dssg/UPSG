@@ -57,6 +57,8 @@ def is_sa(A):
     return A.dtype.isbuiltin == 0
 
 def np_type(val):
+    """Returns a string or type that can be passed to numpy.dtype() to 
+    generate the type of val"""
     if isinstance(val, str):
         return 'S{}'.format(len(val))
     return type(val)

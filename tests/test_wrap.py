@@ -28,7 +28,7 @@ class TestWrap(unittest.TestCase):
     def test_wrap_instance(self):
         impute_stage = wrap_instance('sklearn.preprocessing.Imputer',
             strategy='median') 
-        params = impute_stage.get_sklearn_instance().get_params()
+        params = impute_stage.get_params()
         self.assertEqual(params['strategy'], 'median')
     def __simple_pipeline(self, csv, sk_cls, init_args, init_kwargs, 
             out_key, sk_method):

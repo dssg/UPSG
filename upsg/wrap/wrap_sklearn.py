@@ -7,9 +7,9 @@ from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 from ..utils import np_nd_to_sa, np_sa_to_nd
 
-def unpickle_constructor(sk_instance):
-    cls = __wrap_class(type(sk_instance))
-    return cls(sk_instance) 
+def unpickle_constructor(sk_cls, params):
+    cls = __wrap_class(sk_cls)
+    return cls(**params) 
 
 def __wrap_class(sk_cls):
     """Wraps a scikit BaseEstimator class inside a UPSG Stage and returns it
@@ -17,15 +17,20 @@ def __wrap_class(sk_cls):
     class Wrapped(RunnableStage):
         __sk_cls = sk_cls
 
-        def __init__(self, sk_instance = None, **kwargs):
-            if sk_instance is None:
-                self.__sk_instance = self.__sk_cls(**kwargs)
-            else:
-                self.__sk_instance = sk_instance
+#        def __init__(self, sk_instance = None, **kwargs):
+#            if sk_instance is None:
+#                self.__sk_instance = self.__sk_cls(**kwargs)
+#            else:
+#                self.__sk_instance = sk_instance
+#            self.__sk_instance = None
+#            self.__cached_uos = {}
+        def __init__(self, **kwargs):
+            self.__sk_instance = None
+            self.__params = kwargs
             self.__cached_uos = {}
 
         def __reduce__(self):
-            return (unpickle_constructor, (self.__sk_instance,))
+            return (unpickle_constructor, (self.__sk_cls, self.__params))
 
         def __uo_to_np(self, uo):
             try:
@@ -45,6 +50,8 @@ def __wrap_class(sk_cls):
         __input_keys = set()
         __output_keys = set()
         __funcs_to_run = {}
+
+        __input_keys.add('params')
 
         __output_keys.add('params')
         def __do_get_params(self, **kwargs):
@@ -118,6 +125,7 @@ def __wrap_class(sk_cls):
                 __funcs_to_run['y_pred'] = __do_predict
             
         def run(self, outputs_requested, **kwargs):
+            self.__sk_instance = self.__sk_cls(**self.__params)
             self.__fitted = False
             return {output_key : 
                 self.__funcs_to_run[output_key](self, **kwargs) 
@@ -131,11 +139,11 @@ def __wrap_class(sk_cls):
         def output_keys(self):
             return list(self.__output_keys)
 
-        def get_sklearn_instance(self):
-            return self.__sk_instance           
+        def get_sklearn_class(self):
+            return self.__sk_cls          
 
         def get_params(self):
-            return self.__sk_instance.get_params()
+            return self.__params
 
     return Wrapped
 
