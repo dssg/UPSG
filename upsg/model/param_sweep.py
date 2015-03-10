@@ -1,14 +1,14 @@
 import itertools as it
 import numpy as np
 
-from ..stage import Stage, MetaStage
+from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 
 
 class ParamSweep(MetaStage):
     # TODO dynamically generate input and output keys according to the clf
 
-    class __MapStage(Stage):
+    class __MapStage(RunnableStage):
     """Translates metastage input keys to input stage required by the stage"""
     # Just passes the values on for now. It might need to modify them later
         def __init__(self, n_children):
@@ -38,7 +38,7 @@ class ParamSweep(MetaStage):
 #            return ret    
             return kwargs
     
-    class __ReduceStage(Stage):
+    class __ReduceStage(RunnableStage):
         def __init__(self, n_parents):
             self.__n_parents = n_parents
             self.__input_keys = map('score{}'.format, range(n_parents))

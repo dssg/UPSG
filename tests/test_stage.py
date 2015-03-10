@@ -7,7 +7,6 @@ from StringIO import StringIO
 
 from utils import UPSG_PATH, path_of_data
 
-from upsg.stage import Stage
 from upsg.uobject import UObject, UObjectPhase
 from upsg.wrap.wrap_sklearn import wrap
 
@@ -40,6 +39,8 @@ class TestStage(unittest.TestCase):
         self.__pickle('upsg.fetch.np.NumpyRead',  np.array([[0]]))
         self.__pickle('upsg.transform.split.SplitTrainTest')
         self.__pickle('upsg.transform.split.SplitColumn', 0)
+        self.__pickle('upsg.transform.rename_cols.RenameCols', 
+            {'name' : 'rename'})
         self.__pickle(wrap('sklearn.preprocessing.Imputer'), strategy = 'mean', 
             missing_values = 'NaN')
         self.__pickle(wrap('sklearn.svm.SVC'), gamma = 0.1)

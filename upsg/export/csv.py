@@ -1,6 +1,6 @@
-from ..stage import Stage
+from ..stage import RunnableStage
 
-class CSVWrite(Stage):
+class CSVWrite(RunnableStage):
     def __init__(self, filename):
         self.__filename = filename
     

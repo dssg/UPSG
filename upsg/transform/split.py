@@ -1,9 +1,9 @@
 from sklearn.cross_validation import train_test_split
 
-from ..stage import Stage
+from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
-class SplitColumn(Stage):
+class SplitColumn(RunnableStage):
     """Splits a table 'in' into two tables 'X' and 'y' where y is one column of
     A and X is everything else. """
 
@@ -40,7 +40,7 @@ class SplitColumn(Stage):
         uo_X.from_np(in_array[names])
         return {'X' : uo_X, 'y' : uo_y}
         
-class SplitTrainTest(Stage):
+class SplitTrainTest(RunnableStage):
     """Splits a table 'in' into two tables 'train' and 'test' by rows."""
     #TODO wrap.wrap_sklearn in a more general way, like in wrap.wrap_sklearn
     #TODO split more than one array at a time

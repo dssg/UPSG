@@ -1,9 +1,9 @@
-from ..stage import Stage
+from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
 from upsg.utils import is_sa, np_nd_to_sa
 
-class NumpyRead(Stage):
+class NumpyRead(RunnableStage):
     def __init__(self, A):
         self.__A = A
     

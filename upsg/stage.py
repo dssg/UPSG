@@ -2,7 +2,7 @@ import abc
 
 from pipeline import Pipeline
 
-class Stage:
+class __Stage:
     """Base class of all pipeline stages"""
     __metaclass__ = abc.ABCMeta
 
@@ -29,6 +29,11 @@ class Stage:
         """
         return []
 
+
+class RunnableStage(__Stage):
+    """A Stage that can directly be run"""
+    __metaclass__ = abc.ABCMeta
+
     @abc.abstractmethod
     def run(self, outputs_requested, **kwargs):
         """Run this phase of the pipeline.
@@ -51,7 +56,7 @@ class Stage:
         """
         return {}
         
-class MetaStage(Stage):
+class MetaStage(__Stage):
     """A Stage that will internally consist of multiple stages connected
     together."""
     
@@ -67,3 +72,4 @@ class MetaStage(Stage):
         A tuple: (Pipeline, in_node, out_node) 
         """
         return (Pipeline(), None, None)
+

@@ -1,9 +1,9 @@
 from copy import deepcopy
 
-from ..stage import Stage
+from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
-class RenameCols(Stage):
+class RenameCols(RunnableStage):
     """Renames columns of the table connected to the 'in' input and produces
     a table on the 'out' output that is identical to the 'in' table except with
     colums renamed ."""

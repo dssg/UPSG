@@ -8,14 +8,14 @@ from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
 from upsg.wrap.wrap_sklearn import wrap_instance
-from upsg.stage import Stage
+from upsg.stage import RunnableStage
 from upsg.uobject import UObject, UObjectPhase
 from utils import path_of_data
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
 outfile_name = path_of_data('_out.csv')
 
-class LambdaStage(Stage):
+class LambdaStage(RunnableStage):
     def __init__(self, lam, fout = None):
         self.__lam = lam
         self.__input_keys = dict.fromkeys(inspect.getargspec(lam).args, True)

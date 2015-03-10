@@ -1,7 +1,7 @@
-from ..stage import Stage
+from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
-class CSVRead(Stage):
+class CSVRead(RunnableStage):
     def __init__(self, filename):
         self.__filename = filename
     

@@ -3,7 +3,7 @@ import importlib
 import sklearn.base
 import numpy as np
 
-from ..stage import Stage
+from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 from ..utils import np_nd_to_sa, np_sa_to_nd
 
@@ -14,7 +14,7 @@ def unpickle_constructor(sk_instance):
 def __wrap_class(sk_cls):
     """Wraps a scikit BaseEstimator class inside a UPSG Stage and returns it
     """
-    class Wrapped(Stage):
+    class Wrapped(RunnableStage):
         __sk_cls = sk_cls
 
         def __init__(self, sk_instance = None, **kwargs):
