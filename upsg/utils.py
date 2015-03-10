@@ -55,3 +55,8 @@ def is_sa(A):
     """Returns true if the numpy.ndarray A is a structured array, false 
     otherwise."""
     return A.dtype.isbuiltin == 0
+
+def np_type(val):
+    if isinstance(val, str):
+        return 'S{}'.format(len(val))
+    return type(val)

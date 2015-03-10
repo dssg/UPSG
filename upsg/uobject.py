@@ -1,7 +1,7 @@
 import tables
 import uuid
 import numpy as np
-from utils import np_nd_to_sa, is_sa
+from utils import np_nd_to_sa, is_sa, np_type
 
 class UObjectException(Exception):
     """Exception related to UObjects"""
@@ -126,6 +126,34 @@ class UObject:
         self.__phase = UObjectPhase.Read
         self.__finalized = False
 
+    def __convert_to(self, target_format):
+        #TODO write this nicer than if statements
+        #TODO include sql internal format
+        storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
+        hfile = self.__file
+        if storage_method == 'np':
+            A = hfile.root.np.table.read()
+            if target_format == 'np':
+                return A
+            if target_format == 'dict':
+                return {col_name : A[col_name][0] 
+                    for col_name in A.dtype.names}
+            raise NotImplementedError('Unsupported conversion')
+        if storage_method == 'dict':
+            group = hfile.root.dict
+            array = group.keys
+            keys = array.read()
+            d = {key : hfile.get_node_attr(group, key) for 
+                key in keys}
+            if target_format == 'np':
+                dtype = np.dtype([(key, np_type(d[key])) for key in keys])
+                vals = [tuple([d[key] for key in keys])]
+                return np.array(vals, dtype = dtype)
+            if target_format == 'dict':
+                return d
+            raise NotImplementedError('Unsupported conversion')
+        raise NotImplementedError('Unsupported internal format')
+
     def __to(self, converter):
         """Does generic book-keeping when a "to_" function is invoked.
 
@@ -133,10 +161,9 @@ class UObject:
 
         Parameters
         ----------
-        converter:  (string, tables.File) -> ?
+        converter:  -> ?
             A function that produces the return value of the to_ 
-            function. The first parameter is the storage method. The
-            second is pytables file in which the data is stored. 
+            function. 
 
         Returns
         -------
@@ -147,8 +174,7 @@ class UObject:
         if self.__phase != UObjectPhase.Read:
             raise UObjectException('UObject is not in the read phase')
 
-        storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
-        to_return = converter(storage_method, self.__file)
+        to_return = converter()
         self.__finalized = True 
         return to_return
 
@@ -160,12 +186,8 @@ class UObject:
         A numpy array encoding the data in this UObject
 
         """
-        def converter(storage_method, hfile):
-            if storage_method == 'np':
-                return hfile.root.np.table.read()
-            raise UObjectException('Unsupported internal representation')
 
-        return self.__to(converter)
+        return self.__to(lambda: self.__convert_to('np'))
 
     def to_csv(self, file_name):
         """Makes the universal object available in a csv.
@@ -175,16 +197,14 @@ class UObject:
         The path of the csv file
 
         """
-        def converter(storage_method, hfile):
-            if storage_method == 'np':
-                table = hfile.root.np.table.read()
-                header = ",".join(map(
-                    lambda field_name: '"{}"'.format(field_name),
-                    table.dtype.names))
-                np.savetxt(file_name, table, delimiter = ',', header = header,
-                    fmt = "%s")
-                return file_name
-            raise UObjectException('Unsupported internal representation')
+        def converter():
+            table = self.__convert_to('np')
+            header = ",".join(map(
+                lambda field_name: '"{}"'.format(field_name),
+                table.dtype.names))
+            np.savetxt(file_name, table, delimiter = ',', header = header,
+                fmt = "%s")
+            return file_name
 
         return self.__to(converter)
         
@@ -213,16 +233,8 @@ class UObject:
         parameters for a model.
         
         """
-        def converter(storage_method, hfile):
-            if storage_method == 'dict':
-                group = hfile.root.dict
-                array = group.keys
-                keys = array.read()
-                return {key : hfile.get_node_attr(group, key) for 
-                    key in keys}
-            raise UObjectException('Unsupported internal representation')
 
-        return self.__to(converter)
+        return self.__to(lambda: self.__convert_to('dict'))
 
     def __from(self, converter):
         """Does generic book-keeping when a "from_function is invoked.
