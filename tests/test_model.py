@@ -12,7 +12,7 @@ from upsg.wrap.wrap_sklearn import wrap
 from upsg.export.csv import CSVWrite
 from upsg.transform.split import SplitTrainTest
 from upsg.pipeline import Pipeline
-from upsg.model.param_sweep import ParamSweep
+from upsg.model.grid_search import GridSearch
 from upsg.utils import np_sa_to_dict
 
 from utils import path_of_data
@@ -20,7 +20,7 @@ from utils import path_of_data
 outfile_name = path_of_data('_out.csv')
 
 class TestModel(unittest.TestCase):
-    def test_param_sweep(self):
+    def test_grid_search(self):
         """
 
         Simulates behavior of example in:
@@ -46,7 +46,7 @@ class TestModel(unittest.TestCase):
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
         node_split = p.add(SplitTrainTest(2, random_state = 1))
-        node_search = p.add(ParamSweep(wrap(SVC), 'score', parameters))
+        node_search = p.add(GridSearch(wrap(SVC), 'score', parameters))
         node_params_out = p.add(CSVWrite(outfile_name))
 
         node_data['out'] > node_split['in0']

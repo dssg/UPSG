@@ -6,7 +6,7 @@ from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
 
 
-class ParamSweep(MetaStage):
+class GridSearch(MetaStage):
     # TODO dynamically generate input and output keys according to the clf
 
     class __MapStage(RunnableStage):
