@@ -28,6 +28,8 @@ def __wrap_class(sk_cls):
             self.__sk_instance = None
             self.__params = kwargs
             self.__cached_uos = {}
+            self.__sk_instance = None
+            self.__fitted = False
 
         def __reduce__(self):
             return (unpickle_constructor, (self.__sk_cls, self.__params))
@@ -106,6 +108,7 @@ def __wrap_class(sk_cls):
                 __input_keys.add('X_test') 
                 __input_keys.add('y_test') 
                 def __do_score(self, **kwargs):
+                    #import pdb; pdb.set_trace()
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     (y_test, y_test_dtype) = self.__uo_to_np(kwargs['y_test'])

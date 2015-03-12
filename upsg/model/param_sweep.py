@@ -58,10 +58,9 @@ class ParamSweep(MetaStage):
 
         def run(self, outputs_requested, **kwargs):
             #TODO return data in a format that tells you what the params were
-            
             scores_array = np.array(
                 [kwargs[key].to_np()[0][0] for key in self.__score_keys])
-            best = kwargs[self.__params_keys[np.argsort(scores_array)[0]]]
+            best = kwargs[self.__params_keys[np.argsort(scores_array)[-1]]]
             return {'params_out' : best}
 
     def __init__(self, clf_stage, score_key, params_dict):

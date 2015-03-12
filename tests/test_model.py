@@ -13,6 +13,7 @@ from upsg.export.csv import CSVWrite
 from upsg.transform.split import SplitTrainTest
 from upsg.pipeline import Pipeline
 from upsg.model.param_sweep import ParamSweep
+from upsg.utils import np_sa_to_dict
 
 from utils import path_of_data
 
@@ -22,7 +23,7 @@ class TestModel(unittest.TestCase):
     def test_param_sweep(self):
         """
 
-        Simulates behavior of:
+        Simulates behavior of example in:
         http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
 
         """
@@ -35,7 +36,7 @@ class TestModel(unittest.TestCase):
 
         from sklearn.svm import SVC
 
-        parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
+        parameters = {'kernel':('rbf', 'linear'), 'C':[1, 10], 'random_state':[0]}
         iris = datasets.load_iris()
         iris_data = iris.data
         iris_target = np.array([iris.target]).T
@@ -44,7 +45,7 @@ class TestModel(unittest.TestCase):
 
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
-        node_split = p.add(SplitTrainTest(2, random_state = 0))
+        node_split = p.add(SplitTrainTest(2, random_state = 1))
         node_search = p.add(ParamSweep(wrap(SVC), 'score', parameters))
         node_params_out = p.add(CSVWrite(outfile_name))
 
@@ -58,7 +59,12 @@ class TestModel(unittest.TestCase):
 
         p.run()
 
-
+        control = {'kernel':'linear', 'C':1, 'random_state':0}
+        #import pdb; pdb.set_trace()
+        result = np.genfromtxt(outfile_name, dtype=None, 
+            delimiter=",", names=True)
+        
+        self.assertEqual(np_sa_to_dict(np.array([result])), control)
         
     def tearDown(self):
         system('rm *.upsg')

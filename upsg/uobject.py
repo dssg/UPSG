@@ -1,7 +1,7 @@
 import tables
 import uuid
 import numpy as np
-from utils import np_nd_to_sa, is_sa, np_type
+from utils import np_nd_to_sa, is_sa, np_type, np_sa_to_dict, dict_to_np_sa
 
 class UObjectException(Exception):
     """Exception related to UObjects"""
@@ -137,8 +137,7 @@ class UObject:
             if target_format == 'np':
                 return A
             if target_format == 'dict':
-                return {col_name : A[col_name][0] 
-                    for col_name in A.dtype.names}
+                return np_sa_to_dict(A)
             raise NotImplementedError('Unsupported conversion')
         if storage_method == 'dict':
             group = hfile.root.dict
@@ -147,9 +146,7 @@ class UObject:
             d = {key : hfile.get_node_attr(group, key) for 
                 key in keys}
             if target_format == 'np':
-                dtype = np.dtype([(key, np_type(d[key])) for key in keys])
-                vals = [tuple([d[key] for key in keys])]
-                return np.array(vals, dtype = dtype)
+                return dict_to_np_sa(d)
             if target_format == 'dict':
                 return d
             raise NotImplementedError('Unsupported conversion')

@@ -62,3 +62,14 @@ def np_type(val):
     if isinstance(val, str):
         return 'S{}'.format(len(val))
     return type(val)
+
+def np_sa_to_dict(sa):
+    """Converts an Numpy structured array with one row to a dictionary"""
+    return {col_name : sa[col_name][0] for col_name in sa.dtype.names}
+
+def dict_to_np_sa(d):
+    """Converts a dict to a Numpy structured array with one row to a dict"""
+    keys = d.keys()
+    dtype = np.dtype([(key, np_type(d[key])) for key in keys])
+    vals = [tuple([d[key] for key in keys])]
+    return np.array(vals, dtype = dtype)

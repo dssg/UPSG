@@ -176,7 +176,6 @@ class TestWrap(unittest.TestCase):
         self.assertTrue(np.array_equal(y_pred_1, y_pred_2))
         
     def tearDown(self):
-        return
         system('rm *.upsg')
         system('rm {}'.format(outfile_name))
         system('rm _out_params_1.csv')
