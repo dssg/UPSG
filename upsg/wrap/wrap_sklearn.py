@@ -1,12 +1,16 @@
 import importlib
-
-import sklearn.base
 import numpy as np
 from types import FunctionType
+import inspect
+
+import sklearn.base
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 from ..utils import np_nd_to_sa, np_sa_to_nd
+
+class WrapSKLearnException(Exception):
+    pass
 
 def unpickle_estimator(sk_cls, params):
     cls = __wrap_estimator(sk_cls)
@@ -15,7 +19,7 @@ def unpickle_estimator(sk_cls, params):
 def __wrap_estimator(sk_cls):
     """Wraps a scikit BaseEstimator class inside a UPSG Stage and returns it
     """
-    class Wrapped(RunnableStage):
+    class WrappedEstimator(RunnableStage):
         __sk_cls = sk_cls
 
         def __init__(self, **kwargs):
@@ -180,10 +184,42 @@ def __wrap_estimator(sk_cls):
         def get_params(self):
             return self.__params
 
-    return Wrapped
+    return WrappedEstimator
+
+# metrics are whitelisted and we specify their return arguments manually
+__supported_metrics = {'roc_curve' : ('fpr', 'tpr', 'thresholds')} 
 
 def __wrap_metric(fun):
     raise NotImplementedError()
+    func_name = fun.func_name
+    if not func_name in __supported_metrics:
+        raise WrapSKLearnException('Not a supported metric')
+    class WrappedMetric(RunnableStage):
+        __input_keys = inspect.getargspec(fun).args
+        __output_keys = __supported_metrics[func_name]
+        __fun = fun
+
+        def __uo_to_np(self, uo):
+            A_sa = uo.to_np()
+            A, dtype = np_sa_to_nd(A_sa)
+            return A
+
+        def __init__(self, *args, **kwargs):
+            self.__args = args
+            self.__kwargs = kwargs
+
+        def run(self, **kwargs):
+            input_args = [self.__uo_to_np(kwargs[key]) for key in 
+                self.__input_keys]
+            #TODO finish this function
+
+        @property 
+        def input_keys(self):
+            return self.__input_keys
+
+        @property
+        def output_keys(self):
+            return self.__output_keys
 
 def wrap(target):
     """returns a Stage class that wraps an sklearn object.
