@@ -2,16 +2,17 @@ import importlib
 
 import sklearn.base
 import numpy as np
+from types import FunctionType
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 from ..utils import np_nd_to_sa, np_sa_to_nd
 
-def unpickle_constructor(sk_cls, params):
-    cls = __wrap_class(sk_cls)
+def unpickle_estimator(sk_cls, params):
+    cls = __wrap_estimator(sk_cls)
     return cls(**params) 
 
-def __wrap_class(sk_cls):
+def __wrap_estimator(sk_cls):
     """Wraps a scikit BaseEstimator class inside a UPSG Stage and returns it
     """
     class Wrapped(RunnableStage):
@@ -25,7 +26,7 @@ def __wrap_class(sk_cls):
             self.__fitted = False
 
         def __reduce__(self):
-            return (unpickle_constructor, (self.__sk_cls, self.__params))
+            return (unpickle_estimator, (self.__sk_cls, self.__params))
 
         def __uo_to_np(self, uo):
             try:
@@ -181,14 +182,18 @@ def __wrap_class(sk_cls):
 
     return Wrapped
 
+def __wrap_metric(fun):
+    raise NotImplementedError()
+
 def wrap(target):
     """returns a Stage class that wraps an sklearn object.
 
     Parameters
     ----------
-    target: sklearn.base.BaseEstimator class | string
+    target: sklearn.base.BaseEstimator class | sklearn.metrics function | string
         Either a BaseEstimator subclass or the fully qualified package name
-        of a BaseEstimater subclass.
+        of a BaseEstimater subclass or a function in sklearn.metrics or the 
+        qualified backage name of a function in sklearn.metrics.
 
     Examples
     --------
@@ -204,25 +209,28 @@ def wrap(target):
     """
     if isinstance(target, str):
         split = target.split('.')
-        cls_name = split[-1]
+        object_name = split[-1]
         module_name = '.'.join(split[:-1])
         skl_module = importlib.import_module(module_name)
-        skl_class = skl_module.__dict__[cls_name]
+        skl_object = skl_module.__dict__[object_name]
     else:
-        skl_class = target 
-    if not issubclass(skl_class, sklearn.base.BaseEstimator):
-        raise TypeError(('wrap takes a sklearn.base.BaseEstimator class ' 
-            'or a string'))
-    return __wrap_class(skl_class)
+        skl_object = target 
+    if issubclass(skl_object, sklearn.base.BaseEstimator):
+        return __wrap_estimator(skl_object)
+    if isinstance(skl_object, FunctionType): # Assuming this is a metric
+        return __wrap_metric(skl_object)
+    raise TypeError(('wrap takes a sklearn.base.BaseEstimator class ' 
+        'or a function or a package name of one of the above objects'))
 
 def wrap_instance(target, *args, **kwargs):
     """returns an instance of a Stage class that wraps an sklearn object.
 
     Parameters
     ----------
-    target: sklearn.base.BaseEstimator class | string
+    target: sklearn.base.BaseEstimator class | sklearn.metrics function | string
         Either a BaseEstimator subclass or the fully qualified package name
-        of a BaseEstimater subclass.
+        of a BaseEstimater subclass or a function in sklearn.metrics or the 
+        qualified backage name of a function in sklearn.metrics.
     args: 
         positional arguments to pass to constructor.
     kwargs:
