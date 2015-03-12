@@ -17,13 +17,6 @@ def __wrap_class(sk_cls):
     class Wrapped(RunnableStage):
         __sk_cls = sk_cls
 
-#        def __init__(self, sk_instance = None, **kwargs):
-#            if sk_instance is None:
-#                self.__sk_instance = self.__sk_cls(**kwargs)
-#            else:
-#                self.__sk_instance = sk_instance
-#            self.__sk_instance = None
-#            self.__cached_uos = {}
         def __init__(self, **kwargs):
             self.__sk_instance = None
             self.__params = kwargs
@@ -122,21 +115,50 @@ def __wrap_class(sk_cls):
                     return self.__np_to_uo(np.array([[score]]), [('score', 
                         type(score))])
                 __funcs_to_run['score'] = __do_score 
+            #TODO these share a lot of code, but I ran into a lot of 
+            #   scoping issues trying to factor them out. 
+            #   (http://stackoverflow.com/questions/9505979/the-scope-of-names-defined-in-class-block-doesnt-extend-to-the-methods-blocks)
+            #   Find a better way to make this prettier
             if hasattr(sk_cls, 'predict'):
                 __output_keys.add('y_pred')
-                __input_keys.add('X_test') 
+                __input_keys.add('X_test')
                 def __do_predict(self, **kwargs):
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
-                    y_pred = self.__sk_instance.predict(X_test)
-                    return self.__np_to_uo(y_pred.reshape(len(y_pred), -1))
+                    result = self.__sk_instance.predict(X_test)
+                    return self.__np_to_uo(result.reshape(len(result), -1))
                 __funcs_to_run['y_pred'] = __do_predict
+            if hasattr(sk_cls, 'predict_proba'):
+                __output_keys.add('pred_proba')
+                __input_keys.add('X_test')
+                def __do_predict_proba(self, **kwargs):
+                    self.__fit(**kwargs)
+                    (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
+                    result = self.__sk_instance.predict_proba(X_test)
+                    return self.__np_to_uo(result.reshape(len(result), -1))
+                __funcs_to_run['pred_proba'] = __do_predict_proba
+            if hasattr(sk_cls, 'predict_log_proba'):
+                __output_keys.add('pred_log_proba')
+                __input_keys.add('X_test')
+                def __do_predict_log_proba(self, **kwargs):
+                    self.__fit(**kwargs)
+                    (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
+                    result = self.__sk_instance.predict_log_proba(X_test)
+                    return self.__np_to_uo(result.reshape(len(result), -1))
+                __funcs_to_run['pred_log_proba'] = __do_predict_log_proba
+                
             
         def run(self, outputs_requested, **kwargs):
             try:
                 self.__params = kwargs['params_in'].to_dict()
             except KeyError:
                 pass
+            # If the user was inconsiderate enough to ask for probabilities
+            #    without setting the probability param to True, we do it for
+            #    them.
+            if ('pred_proba' in outputs_requested or 
+                'pred_log_proba' in outputs_requested):
+                self.__params['probability'] = True
             self.__sk_instance = self.__sk_cls(**self.__params)
             self.__fitted = False
             return {output_key : 

@@ -7,6 +7,27 @@ from ..pipeline import Pipeline
 
 
 class GridSearch(MetaStage):
+    """Searches over a grid of parameters for a given classifier and finds the
+    set of parameters that score the best.
+
+    Then, the classifier with the best parameters can be used to make a 
+    predicition
+
+    Input Keys
+    ----------
+    X_train
+    y_train
+    X_test
+    y_test
+
+    Output Keys
+    -----------
+    y_pred : predicted y data corresponding to X_test
+    params : the best parameters found
+    
+    """
+    
+    
     # TODO dynamically generate input and output keys according to the clf
 
     class __MapStage(RunnableStage):
@@ -64,8 +85,27 @@ class GridSearch(MetaStage):
             return {'params_out' : best}
 
     def __init__(self, clf_stage, score_key, params_dict):
+        """
+        
+        Parameters
+        ----------
+        clf_stage : Stage class
+            class of a Stage for which parameters will be tested
+        score_key : str
+            key output from clf_stage that should be used for scoring. Should
+                only be a single number.
+        params_dict : dict of (string : list)
+            A dictionary where the keys are parameters and their values are a
+            list of values to try for that paramter. For example, if given
+            {'param1' : [1, 10], 'param2' : ['a', 'b']}, GridSearch will 
+            search for the highest-scoring among clf_stage(param1 = 1, 
+            param2 = 'a'), clf_stage(param1 = 1, param2 = 'b'),
+            clf_stage(param1 = 10, param2 = 'b'), clf_stage(param1 = 10,
+            param2 = 'b')
+
+        """
+
         #TODO respect score_key
-        #TODO documentation
         self.__clf_stage = clf_stage
         # produces dictionaries of the cartesian product of our parameters.
         # from http://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
