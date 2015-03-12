@@ -237,9 +237,13 @@ class Pipeline:
             if verbose:
                 print node
                 for arg in input_args:
-                    print '<-{}: {}'.format(arg, input_args[arg].to_np())
+                    print '<-{}[{}]:\n\t{}'.format(arg, 
+                        input_args[arg].get_file_name(), 
+                        input_args[arg].to_np())
                 for arg in output_args:
-                    print '->{}: {}'.format(arg, output_args[arg].to_np())
+                    print '->{}[{}]:\n\t{}'.format(arg, 
+                        output_args[arg].get_file_name(),
+                        output_args[arg].to_np())
             state[node] = output_args
 
     def run(self, **kwargs):

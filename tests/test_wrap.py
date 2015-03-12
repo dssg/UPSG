@@ -134,7 +134,7 @@ class TestWrap(unittest.TestCase):
         node_split = p.add(SplitTrainTest(2, random_state = 0))
         # parameters from http://scikit-learn.org/stable/auto_examples/plot_classifier_comparison.html
         node_clf1 = p.add(wrap_instance(RandomForestClassifier, max_depth=5, 
-            n_estimators=10, max_features=1))
+            n_estimators=10, max_features=1, random_state = 0))
         node_clf2 = p.add(wrap_instance(RandomForestClassifier, max_depth=12,
             n_estimators=100, max_features=1000))
         node_params_out_1 = p.add(CSVWrite('_out_params_1.csv'))
@@ -176,6 +176,7 @@ class TestWrap(unittest.TestCase):
         self.assertTrue(np.array_equal(y_pred_1, y_pred_2))
         
     def tearDown(self):
+        return
         system('rm *.upsg')
         system('rm {}'.format(outfile_name))
         system('rm _out_params_1.csv')
