@@ -11,6 +11,7 @@ from upsg.pipeline import Pipeline
 from upsg.fetch.csv import CSVRead
 from upsg.fetch.np import NumpyRead
 from upsg.export.csv import CSVWrite
+from upsg.export.plot import Plot
 from upsg.transform.split import SplitColumn, SplitTrainTest
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
@@ -124,8 +125,8 @@ class TestWrap(unittest.TestCase):
         from sklearn.ensemble import RandomForestClassifier
         from sklearn import datasets
         digits = datasets.load_digits()
-        digits_data = digits.data[:4,:]
-        digits_target = np.array([digits.target]).T[:4,:]
+        digits_data = digits.data
+        digits_target = np.array([digits.target]).T
     
         p = Pipeline()
 
@@ -175,6 +176,65 @@ class TestWrap(unittest.TestCase):
             names=True)
         self.assertTrue(np.array_equal(y_pred_1, y_pred_2))
         
+    def testMetric(self):
+
+        # based on
+        # http://scikit-learn.org/stable/auto_examples/plot_roc_crossval.html
+        from sklearn.svm import SVC
+        from sklearn.metrics import roc_curve
+        from sklearn import datasets
+        iris = datasets.load_iris()
+        iris_data = iris.data[iris.target != 2]
+        iris_target = iris.target[iris.target != 2]
+        #np.array([iris.target[iris.target != 2]]).T
+    
+        p = Pipeline()
+
+        node_data = p.add(NumpyRead(iris_data))
+        node_target = p.add(NumpyRead(iris_target))
+        node_split = p.add(SplitTrainTest(2, random_state = 0))
+        node_clf = p.add(wrap_instance(SVC, 
+            random_state = 0))
+        node_select = p.add(SplitColumn(1))
+        node_roc = p.add(wrap_instance(roc_curve))
+        node_fpr_out = p.add(CSVWrite('_out_fpr.csv'))
+        node_tpr_out = p.add(CSVWrite('_out_tpr.csv'))
+
+        node_data['out'] > node_split['in0']
+        node_target['out'] > node_split['in1']
+
+        node_split['train0'] > node_clf['X_train']
+        node_split['train1'] > node_clf['y_train']
+        node_split['test0'] > node_clf['X_test']
+
+        node_clf['pred_proba'] > node_select['in']
+        node_select['y'] > node_roc['y_score']
+        node_split['test1'] > node_roc['y_true']
+
+        node_roc['fpr'] > node_fpr_out['in']
+        node_roc['tpr'] > node_tpr_out['in']
+
+        p.run()
+
+        result_fpr = np.genfromtxt('_out_fpr.csv', delimiter=',', 
+            names=True).view(dtype = float)
+        result_tpr = np.genfromtxt('_out_tpr.csv', delimiter=',', 
+            names=True).view(dtype = float)
+
+        ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
+            train_test_split(iris_data, iris_target, random_state = 0))
+        ctrl_clf = SVC(random_state = 0, probability = True)
+        ctrl_clf.fit(ctrl_X_train, ctrl_y_train)
+        ctrl_y_score = ctrl_clf.predict_proba(ctrl_X_test)[:, 1]
+        ctrl_fpr, ctrl_tpr, thresholds = roc_curve(ctrl_y_test, ctrl_y_score)
+
+        print result_fpr
+        print ctrl_fpr
+    
+        self.assertTrue(np.allclose(ctrl_fpr, result_fpr))
+        self.assertTrue(np.allclose(ctrl_tpr, result_tpr))
+
+
     def tearDown(self):
         system('rm *.upsg')
         system('rm {}'.format(outfile_name))
@@ -182,6 +242,8 @@ class TestWrap(unittest.TestCase):
         system('rm _out_params_2.csv')
         system('rm _out_pred_1.csv')
         system('rm _out_pred_2.csv')
+        system('rm _out_fpr.csv')
+        system('rm _out_tpr.csv')
 
 if __name__ == '__main__':
     unittest.main()

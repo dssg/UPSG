@@ -186,32 +186,50 @@ def __wrap_estimator(sk_cls):
 
     return WrappedEstimator
 
+def unpickle_metric(fun, args, kwargs):
+    cls = __wrap_metric(fun)
+    return cls(*args, **kwargs) 
+
 # metrics are whitelisted and we specify their return arguments manually
-__supported_metrics = {'roc_curve' : ('fpr', 'tpr', 'thresholds')} 
+supported_metrics = {'roc_curve' : ('fpr', 'tpr', 'thresholds')} 
 
 def __wrap_metric(fun):
-    raise NotImplementedError()
     func_name = fun.func_name
-    if not func_name in __supported_metrics:
+    if not func_name in supported_metrics:
         raise WrapSKLearnException('Not a supported metric')
     class WrappedMetric(RunnableStage):
-        __input_keys = inspect.getargspec(fun).args
-        __output_keys = __supported_metrics[func_name]
-        __fun = fun
+        __argspec = inspect.getargspec(fun)
+        __input_keys = __argspec.args[:-len(__argspec.defaults)]
+        __output_keys = supported_metrics[func_name]
+
+        def __fun(self, *args, **kwargs):
+           return fun(*args, **kwargs)
 
         def __uo_to_np(self, uo):
             A_sa = uo.to_np()
             A, dtype = np_sa_to_nd(A_sa)
-            return A
+            return np.ravel(A)
 
         def __init__(self, *args, **kwargs):
             self.__args = args
             self.__kwargs = kwargs
 
-        def run(self, **kwargs):
+        def __reduce__(self):
+            return (unpickle_metric, (self.__fun, self.__args, self.__kwargs))
+
+        def run(self, outputs_requested, **kwargs):
             input_args = [self.__uo_to_np(kwargs[key]) for key in 
                 self.__input_keys]
-            #TODO finish this function
+            np_out = self.__fun(*(input_args + list(self.__args)), **self.__kwargs)
+            if len(self.__output_keys) <= 0:
+                np_out = []
+            elif len(self.__output_keys) == 1:
+                np_out = [np_out]
+            out = {key : UObject(UObjectPhase.Write) for key in 
+                self.__output_keys}
+            [out[key].from_np(np_nd_to_sa(np_out[i])) for i, key in 
+                enumerate(self.__output_keys)]
+            return out
 
         @property 
         def input_keys(self):
@@ -220,6 +238,7 @@ def __wrap_metric(fun):
         @property
         def output_keys(self):
             return self.__output_keys
+    return WrappedMetric
 
 def wrap(target):
     """returns a Stage class that wraps an sklearn object.
@@ -251,10 +270,10 @@ def wrap(target):
         skl_object = skl_module.__dict__[object_name]
     else:
         skl_object = target 
-    if issubclass(skl_object, sklearn.base.BaseEstimator):
-        return __wrap_estimator(skl_object)
     if isinstance(skl_object, FunctionType): # Assuming this is a metric
         return __wrap_metric(skl_object)
+    if issubclass(skl_object, sklearn.base.BaseEstimator):
+        return __wrap_estimator(skl_object)
     raise TypeError(('wrap takes a sklearn.base.BaseEstimator class ' 
         'or a function or a package name of one of the above objects'))
 

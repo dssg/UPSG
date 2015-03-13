@@ -40,15 +40,16 @@ def np_nd_to_sa(nd, dtype = None):
     -------
     A structured numpy.ndarray 
     """
-    if nd.ndim != 2:
-        raise TypeError('np_nd_to_sa only takes 2-dimensional arrays')
+    if nd.ndim not in (1, 2):
+        raise TypeError('np_nd_to_sa only takes 1 or 2-dimensional arrays')
 
+    if nd.ndim == 1:
+        nd = nd.reshape(nd.size, 1)
     if dtype is None:
         cols = nd.shape[1]
         dtype = np.dtype({'names' : map('f{}'.format, xrange(cols)), 
             'formats' : [nd.dtype for i in xrange(cols)]})
 
-    #import pdb; pdb.set_trace()
     return nd.reshape(nd.size).view(dtype)
 
 def is_sa(A):
