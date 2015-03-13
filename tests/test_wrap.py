@@ -126,7 +126,7 @@ class TestWrap(unittest.TestCase):
         from sklearn import datasets
         digits = datasets.load_digits()
         digits_data = digits.data
-        digits_target = np.array([digits.target]).T
+        digits_target = digits.target
     
         p = Pipeline()
 

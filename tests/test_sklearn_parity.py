@@ -28,7 +28,7 @@ class TestSKLearnParity(unittest.TestCase):
         digits = datasets.load_digits()
         digits_data = digits.data
         # for now, we need a column vector rather than an array
-        digits_target = np.array([digits.target]).T
+        digits_target = digits.target
     
         p = Pipeline()
 
