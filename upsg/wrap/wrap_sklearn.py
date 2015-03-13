@@ -98,7 +98,7 @@ def __wrap_estimator(sk_cls):
                         kwargs['sample_weight'])
                 except KeyError:
                     sample_weight = None
-                self.__sk_instance.fit(X_train, np.ravel(y_train), 
+                self.__sk_instance.fit(X_train, y_train, 
                     sample_weight)
                 self.__fitted = True
             if hasattr(sk_cls, 'score'):
@@ -115,10 +115,9 @@ def __wrap_estimator(sk_cls):
                             kwargs['sample_weight'])
                     except KeyError:
                         sample_weight = None
-                    score = self.__sk_instance.score(X_test, np.ravel(y_test), 
+                    score = self.__sk_instance.score(X_test, y_test, 
                         sample_weight)
-                    return self.__np_to_uo(np.array([[score]]), [('score', 
-                        type(score))])
+                    return self.__np_to_uo(score)
                 __funcs_to_run['score'] = __do_score 
             #TODO these share a lot of code, but I ran into a lot of 
             #   scoping issues trying to factor them out. 
@@ -131,7 +130,7 @@ def __wrap_estimator(sk_cls):
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     result = self.__sk_instance.predict(X_test)
-                    return self.__np_to_uo(result.reshape(len(result), -1))
+                    return self.__np_to_uo(result)
                 __funcs_to_run['y_pred'] = __do_predict
             if hasattr(sk_cls, 'predict_proba'):
                 __output_keys.add('pred_proba')
@@ -140,7 +139,7 @@ def __wrap_estimator(sk_cls):
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     result = self.__sk_instance.predict_proba(X_test)
-                    return self.__np_to_uo(result.reshape(len(result), -1))
+                    return self.__np_to_uo(result)
                 __funcs_to_run['pred_proba'] = __do_predict_proba
             if hasattr(sk_cls, 'predict_log_proba'):
                 __output_keys.add('pred_log_proba')
@@ -149,7 +148,7 @@ def __wrap_estimator(sk_cls):
                     self.__fit(**kwargs)
                     (X_test, X_test_dtype) = self.__uo_to_np(kwargs['X_test'])
                     result = self.__sk_instance.predict_log_proba(X_test)
-                    return self.__np_to_uo(result.reshape(len(result), -1))
+                    return self.__np_to_uo(result)
                 __funcs_to_run['pred_log_proba'] = __do_predict_log_proba
                 
             
