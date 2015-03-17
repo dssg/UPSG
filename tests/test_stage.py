@@ -44,6 +44,7 @@ class TestStage(UPSGTestCase):
         self.__pickle(wrap('sklearn.preprocessing.Imputer'), strategy = 'mean', 
             missing_values = 'NaN')
         self.__pickle(wrap('sklearn.svm.SVC'), gamma = 0.1)
+        self.__pickle(wrap('sklearn.metrics.roc_curve'))
 
 if __name__ == '__main__':
     unittest.main()

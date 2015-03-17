@@ -214,7 +214,7 @@ def __wrap_metric(fun):
             self.__kwargs = kwargs
 
         def __reduce__(self):
-            return (unpickle_metric, (self.__fun, self.__args, self.__kwargs))
+            return (unpickle_metric, (fun, self.__args, self.__kwargs))
 
         def run(self, outputs_requested, **kwargs):
             input_args = [self.__uo_to_np(kwargs[key]) for key in 
