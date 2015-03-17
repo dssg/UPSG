@@ -2,15 +2,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from ..stage import RunnableStage
+from ..utils import np_sa_to_nd
 
 class Plot(RunnableStage):
-    def __init__(self, filename, title = '', xlabel = '', ylabel = '', *args, 
-        #TODO documentation
+    def __init__(self, filename,  *args, 
         **kwargs):
+        #TODO documentation
         self.__filename = filename
-        self.__title  = title
-        self.__xlabel = xlabel
-        self.__ylabel = ylabel
+        try:
+            self.__title  = kwargs['title']
+            del kwargs['title']
+        except KeyError:
+            self.__title = ''
+        try:
+            self.__xlabel = kwargs['xlabel']
+            del kwargs['xlabel']
+        except KeyError:
+            self.__xlabel = ''
+        try:
+            self.__ylabel = kwargs['ylabel']
+            del kwargs['ylabel']
+        except KeyError:
+            self.__ylabel = ''
         self.__args = args
         self.__kwargs = kwargs
     
@@ -24,9 +37,9 @@ class Plot(RunnableStage):
         return []
 
     def run(self, outputs_requested, **kwargs):
-        y = kwargs['y'].to_np()
+        y = np_sa_to_nd(kwargs['y'].to_np())[0]
         try:
-            x = kwargs['x'].to_np()
+            x = np_sa_to_nd(kwargs['x'].to_np())[0]
         except KeyError:
             M = y.shape[0]
             x = np.arange(M).reshape(M, 1)
