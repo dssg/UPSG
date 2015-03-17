@@ -15,11 +15,9 @@ from upsg.pipeline import Pipeline
 from upsg.model.grid_search import GridSearch
 from upsg.utils import np_sa_to_dict
 
-from utils import path_of_data
+from utils import path_of_data, UPSGTestCase
 
-outfile_name = path_of_data('_out.csv')
-
-class TestModel(unittest.TestCase):
+class TestModel(UPSGTestCase):
     def test_grid_search(self):
         """
 
@@ -47,7 +45,7 @@ class TestModel(unittest.TestCase):
         node_target = p.add(NumpyRead(iris_target))
         node_split = p.add(SplitTrainTest(2, random_state = 1))
         node_search = p.add(GridSearch(wrap(SVC), 'score', parameters))
-        node_params_out = p.add(CSVWrite(outfile_name))
+        node_params_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
         node_data['out'] > node_split['in0']
         node_target['out'] > node_split['in1']
@@ -60,15 +58,9 @@ class TestModel(unittest.TestCase):
         p.run()
 
         control = {'kernel':'linear', 'C':1, 'random_state':0}
-        #import pdb; pdb.set_trace()
-        result = np.genfromtxt(outfile_name, dtype=None, 
-            delimiter=",", names=True)
-        
+        result = self._tmp_files.csv_read('out.csv')
         self.assertEqual(np_sa_to_dict(np.array([result])), control)
         
-    def tearDown(self):
-        system('rm *.upsg')
-        system('rm {}'.format(outfile_name))
 
 if __name__ == '__main__':
     unittest.main()

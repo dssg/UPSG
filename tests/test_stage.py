@@ -5,12 +5,12 @@ import pickle
 from os import system
 from StringIO import StringIO
 
-from utils import UPSG_PATH, path_of_data
+from utils import UPSG_PATH, path_of_data, UPSGTestCase
 
 from upsg.uobject import UObject, UObjectPhase
 from upsg.wrap.wrap_sklearn import wrap
 
-class TestStage(unittest.TestCase):
+class TestStage(UPSGTestCase):
 
     def __pickle(self, cls, *module_args, **module_kwargs):
         if isinstance(cls, str): # cls is the name of the class
@@ -44,9 +44,6 @@ class TestStage(unittest.TestCase):
         self.__pickle(wrap('sklearn.preprocessing.Imputer'), strategy = 'mean', 
             missing_values = 'NaN')
         self.__pickle(wrap('sklearn.svm.SVC'), gamma = 0.1)
-
-    def tearDown(self):
-        system('rm *.upsg')
 
 if __name__ == '__main__':
     unittest.main()

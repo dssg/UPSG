@@ -23,9 +23,9 @@ def np_sa_to_nd(sa):
         the structured array that was passed in.
     """
     #TODO use a better metric to determine the datatype
-    view = sa.view(dtype = sa[0][0].dtype)
+    view = sa.view(dtype = sa.dtype[0])
     if len(sa.dtype) == 1:
-        if len(sa) == 1:
+        if sa.size == 1:
             return (view.reshape(()), sa.dtype)
         return (view.reshape(len(sa)), sa.dtype)
     return (view.reshape(len(sa), -1), sa.dtype)

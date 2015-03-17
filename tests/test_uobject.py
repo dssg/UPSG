@@ -4,9 +4,9 @@ import unittest
 
 from upsg.uobject import *
 from upsg.utils import np_type
-from utils import path_of_data
+from utils import path_of_data, UPSGTestCase
 
-class TestUObject(unittest.TestCase):
+class TestUObject(UPSGTestCase):
     test_dict = {'k1' : 'A String that is fairly long', 'k2' : 42.1, 'k3' : 7}
     test_dict_keys = test_dict.keys()
     test_array_dtype = np.dtype({'names' : test_dict_keys, 'formats' : 
@@ -41,8 +41,6 @@ class TestUObject(unittest.TestCase):
         uo.write_to_read_phase()
         d = uo.to_dict()
         self.assertEqual(d, self.test_dict)
-    def tearDown(self):
-        system('rm *.upsg')
 
 if __name__ == '__main__':
     unittest.main()

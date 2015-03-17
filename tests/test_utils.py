@@ -1,10 +1,11 @@
 import numpy as np
 from os import system
 import unittest
+from utils import UPSGTestCase
 
 from upsg.utils import *
 
-class TestUtils(unittest.TestCase):
+class TestUtils(UPSGTestCase):
     def test_nd_to_sa_w_type(self):
         nd = np.array([[1,2,3],[4,5,6]], dtype = int)
         dtype = np.dtype({'names' : map('f{}'.format, xrange(3)), 

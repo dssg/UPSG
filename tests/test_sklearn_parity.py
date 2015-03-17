@@ -13,11 +13,9 @@ from upsg.export.csv import CSVWrite
 from upsg.transform.split import SplitTrainTest
 from upsg.pipeline import Pipeline
 
-from utils import path_of_data
+from utils import path_of_data, UPSGTestCase
 
-outfile_name = path_of_data('_out.csv')
-
-class TestSKLearnParity(unittest.TestCase):
+class TestSKLearnParity(UPSGTestCase):
     def test_tutorial(self):
         """
 
@@ -43,7 +41,7 @@ class TestSKLearnParity(unittest.TestCase):
         stage_clf = wrap_instance(SVC, gamma=0.001, C=100.)
 
         # output to a csv
-        stage_csv = CSVWrite(outfile_name)
+        stage_csv = CSVWrite(self._tmp_files('out.csv'))
         
         node_data, node_target, node_split, node_clf, node_csv = map(p.add, 
             [stage_data, stage_target, stage_split_data, stage_clf, 
@@ -57,17 +55,9 @@ class TestSKLearnParity(unittest.TestCase):
         node_split['test0'] > node_clf['X_test']
         node_clf['y_pred'] > node_csv['in']
 
-#        p.connect(uid_data, 'out', uid_split, 'in0')
-#        p.connect(uid_target, 'out', uid_split, 'in1')
-#        p.connect(uid_split, 'train0', uid_clf, 'X_train')
-#        p.connect(uid_split, 'train1', uid_clf, 'y_train')
-#        p.connect(uid_split, 'test0', uid_clf, 'X_test')
-#        p.connect(uid_clf, 'y_pred', uid_csv, 'in')
-
         p.run()
       
-        result = np.genfromtxt(outfile_name, dtype=None, delimiter=",", 
-            names=True).reshape(1)[0][0]
+        result = self._tmp_files.csv_read('out.csv', True)
 
         # making sure we get the same result as sklearn
         clf = SVC(gamma=0.001, C=100.)
@@ -85,11 +75,6 @@ class TestSKLearnParity(unittest.TestCase):
         s = pickle.dumps(stage_clf)
         stage_clf2 = pickle.loads(s)
         self.assertEqual(stage_clf.get_params(), stage_clf2.get_params())
-
-        
-    def tearDown(self):
-        system('rm *.upsg')
-        system('rm {}'.format(outfile_name))
 
 if __name__ == '__main__':
     unittest.main()

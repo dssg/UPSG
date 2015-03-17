@@ -10,10 +10,8 @@ from upsg.fetch.csv import CSVRead
 from upsg.wrap.wrap_sklearn import wrap_instance
 from upsg.stage import RunnableStage
 from upsg.uobject import UObject, UObjectPhase
-from utils import path_of_data
+from utils import path_of_data, UPSGTestCase
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
-
-outfile_name = path_of_data('_out.csv')
 
 class LambdaStage(RunnableStage):
     def __init__(self, lam, fout = None, n_results = 1):
@@ -53,14 +51,14 @@ class LambdaStage(RunnableStage):
             for i, key in enumerate(self.__output_keys)]
         return ret
 
-class TestPipleline(unittest.TestCase):
+class TestPipleline(UPSGTestCase):
     def test_rw(self):
         infile_name = path_of_data('mixed_csv.csv')        
 
         p = Pipeline()
 
         csv_read_node = p.add(CSVRead(infile_name))
-        csv_write_node = p.add(CSVWrite(outfile_name))
+        csv_write_node = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
         csv_read_node['out'] > csv_write_node['in']
 
@@ -68,8 +66,7 @@ class TestPipleline(unittest.TestCase):
 
         control = np.genfromtxt(infile_name, dtype=None, delimiter=",", 
             names=True)
-        result = np.genfromtxt(outfile_name, dtype=None, delimiter=",", 
-            names=True)
+        result = self._tmp_files.csv_read('out.csv')
         
         self.assertTrue(np.array_equal(result, control))
 
@@ -81,7 +78,7 @@ class TestPipleline(unittest.TestCase):
         p = Pipeline()
 
         csv_read_node = p.add(CSVRead(infile_name))
-        csv_write_node = p.add(CSVWrite(outfile_name))
+        csv_write_node = p.add(CSVWrite(self._tmp_files.get('out.csv')))
         impute_node = p.add(wrap_instance(Imputer))
 
         csv_read_node['out'] > impute_node['X_train']
@@ -97,9 +94,7 @@ class TestPipleline(unittest.TestCase):
         ctrl_X_new_nd = ctrl_imputer.fit_transform(ctrl_X_nd)
         control = ctrl_X_new_nd
 
-        res_sa = np.genfromtxt(outfile_name, dtype=None, delimiter=",", 
-            names=True)
-        result, res_sa_dtype = np_sa_to_nd(res_sa)
+        result = self._tmp_files.csv_read('out.csv', True)
         
         self.assertTrue(np.allclose(result, control))
 
@@ -170,10 +165,6 @@ class TestPipleline(unittest.TestCase):
         control = '[(aehmrst_in1,bdeeelrrry_in2),abdeeeehlmrrrrsty_out1]'
 
         self.assertEqual(sio.getvalue(), control)
-
-    def tearDown(self):
-        system('rm *.upsg')
-        system('rm {}'.format(outfile_name))
 
 if __name__ == '__main__':
     unittest.main()
