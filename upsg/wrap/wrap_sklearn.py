@@ -13,6 +13,8 @@ class WrapSKLearnException(Exception):
     pass
 
 def unpickle_estimator(sk_cls, params):
+    """ method used by pickle to unpickle wrapped estimators. Do not call
+    directly """
     cls = __wrap_estimator(sk_cls)
     return cls(**params) 
 
@@ -186,6 +188,8 @@ def __wrap_estimator(sk_cls):
     return WrappedEstimator
 
 def unpickle_metric(fun, args, kwargs):
+    """ method used by pickle to unpickle wrapped metrics. Do not call
+    directly """
     cls = __wrap_metric(fun)
     return cls(*args, **kwargs) 
 
@@ -259,6 +263,13 @@ def wrap(target):
 
     >>> WrappedImputer = wrap('sklearn.preprocessing.Imputer') 
     >>> impute_stage = WrappedImputer()
+
+    >>> from sklearn.metrics import roc_curve
+    >>> WrappedRoc = wrap(roc_curve)
+    >>> roc_stage = WrappedRoc()
+
+    >>> WrappedRoc = wrap('sklearn.metrics.roc_curve')
+    >>> roc_stage = WrappedRoc()
     
     """
     if isinstance(target, str):
@@ -299,6 +310,11 @@ def wrap_instance(target, *args, **kwargs):
 
     >>> impute_stage = wrap_instance('sklearn.preprocessing.Imputer',
             strategy='median') 
+
+    >>> roc_stage = wrap_instance('sklearn.metrics.roc_curve')
+
+    >>> from sklearn.metrics import roc_curve
+    >>> roc_stage = wrap_instance(roc_curve)
     
     """
     cls = wrap(target)
