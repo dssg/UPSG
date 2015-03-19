@@ -1,16 +1,16 @@
 import numpy as np
+import os
 from os import system
 import unittest
-from inspect import getargspec
+import filecmp
+import matplotlib.pyplot as plt
 
 from sklearn.cross_validation import train_test_split
 
 from upsg.wrap.wrap_sklearn import wrap, wrap_instance
 from upsg.uobject import UObject, UObjectPhase
 from upsg.pipeline import Pipeline
-from upsg.fetch.csv import CSVRead
 from upsg.fetch.np import NumpyRead
-from upsg.export.csv import CSVWrite
 from upsg.export.plot import Plot
 from upsg.transform.split import SplitColumn, SplitTrainTest
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
@@ -38,7 +38,7 @@ class TestExport(UPSGTestCase):
             random_state = 0))
         node_select = p.add(SplitColumn(1))
         node_roc = p.add(wrap_instance(roc_curve))
-        node_plot = p.add(Plot(self._tmp_files('out.png'), 'o-', 
+        node_plot = p.add(Plot(self._tmp_files('result.bmp'), 'co-', 
             title = 'ROC Curve', xlabel = 'FPR', ylabel = 'TPR'))
 
         node_data['out'] > node_split['in0']
@@ -56,16 +56,7 @@ class TestExport(UPSGTestCase):
         node_roc['tpr'] > node_plot['y']
 
         p.run()
-
-#        result_fpr = self._tmp_files.csv_read('out_fpr.csv', True)
-#        result_tpr = self._tmp_files.csv_read('out_tpr.csv', True)
-#
-#        ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
-#            train_test_split(iris_data, iris_target, random_state = 0))
-#        ctrl_clf = SVC(random_state = 0, probability = True)
-#        ctrl_clf.fit(ctrl_X_train, ctrl_y_train)
-#        ctrl_y_score = ctrl_clf.predict_proba(ctrl_X_test)[:, 1]
-#        ctrl_fpr, ctrl_tpr, thresholds = roc_curve(ctrl_y_test, ctrl_y_score)
+        self.assertTrue(os.path.isfile(self._tmp_files('result.bmp')))
 
 if __name__ == '__main__':
     unittest.main()

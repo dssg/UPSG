@@ -139,17 +139,6 @@ class UObject:
             if target_format == 'dict':
                 return np_sa_to_dict(A)
             raise NotImplementedError('Unsupported conversion')
-        if storage_method == 'dict':
-            group = hfile.root.dict
-            array = group.keys
-            keys = array.read()
-            d = {key : hfile.get_node_attr(group, key) for 
-                key in keys}
-            if target_format == 'np':
-                return dict_to_np_sa(d)
-            if target_format == 'dict':
-                return d
-            raise NotImplementedError('Unsupported conversion')
         raise NotImplementedError('Unsupported internal format')
 
     def __to(self, converter):
@@ -320,12 +309,8 @@ class UObject:
         """
         
         def converter(hfile):
-            #TODO make sure we're not overwriting pytables reserved attributes
-            dict_group = hfile.create_group('/', 'dict')
-            keys_array = np.array(d.keys())
-            keys_array = hfile.create_array(dict_group, 'keys', 
-                obj=keys_array)
-            map(lambda k: hfile.set_node_attr(dict_group, k, d[k]), d)
-            return 'dict'
+            np_group = hfile.create_group('/', 'np')
+            hfile.create_table(np_group, 'table', obj=dict_to_np_sa(d))
+            return 'np'
         
         self.__from(converter)
