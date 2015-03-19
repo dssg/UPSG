@@ -127,7 +127,7 @@ class UObject:
         self.__phase = UObjectPhase.Read
         self.__finalized = False
 
-    def __convert_to(self, target_format):
+    def __convert_to(self, target_format, **kwargs):
         #TODO write this nicer than if statements
         #TODO include sql internal format
         storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
@@ -138,6 +138,39 @@ class UObject:
                 return A
             if target_format == 'dict':
                 return np_sa_to_dict(A)
+            if target_format == 'sql':
+                raise NotImplementedError('Unsupported conversion')
+                import sqlalchemy
+                db_url = kwargs['db_url']
+                con_params = kwargs['con_params']
+                engine = sqlalchemy.create_engine(db_url)
+                conn = engine.connect(**con_params)
+                tbl_name = '_UPSG_' + str(uuid.uuid4()) 
+                tbl = np_type_to_sqlalchemy_table(A.dtype, engine, 
+                    tbl_name)
+                ins = tbl.insert()
+                #TODO insert
+                
+            raise NotImplementedError('Unsupported conversion')
+        if storage_method == 'sql':
+            raise NotImplementedError('Unsupported internal format')
+            db_url = hfile.root.sql.attrs.db_url
+            con_params = np_sa_to_dict(hfile.root.sql.con_params.read())   
+            tbl_name = hfile.root.sql.attrs.table
+            if target_format == 'sql':
+                return (db_url, con_params, tbl_name)
+            import sqlalchemy
+            engine = sqlalchemy.create_engine(db_url)
+            conn = engine.connect(**con_params)
+            md = sqlalchemy.MetaData()
+            md.reflect(conn)
+            tbl = md[tbl_name]
+            result = sql_to_np(tbl, engine)
+            #TODO finish converting to array
+            if target_format == 'np':
+                return result
+            if target_format == 'dict':
+                return np_sa_to_dict(result)
             raise NotImplementedError('Unsupported conversion')
         raise NotImplementedError('Unsupported internal format')
 
@@ -196,17 +229,15 @@ class UObject:
         return self.__to(converter)
         
     
-    def to_postgresql(self): 
-        """Makes the universal object available in postgres.
+    def to_sql(self, db_url, con_params): 
+        """Makes the universal object available in SQL.
 
         Returns 
         -------
-        A tuple (connection_string, table_name)
+        A tuple (db_url, con_params, query)
 
         """
-        #TODO stub
-        raise NotImplementedError()
-        return ('', '')
+        return self.__to(lambda: self.__convert_to('sql', db_url, con_params))    
     
     def to_dict(self):
         """Makes the universal object available in a dictionary.
@@ -255,7 +286,7 @@ class UObject:
 
         Parameters
         ----------
-        filename: string
+        filename: str
             The name of the csv file.
 
         """
@@ -291,14 +322,38 @@ class UObject:
 
         self.__from(converter)
 
-    def from_postgres(self, con_string, query):
+    def from_sql(self, db_url, con_params, query):
         """Writes the results of a query to the universal object and prepares
         the .upsg file.
 
-        """
-        #TODO stub
-        raise NotImplementedError()
+        Parameters
+        ----------
+        db_url : str
+            The url of the database. Should conform to the format of 
+            SQLAlchemy database URLS
+            (http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls)
+        con_params : dict of str to ?
+            A dictionary of the keyword arguments to be passed to the connect
+            method of some library implementing the Python Database API
+            Specification 2.0
+            (https://www.python.org/dev/peps/pep-0249/#connect)
+        query : str
+            query from which to derive the table which this UObject
+            represents. Should be an SQL "SELECT" statement.
 
+        """
+        raise NotImplementedError()
+        #todo make table from query
+        def converter(hfile):
+            sql_group = hfile.create_group('/', 'sql')
+            hfile.create_table(sql_group, 'con_params', 
+                dict_to_np_sa(con_params))
+            hfile.set_node_attr(sql_group, 'db_url', db_url)
+            # Make the table here...
+            hfile.set_node_attr(sql_group, 'table', tbl_name)
+            return 'sql'
+        
+        self.__from(converter)
 
     def from_dict(self, d):
         """Writes contents dictionary to the universal object
