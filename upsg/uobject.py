@@ -2,6 +2,7 @@ import tables
 import uuid
 import numpy as np
 from utils import np_nd_to_sa, is_sa, np_type, np_sa_to_dict, dict_to_np_sa
+from utils import sql_to_np, np_to_sql
 
 class UObjectException(Exception):
     """Exception related to UObjects"""
@@ -146,11 +147,8 @@ class UObject:
                 engine = sqlalchemy.create_engine(db_url)
                 conn = engine.connect(**con_params)
                 tbl_name = '_UPSG_' + str(uuid.uuid4()) 
-                tbl = np_type_to_sqlalchemy_table(A.dtype, engine, 
-                    tbl_name)
-                ins = tbl.insert()
-                #TODO insert
-                
+                np_to_sql(A, tbl_name, conn)
+                return tbl_name
             raise NotImplementedError('Unsupported conversion')
         if storage_method == 'sql':
             raise NotImplementedError('Unsupported internal format')
@@ -165,8 +163,7 @@ class UObject:
             md = sqlalchemy.MetaData()
             md.reflect(conn)
             tbl = md[tbl_name]
-            result = sql_to_np(tbl, engine)
-            #TODO finish converting to array
+            result = sql_to_np(tbl, conn)
             if target_format == 'np':
                 return result
             if target_format == 'dict':

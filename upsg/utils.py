@@ -88,8 +88,8 @@ import sqlalchemy.types as sqlt
 np_to_sql_types = {
     np.dtype(bool) : (sqlt.BOOLEAN,),
     np.dtype(int) : (sqlt.INTEGER, sqlt.BIGINT, sqlt.SMALLINT),
-    np.dtype(float) : (sqlt.DECIMAL, sqlt.FLOAT, sqlt.REAL, sqlt.NUMERIC),
-    np.dtype(str) : (sqlt.CHAR, sqlt.VARCHAR, sqlt.NCHAR, sqlt.NVARCHAR, 
+    np.dtype(float) : (sqlt.FLOAT, sqlt.DECIMAL, sqlt.REAL, sqlt.NUMERIC),
+    np.dtype(str) : (sqlt.VARCHAR, sqlt.CHAR, sqlt.NCHAR, sqlt.NVARCHAR, 
         sqlt.TEXT)}
 sql_to_np_types = {sql_type : np_type for sql_type, np_type in 
     it.chain.from_iterable((it.izip(np_to_sql_types[npt], it.repeat(npt)) for 
@@ -97,9 +97,9 @@ sql_to_np_types = {sql_type : np_type for sql_type, np_type in
 
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
-def sql_to_np(tbl, engine):
+def sql_to_np(tbl, conn):
     #todo sessionmaker is somehow supposed to be global
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=conn)
     session = Session()
     # first pass, we don't worry about string length
     dtype = [(col.name, sql_to_np_types(type(col.type))) for 
@@ -123,3 +123,19 @@ def sql_to_np(tbl, engine):
     return np.fromiter((tuple(row for row in session.query(tbl).all())), 
         dtype = dtype)
     
+from sqlalchemy.schema import Table, Column
+from sqlalchemy import MetaData
+def np_to_sql(A, tbl_name, conn):
+    raise NotImplementedError()
+    dtype = A.dtype
+    def sql_dtype(col_dtype):
+        if col_dtype.char == 'S':
+            return sqlt.VARCHAR(col_dtype.itemsize)
+        return np_to_sql_types[col_dtype][0]
+    cols = [Column(name, sql_dtype(dtype[name])) for name in dtype.names]
+    md = MetaData
+    tbl = Table(tbl_name, md,
+        Column('_upsg_id', sqlt.INTEGER, primary_key = True, 
+        autoincrement = True), *cols)
+    md.create_all(conn)
+    #TODO the inserting
