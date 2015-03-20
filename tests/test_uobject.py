@@ -41,6 +41,13 @@ class TestUObject(UPSGTestCase):
         uo.write_to_read_phase()
         d = uo.to_dict()
         self.assertEqual(d, self.test_dict)
+    def dont_test_sql(self):
+        uo = UObject(UObjectPhase.Write)
+        uo.from_sql('sqlite:///{}'.format(path_of_data('small.db')), {}, 
+            'employees')
+        uo.write_to_read_phase()
+        sa = uo.to_np()
+        print sa
 
 if __name__ == '__main__':
     unittest.main()

@@ -73,10 +73,16 @@ def np_type(val):
 
 def np_sa_to_dict(sa):
     """Converts an Numpy structured array with one row to a dictionary"""
+    if '_UPSG_EMPTY_DICT' in sa.dtype.names:
+        # because Numpy doesn't let us get away with 0-column arrays
+        return {}
     return {col_name : sa[col_name][0] for col_name in sa.dtype.names}
 
 def dict_to_np_sa(d):
     """Converts a dict to a Numpy structured array with one row to a dict"""
+    if not d:
+        # because Numpy doesn't let us get away with 0-column arrays
+        return np.array([], dtype = [('_UPSG_EMPTY_DICT', 'S1')])
     keys = d.keys()
     dtype = np.dtype([(key, np_type(d[key])) for key in keys])
     vals = [tuple([d[key] for key in keys])]
@@ -102,7 +108,7 @@ def sql_to_np(tbl, conn):
     Session = sessionmaker(bind=conn)
     session = Session()
     # first pass, we don't worry about string length
-    dtype = [(col.name, sql_to_np_types(type(col.type))) for 
+    dtype = [(col.name, sql_to_np_types[type(col.type)]) for 
         col in tbl.columns]
     # now, we find the max string length for our char columns
     query_cols = [tbl.columns[col_name] for col_name, col_dtype in dtype if 
@@ -117,7 +123,7 @@ def sql_to_np(tbl, conn):
         if col_dtype == np.dtype(str):
             return (name, 'S{}'.format(str_lens[name]))
         return (name, col_dtype)
-    dtype_corrected = np.dtype([corrected_col_type(*dtype_tuple) for 
+    dtype_corrected = np.dtype([corrected_col_dtype(*dtype_tuple) for 
         dtype_tuple in dtype])
     # http://mail.scipy.org/pipermail/numpy-discussion/2010-August/052358.html
     return np.fromiter((tuple(row for row in session.query(tbl).all())), 

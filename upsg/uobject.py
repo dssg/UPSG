@@ -141,7 +141,6 @@ class UObject:
     def __convert_to(self, target_format, conn = None, db_url = None, 
         conn_params = {}, tbl_name = None):
         #TODO write this nicer than if statements
-        #TODO include sql internal format
         storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
         hfile = self.__file
         if storage_method == 'np':
@@ -157,13 +156,14 @@ class UObject:
                 return (np_to_sql(A, tbl_name, conn), conn, db_url, conn_params)
             raise NotImplementedError('Unsupported conversion')
         if storage_method == 'sql':
-            db_url = hfile.root.sql.attrs.db_url 
-            conn_params = np_sa_to_dict(hfile.root.sql.con_params.read())
+            sql_group = hfile.root.sql
+            db_url = hfile.get_node_attr(sql_group, 'db_url') 
+            tbl_name = hfile.get_node_attr(sql_group, 'tbl_name')
+            conn_params = np_sa_to_dict(hfile.root.sql.conn_params.read())
             conn = self.__get_conn(None, db_url, conn_params)
-            tbl_name = hfile.root.sql.attrs.table
             md = sqlalchemy.MetaData()
             md.reflect(conn)
-            tbl = md[tbl_name]
+            tbl = md.tables[tbl_name]
             if target_format == 'sql':
                 return (tbl, conn, db_url, conn_params)
             result = sql_to_np(tbl, conn)
@@ -229,15 +229,15 @@ class UObject:
         return self.__to(converter)
         
     
-    def to_sql(self, db_url, con_params, tbl_name = None): 
+    def to_sql(self, db_url, conn_params, tbl_name = None): 
         """Makes the universal object available in SQL.
 
         Returns 
         -------
-        A tuple (db_url, con_params, query)
+        A tuple (db_url, conn_params, query)
 
         """
-        return self.__to(lambda: self.__convert_to('sql', db_url, con_params,
+        return self.__to(lambda: self.__convert_to('sql', db_url, conn_params,
             tbl_name))    
     
     def to_dict(self):
@@ -323,7 +323,7 @@ class UObject:
 
         self.__from(converter)
 
-    def from_sql(self, db_url, con_params, query):
+    def from_sql(self, db_url, conn_params, table_name):
         """Writes the results of a query to the universal object and prepares
         the .upsg file.
 
@@ -333,34 +333,23 @@ class UObject:
             The url of the database. Should conform to the format of 
             SQLAlchemy database URLS
             (http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls)
-        con_params : dict of str to ?
+        conn_params : dict of str to ?
             A dictionary of the keyword arguments to be passed to the connect
             method of some library implementing the Python Database API
             Specification 2.0
             (https://www.python.org/dev/peps/pep-0249/#connect)
-        query : sqlalchemy.sql.expression.Select
-            query from which to derive the table which this UObject
-            represents. 
+        table_name : str
+            Name of the table which this UObject will represent
 
         """
-        # TODO this should be able to take a connection rather than db_url and
-        # con params
-        raise NotImplementedError()
-        #todo make table from query
+        #TODO start with arbitrary query rather than just tables
+            
         def converter(hfile):
             sql_group = hfile.create_group('/', 'sql')
-            hfile.create_table(sql_group, 'con_params', 
-                dict_to_np_sa(con_params))
+            hfile.create_table(sql_group, 'conn_params', dict_to_np_sa(conn_params))
             hfile.set_node_attr(sql_group, 'db_url', db_url)
-            conn = self.__get_conn(None, db_url, con_params)
-            tbl_name = self.__get_new_table_name()
-            md = sqlalchemy.MetaData()
-            columns = query.columns
-            tbl = sqlalchemy.Table(tbl_name, md, columns) 
-            md.create_all(conn)
-            ins = tbl.insert().from_select(columns, query)
-            conn.execute(ins)
-            hfile.set_node_attr(sql_group, 'table', tbl_name)
+            conn = self.__get_conn(None, db_url, conn_params)
+            hfile.set_node_attr(sql_group, 'tbl_name', table_name)
             return 'sql'
         
         self.__from(converter)
