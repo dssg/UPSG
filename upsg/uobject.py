@@ -1,6 +1,7 @@
 import tables
 import uuid
 import numpy as np
+import sqlalchemy
 from utils import np_nd_to_sa, is_sa, np_type, np_sa_to_dict, dict_to_np_sa
 from utils import sql_to_np, np_to_sql
 
@@ -128,7 +129,17 @@ class UObject:
         self.__phase = UObjectPhase.Read
         self.__finalized = False
 
-    def __convert_to(self, target_format, **kwargs):
+    def __get_conn(self, conn = None, db_url = None, conn_params = {}):
+        if conn is not None:
+            return conn
+        engine = sqlalchemy.create_engine(db_url)
+        return engine.connect(**conn_params)
+
+    def __get_new_table_name(self):
+        return '_UPSG_' + str(uuid.uuid4()) 
+
+    def __convert_to(self, target_format, conn = None, db_url = None, 
+        conn_params = {}, tbl_name = None):
         #TODO write this nicer than if statements
         #TODO include sql internal format
         storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
@@ -140,29 +151,21 @@ class UObject:
             if target_format == 'dict':
                 return np_sa_to_dict(A)
             if target_format == 'sql':
-                raise NotImplementedError('Unsupported conversion')
-                import sqlalchemy
-                db_url = kwargs['db_url']
-                con_params = kwargs['con_params']
-                engine = sqlalchemy.create_engine(db_url)
-                conn = engine.connect(**con_params)
-                tbl_name = '_UPSG_' + str(uuid.uuid4()) 
-                np_to_sql(A, tbl_name, conn)
-                return tbl_name
+                conn = self.__get_conn(conn, db_url, conn_params)
+                if tbl_name is None:
+                    tbl_name = self.__get_new_table_name()
+                return (np_to_sql(A, tbl_name, conn), conn, db_url, conn_params)
             raise NotImplementedError('Unsupported conversion')
         if storage_method == 'sql':
-            raise NotImplementedError('Unsupported internal format')
-            db_url = hfile.root.sql.attrs.db_url
-            con_params = np_sa_to_dict(hfile.root.sql.con_params.read())   
+            db_url = hfile.root.sql.attrs.db_url 
+            conn_params = np_sa_to_dict(hfile.root.sql.con_params.read())
+            conn = self.__get_conn(None, db_url, conn_params)
             tbl_name = hfile.root.sql.attrs.table
-            if target_format == 'sql':
-                return (db_url, con_params, tbl_name)
-            import sqlalchemy
-            engine = sqlalchemy.create_engine(db_url)
-            conn = engine.connect(**con_params)
             md = sqlalchemy.MetaData()
             md.reflect(conn)
             tbl = md[tbl_name]
+            if target_format == 'sql':
+                return (tbl, conn, db_url, conn_params)
             result = sql_to_np(tbl, conn)
             if target_format == 'np':
                 return result
@@ -226,7 +229,7 @@ class UObject:
         return self.__to(converter)
         
     
-    def to_sql(self, db_url, con_params): 
+    def to_sql(self, db_url, con_params, tbl_name = None): 
         """Makes the universal object available in SQL.
 
         Returns 
@@ -234,7 +237,8 @@ class UObject:
         A tuple (db_url, con_params, query)
 
         """
-        return self.__to(lambda: self.__convert_to('sql', db_url, con_params))    
+        return self.__to(lambda: self.__convert_to('sql', db_url, con_params,
+            tbl_name))    
     
     def to_dict(self):
         """Makes the universal object available in a dictionary.
@@ -334,11 +338,13 @@ class UObject:
             method of some library implementing the Python Database API
             Specification 2.0
             (https://www.python.org/dev/peps/pep-0249/#connect)
-        query : str
+        query : sqlalchemy.sql.expression.Select
             query from which to derive the table which this UObject
-            represents. Should be an SQL "SELECT" statement.
+            represents. 
 
         """
+        # TODO this should be able to take a connection rather than db_url and
+        # con params
         raise NotImplementedError()
         #todo make table from query
         def converter(hfile):
@@ -346,7 +352,14 @@ class UObject:
             hfile.create_table(sql_group, 'con_params', 
                 dict_to_np_sa(con_params))
             hfile.set_node_attr(sql_group, 'db_url', db_url)
-            # Make the table here...
+            conn = self.__get_conn(None, db_url, con_params)
+            tbl_name = self.__get_new_table_name()
+            md = sqlalchemy.MetaData()
+            columns = query.columns
+            tbl = sqlalchemy.Table(tbl_name, md, columns) 
+            md.create_all(conn)
+            ins = tbl.insert().from_select(columns, query)
+            conn.execute(ins)
             hfile.set_node_attr(sql_group, 'table', tbl_name)
             return 'sql'
         

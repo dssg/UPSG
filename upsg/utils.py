@@ -128,14 +128,18 @@ from sqlalchemy import MetaData
 def np_to_sql(A, tbl_name, conn):
     raise NotImplementedError()
     dtype = A.dtype
+    col_names = dtype.names
     def sql_dtype(col_dtype):
         if col_dtype.char == 'S':
             return sqlt.VARCHAR(col_dtype.itemsize)
         return np_to_sql_types[col_dtype][0]
-    cols = [Column(name, sql_dtype(dtype[name])) for name in dtype.names]
+    cols = [Column(name, sql_dtype(dtype[name])) for name in col_names]
     md = MetaData
     tbl = Table(tbl_name, md,
         Column('_upsg_id', sqlt.INTEGER, primary_key = True, 
         autoincrement = True), *cols)
     md.create_all(conn)
+    # http://stackoverflow.com/questions/7043158/insert-numpy-array-into-mysql-database
+    conn.execute(tbl.insert(), (dict(it.izip(col_names, row)) for row in A))
+    return tbl
     #TODO the inserting
