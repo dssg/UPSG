@@ -105,7 +105,14 @@ np_to_sql_types = {
     np.dtype(int) : (sqlt.INTEGER, sqlt.BIGINT, sqlt.SMALLINT),
     np.dtype(float) : (sqlt.FLOAT, sqlt.DECIMAL, sqlt.REAL, sqlt.NUMERIC),
     np.dtype(str) : (sqlt.VARCHAR, sqlt.CHAR, sqlt.NCHAR, sqlt.NVARCHAR, 
-        sqlt.TEXT)}
+        sqlt.TEXT),
+    np.dtype('datetime64[s]') : (sqlt.DATETIME, sqlt.DATE, sqlt.TIME, 
+        sqlt.TIMESTAMP)
+    }
+    #TODO other time resolutions. (But we do have to specify 1 of them)
+    # http://stackoverflow.com/questions/16618499/numpy-datetime64-in-recarray
+    # I believe ns is the internal one:
+    # https://github.com/pydata/pandas/issues/6741
 sql_to_np_types = {sql_type : np_type for sql_type, np_type in 
     it.chain.from_iterable((it.izip(np_to_sql_types[npt], it.repeat(npt)) for 
     npt in np_to_sql_types))} 

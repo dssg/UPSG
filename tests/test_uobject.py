@@ -42,12 +42,15 @@ class TestUObject(UPSGTestCase):
         d = uo.to_dict()
         self.assertEqual(d, self.test_dict)
     def test_sql(self):
-        uo = UObject(UObjectPhase.Write)
-        uo.from_sql('sqlite:///{}'.format(path_of_data('small.db')), {}, 
+        uo_employees = UObject(UObjectPhase.Write)
+        uo_employees.from_sql('sqlite:///{}'.format(path_of_data('small.db')), {}, 
             'employees')
-        uo.write_to_read_phase()
-        sa = uo.to_np()
-        #print sa
+        uo_employees.write_to_read_phase()
+        sa = uo_employees.to_np()
+        uo_hours = UObject(UObjectPhase.Write)
+        uo_hours.from_sql('sqlite:///{}'.format(path_of_data('small.db')), {}, 
+            'hours')
+        uo_hours.write_to_read_phase()
 
 if __name__ == '__main__':
     unittest.main()

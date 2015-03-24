@@ -145,6 +145,17 @@ class UObject:
         hfile = self.__file
         if storage_method == 'np':
             A = hfile.root.np.table.read()
+
+            # cast back to np.datetime64 as necessary
+            try:
+                dt_cols = hfile.get_node(hfile.root.np, 'dt_cols').read()
+                view_dtype = A.dtype.descr
+                for col in dt_cols:
+                    view_dtype[col] = (view_dtype[col][0], 'datetime64[s]')
+                A = A.view(dtype = view_dtype)
+            except tables.NoSuchNodeError:
+                pass
+
             if target_format == 'np':
                 return A
             if target_format == 'dict':
@@ -318,6 +329,17 @@ class UObject:
             else:
                 to_write = np_nd_to_sa(A)
             np_group = hfile.create_group('/', 'np')
+
+            # case datetime64 columns to int64 and note it in metadata
+            to_write_dtype = to_write.dtype
+            dt_cols = [i for i, col_dtype in enumerate(to_write_dtype.descr) 
+                if '<M8' in col_dtype[1]]
+            if dt_cols:
+                view_dtype = [(name, '<i8') if '<M8' in format else 
+                    (name, format) for name, format in to_write_dtype.descr]
+                to_write = to_write.view(dtype = view_dtype) 
+                hfile.create_table(np_group, 'dt_cols', obj=dt_cols)
+
             hfile.create_table(np_group, 'table', obj=to_write)
             return 'np'
 
