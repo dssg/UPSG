@@ -108,7 +108,7 @@ def sql_to_np(tbl, conn):
     Session = sessionmaker(bind=conn)
     session = Session()
     # first pass, we don't worry about string length
-    dtype = [(col.name, sql_to_np_types[type(col.type)]) for 
+    dtype = [(str(col.name), sql_to_np_types[type(col.type)]) for 
         col in tbl.columns]
     # now, we find the max string length for our char columns
     query_cols = [tbl.columns[col_name] for col_name, col_dtype in dtype if 
@@ -121,7 +121,7 @@ def sql_to_np(tbl, conn):
         query.one())}
     def corrected_col_dtype(name, col_dtype):
         if col_dtype == np.dtype(str):
-            return (name, 'S{}'.format(str_lens[name]))
+            return (name, '|S{}'.format(str_lens[name]))
         return (name, col_dtype)
     dtype_corrected = np.dtype([corrected_col_dtype(*dtype_tuple) for 
         dtype_tuple in dtype])
