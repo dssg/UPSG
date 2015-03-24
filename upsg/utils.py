@@ -140,7 +140,6 @@ def sql_to_np(tbl, conn):
     #   convert every field
     # TODO Use unicode rather than just stripping it. I'm sorry;
     #   It's not my fault; numpy is bad at unicode.
-    print dtype
     return np.fromiter((tuple([utf_to_ascii(elmt) for elmt in row]) for row in 
         session.query(tbl).all()), dtype = dtype_corrected)
     
