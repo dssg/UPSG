@@ -1,5 +1,6 @@
 import numpy as np
 import itertools as it
+import re
 
 def np_sa_to_nd(sa):
     """Returns a view of a numpy structured array as a single-type 1 or 
@@ -88,6 +89,14 @@ def dict_to_np_sa(d):
     vals = [tuple([d[key] for key in keys])]
     return np.array(vals, dtype = dtype)
 
+
+# http://stackoverflow.com/questions/20078816/replace-non-ascii-characters-with-a-single-space
+re_utf_to_ascii = re.compile(r'[^\x00-\x7F]+')
+def utf_to_ascii(s):
+    if isinstance(s, unicode):
+        return str(re_utf_to_ascii.sub('.', s))
+    return s
+
 #TODO I'm missing a lot of these, most notably datetime, which we don't have
 #natively so we have to do some fancy conversion
 import sqlalchemy.types as sqlt
@@ -111,10 +120,10 @@ def sql_to_np(tbl, conn):
     dtype = [(str(col.name), sql_to_np_types[type(col.type)]) for 
         col in tbl.columns]
     # now, we find the max string length for our char columns
-    query_cols = [tbl.columns[col_name] for col_name, col_dtype in dtype if 
+    str_cols = [tbl.columns[col_name] for col_name, col_dtype in dtype if 
         col_dtype == np.dtype(str)]
     query_funcs = [func.max(func.length(col)).label(col.name) for 
-        col in query_cols]
+        col in str_cols]
     query = session.query(*query_funcs)
     str_lens = {col_name : str_len for col_name, str_len in it.izip(
         (desc['name'] for desc in query.column_descriptions),
@@ -125,9 +134,15 @@ def sql_to_np(tbl, conn):
         return (name, col_dtype)
     dtype_corrected = np.dtype([corrected_col_dtype(*dtype_tuple) for 
         dtype_tuple in dtype])
-    # http://mail.scipy.org/pipermail/numpy-discussion/2010-August/052358.html
-    return np.fromiter((tuple(row for row in session.query(tbl).all())), 
-        dtype = dtype)
+    # np.fromiter can't directly use the results of a query:
+    #   http://mail.scipy.org/pipermail/numpy-discussion/2010-August/052358.html
+    # TODO find a way faster way to convert from unicode than trying to
+    #   convert every field
+    # TODO Use unicode rather than just stripping it. I'm sorry;
+    #   It's not my fault; numpy is bad at unicode.
+    print dtype
+    return np.fromiter((tuple([utf_to_ascii(elmt) for elmt in row]) for row in 
+        session.query(tbl).all()), dtype = dtype_corrected)
     
 from sqlalchemy.schema import Table, Column
 from sqlalchemy import MetaData
