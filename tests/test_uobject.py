@@ -42,12 +42,29 @@ class TestUObject(UPSGTestCase):
         d = uo.to_dict()
         self.assertEqual(d, self.test_dict)
     def test_sql(self):
+        db_url = 'sqlite:///{}'.format(path_of_data('small.db'))
         for tbl_name in ('employees', 'hours'):
-            uo = UObject(UObjectPhase.Write)
-            uo.from_sql('sqlite:///{}'.format(path_of_data('small.db')), {}, 
-                tbl_name, False)
-            uo.write_to_read_phase()
-            sa = uo.to_np()
+            uo_in = UObject(UObjectPhase.Write)
+            uo_in.from_sql(db_url, {}, tbl_name, False)
+            uo_in.write_to_read_phase()
+            sa = uo_in.to_np()
+            uo_out = UObject(UObjectPhase.Write)
+            uo_out.from_np(sa)
+            uo_out.write_to_read_phase()
+            tbl_result, conn_result, db_url, conn_params = uo_out.to_sql(
+                db_url, {}, '{}_out'.format(tbl_name))
+            result = conn_result.execute(
+                sqlalchemy.sql.select([tbl_result])).fetchall()
+            tbl_result.drop(conn_result)
+    
+            ctrl_engine = sqlalchemy.create_engine(db_url)
+            md = sqlalchemy.MetaData()
+            md.reflect(ctrl_engine)
+            tbl_ctrl = md.tables[tbl_name]
+            ctrl = ctrl_engine.execute(
+                sqlalchemy.sql.select([tbl_ctrl])).fetchall()
+
+            self.assertEqual(result, ctrl)
 
 if __name__ == '__main__':
     unittest.main()

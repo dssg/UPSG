@@ -22,7 +22,7 @@ def run(path = '.'):
                 tbl_name = hfile.get_node_attr(sql_group, 'tbl_name')
                 conn_params = np_sa_to_dict(hfile.root.sql.conn_params.read())
                 engine = sqlalchemy.create_engine(db_url)
-                return engine.connect(**conn_params)
+                conn = engine.connect(**conn_params)
                 md = sqlalchemy.MetaData()
                 md.reflect(conn)
                 tbl = md.tables[tbl_name]

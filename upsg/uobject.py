@@ -254,10 +254,15 @@ class UObject:
 
         Returns 
         -------
-        A tuple (tbl, conn, db_url, conn_params) 
+        A tuple (tbl, conn, db_url, conn_params) where tbl is the 
+            sqlalchemy.Table representing the UObject, conn is the
+            sqlalchemy.engine.Connection that the db connection,
+            db_url is the sqlalchemy database url, and conn_params are
+            the arguments passed to engine.connect
+
         """
-        sql_tuple = self.__to(lambda: self.__convert_to('sql', db_url, conn_params,
-            tbl_name))    
+        sql_tuple = self.__to(lambda: self.__convert_to('sql', None, db_url, 
+            conn_params, tbl_name))    
         return sql_tuple
     
     def to_dict(self):
@@ -347,7 +352,7 @@ class UObject:
                 view_dtype = [(name, '<i8') if '<M8' in format else 
                     (name, format) for name, format in to_write_dtype.descr]
                 to_write = to_write.view(dtype = view_dtype) 
-                hfile.create_table(np_group, 'dt_cols', obj=dt_cols)
+                hfile.create_array(np_group, 'dt_cols', dt_cols)
 
             hfile.create_table(np_group, 'table', obj=to_write)
             return 'np'

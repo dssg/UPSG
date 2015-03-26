@@ -1,6 +1,7 @@
 import numpy as np
 import itertools as it
 import re
+from datetime import datetime
 from sqlalchemy.schema import Table, Column
 from sqlalchemy import MetaData
 
@@ -145,15 +146,19 @@ def sql_to_np(tbl, conn):
         dtype_tuple in dtype])
     # np.fromiter can't directly use the results of a query:
     #   http://mail.scipy.org/pipermail/numpy-discussion/2010-August/052358.html
-    # TODO find a way faster way to convert from unicode than trying to
-    #   convert every field
-    # TODO Use unicode rather than just stripping it. I'm sorry;
-    #   It's not my fault; numpy is bad at unicode.
-    return np.fromiter((tuple([utf_to_ascii(elmt) for elmt in row]) for row in 
+    # TODO deal with unicode (which numpy can't handle)
+    return np.fromiter((tuple(row) for row in 
         session.query(tbl).all()), dtype = dtype_corrected)
+
+# http://stackoverflow.com/questions/13703720/converting-between-datetime-timestamp-and-datetime64
+NP_EPOCH = np.datetime64('1970-01-01T00:00:00Z')
+NP_SEC_DELTA = np.timedelta64(1, 's')
+def fix_datetime64(dt):
+    if not isinstance(dt, np.datetime64):
+        return dt
+    return datetime.utcfromtimestamp((dt - NP_EPOCH) / NP_SEC_DELTA)
     
 def np_to_sql(A, tbl_name, conn):
-    raise NotImplementedError()
     dtype = A.dtype
     col_names = dtype.names
     def sql_dtype(col_dtype):
@@ -161,11 +166,11 @@ def np_to_sql(A, tbl_name, conn):
             return sqlt.VARCHAR(col_dtype.itemsize)
         return np_to_sql_types[col_dtype][0]
     cols = [Column(name, sql_dtype(dtype[name])) for name in col_names]
-    md = MetaData
-    tbl = Table(tbl_name, md,
-        Column('_upsg_id', sqlt.INTEGER, primary_key = True, 
-        autoincrement = True), *cols)
+    md = MetaData()
+    tbl = Table(tbl_name, md, *cols)
     md.create_all(conn)
     # http://stackoverflow.com/questions/7043158/insert-numpy-array-into-mysql-database
-    conn.execute(tbl.insert(), (dict(it.izip(col_names, row)) for row in A))
+    # TODO find a faster way to fix datetimes
+    conn.execute(tbl.insert(), [dict(it.izip(col_names, 
+        [fix_datetime64(cell) for cell in row])) for row in A])
     return tbl

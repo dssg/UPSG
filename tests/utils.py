@@ -54,6 +54,8 @@ class TempFileManager:
 class UPSGTestCase(unittest.TestCase):
     def setUp(self):
         self.__cwd = os.getcwd()
+        if not os.path.exists(TEMP_PATH):
+            os.makedirs(TEMP_PATH)
         os.chdir(TEMP_PATH)
         self._tmp_files = TempFileManager()
     def tearDown(self):
