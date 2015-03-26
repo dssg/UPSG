@@ -1,6 +1,8 @@
 import numpy as np
 import itertools as it
 import re
+from sqlalchemy.schema import Table, Column
+from sqlalchemy import MetaData
 
 def np_sa_to_nd(sa):
     """Returns a view of a numpy structured array as a single-type 1 or 
@@ -150,8 +152,6 @@ def sql_to_np(tbl, conn):
     return np.fromiter((tuple([utf_to_ascii(elmt) for elmt in row]) for row in 
         session.query(tbl).all()), dtype = dtype_corrected)
     
-from sqlalchemy.schema import Table, Column
-from sqlalchemy import MetaData
 def np_to_sql(A, tbl_name, conn):
     raise NotImplementedError()
     dtype = A.dtype
@@ -169,4 +169,3 @@ def np_to_sql(A, tbl_name, conn):
     # http://stackoverflow.com/questions/7043158/insert-numpy-array-into-mysql-database
     conn.execute(tbl.insert(), (dict(it.izip(col_names, row)) for row in A))
     return tbl
-    #TODO the inserting

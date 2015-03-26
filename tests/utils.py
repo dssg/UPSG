@@ -9,8 +9,10 @@ from upsg.utils import np_sa_to_nd
 
 TESTS_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 DATA_PATH = os.path.join(TESTS_PATH, 'data')
-UPSG_PATH = os.path.join(TESTS_PATH, '..', 'upsg')
+REPO_PATH = os.path.join(TESTS_PATH, '..')
+UPSG_PATH = os.path.join(REPO_PATH, 'upsg')
 TEMP_PATH = os.path.join(TESTS_PATH, 'tmp')
+BIN_PATH = os.path.join(REPO_PATH, 'bin')
 
 def path_of_data(filename):
     return os.path.join(DATA_PATH, filename)
@@ -51,7 +53,10 @@ class TempFileManager:
 
 class UPSGTestCase(unittest.TestCase):
     def setUp(self):
+        self.__cwd = os.getcwd()
+        os.chdir(TEMP_PATH)
         self._tmp_files = TempFileManager()
     def tearDown(self):
-        map(os.remove, glob.iglob('*.upsg'))
+        os.system('{}/cleanup.py'.format(BIN_PATH))
         self._tmp_files.purge()
+        os.chdir(self.__cwd)

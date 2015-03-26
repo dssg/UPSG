@@ -45,7 +45,7 @@ class TestUObject(UPSGTestCase):
         for tbl_name in ('employees', 'hours'):
             uo = UObject(UObjectPhase.Write)
             uo.from_sql('sqlite:///{}'.format(path_of_data('small.db')), {}, 
-                tbl_name)
+                tbl_name, False)
             uo.write_to_read_phase()
             sa = uo.to_np()
 

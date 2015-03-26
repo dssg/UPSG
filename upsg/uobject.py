@@ -1,4 +1,4 @@
-import tables
+import tables 
 import uuid
 import numpy as np
 import sqlalchemy
@@ -192,7 +192,7 @@ class UObject:
 
         Parameters
         ----------
-        converter:  -> ?
+        converter: -> ?
             A function that produces the return value of the to_ 
             function. 
 
@@ -240,16 +240,25 @@ class UObject:
         return self.__to(converter)
         
     
-    def to_sql(self, db_url, conn_params, tbl_name = None): 
+    def to_sql(self, db_url, conn_params, tbl_name = None):
         """Makes the universal object available in SQL.
+
+        Parameters
+        ----------
+        db_url: str
+            The sqlalchemy url for the database
+        conn_params: dict of str : ?
+            Parameters to pass to the DBAPI 2 connect() method
+        tbl_name: str or None
+            Name for created table. If None, a random name is chosen
 
         Returns 
         -------
-        A tuple (db_url, conn_params, query)
-
+        A tuple (tbl, conn, db_url, conn_params) 
         """
-        return self.__to(lambda: self.__convert_to('sql', db_url, conn_params,
+        sql_tuple = self.__to(lambda: self.__convert_to('sql', db_url, conn_params,
             tbl_name))    
+        return sql_tuple
     
     def to_dict(self):
         """Makes the universal object available in a dictionary.
@@ -345,7 +354,8 @@ class UObject:
 
         self.__from(converter)
 
-    def from_sql(self, db_url, conn_params, table_name):
+    def from_sql(self, db_url, conn_params, table_name, 
+            pipeline_generated_object):
         """Writes the results of a query to the universal object and prepares
         the .upsg file.
 
@@ -362,6 +372,11 @@ class UObject:
             (https://www.python.org/dev/peps/pep-0249/#connect)
         table_name : str
             Name of the table which this UObject will represent
+        pipeline_generated_object : bool
+            Whether or not this table should be regarded as a table generated 
+            by UPSG which, consequently, should not permanently reside in the 
+            database. If the table is a pipeline_object, it will be dropped by 
+            the cleanup.py utility.
 
         """
         #TODO start with arbitrary query rather than just tables
@@ -372,6 +387,8 @@ class UObject:
             hfile.set_node_attr(sql_group, 'db_url', db_url)
             conn = self.__get_conn(None, db_url, conn_params)
             hfile.set_node_attr(sql_group, 'tbl_name', table_name)
+            hfile.set_node_attr(sql_group, 'pipeline_generated', 
+                pipeline_generated_object)
             return 'sql'
         
         self.__from(converter)
