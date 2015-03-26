@@ -3,7 +3,7 @@ import uuid
 import numpy as np
 import sqlalchemy
 from utils import np_nd_to_sa, is_sa, np_type, np_sa_to_dict, dict_to_np_sa
-from utils import sql_to_np, np_to_sql
+from utils import sql_to_np, np_to_sql, random_table_name
 
 class UObjectException(Exception):
     """Exception related to UObjects"""
@@ -136,7 +136,7 @@ class UObject:
         return engine.connect(**conn_params)
 
     def __get_new_table_name(self):
-        return '_UPSG_' + str(uuid.uuid4()) 
+        return random_table_name()
 
     def __convert_to(self, target_format, conn = None, db_url = None, 
         conn_params = {}, tbl_name = None):
@@ -361,7 +361,7 @@ class UObject:
 
     def from_sql(self, db_url, conn_params, table_name, 
             pipeline_generated_object):
-        """Writes the results of a query to the universal object and prepares
+        """Encodes a sql table in the universal object and prepares
         the .upsg file.
 
         Parameters

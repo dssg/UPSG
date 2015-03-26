@@ -1,6 +1,7 @@
 import numpy as np
 import itertools as it
 import re
+import uuid
 from datetime import datetime
 from sqlalchemy.schema import Table, Column
 from sqlalchemy import MetaData
@@ -174,3 +175,6 @@ def np_to_sql(A, tbl_name, conn):
     conn.execute(tbl.insert(), [dict(it.izip(col_names, 
         [fix_datetime64(cell) for cell in row])) for row in A])
     return tbl
+
+def random_table_name():
+    return '_UPSG_' + str(uuid.uuid4()) 
