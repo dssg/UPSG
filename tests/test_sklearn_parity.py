@@ -15,7 +15,9 @@ from upsg.pipeline import Pipeline
 
 from utils import path_of_data, UPSGTestCase
 
+
 class TestSKLearnParity(UPSGTestCase):
+
     def test_tutorial(self):
         """
 
@@ -27,7 +29,7 @@ class TestSKLearnParity(UPSGTestCase):
         digits_data = digits.data
         # for now, we need a column vector rather than an array
         digits_target = digits.target
-    
+
         p = Pipeline()
 
         # load data from a numpy dataset
@@ -35,17 +37,18 @@ class TestSKLearnParity(UPSGTestCase):
         stage_target = NumpyRead(digits_target)
 
         # train/test split
-        stage_split_data = SplitTrainTest(2, test_size = 1, random_state = 0)
+        stage_split_data = SplitTrainTest(2, test_size=1, random_state=0)
 
         # build a classifier
         stage_clf = wrap_instance(SVC, gamma=0.001, C=100.)
 
         # output to a csv
         stage_csv = CSVWrite(self._tmp_files('out.csv'))
-        
-        node_data, node_target, node_split, node_clf, node_csv = map(p.add, 
-            [stage_data, stage_target, stage_split_data, stage_clf, 
-            stage_csv])
+
+        node_data, node_target, node_split, node_clf, node_csv = map(
+            p.add, [
+                stage_data, stage_target, stage_split_data, stage_clf,
+                stage_csv])
 
         # connect the pipeline stages together
         node_data['out'] > node_split['in0']
@@ -56,7 +59,7 @@ class TestSKLearnParity(UPSGTestCase):
         node_clf['y_pred'] > node_csv['in']
 
         p.run()
-      
+
         result = self._tmp_files.csv_read('out.csv', True)
 
         # making sure we get the same result as sklearn
@@ -64,14 +67,14 @@ class TestSKLearnParity(UPSGTestCase):
         # The tutorial just splits using array slicing, but we need to make
         #   sure that both UPSG and sklearn are splitting the same way, so we
         #   do something more sophisticated
-        train_X, test_X, train_y, test_y = train_test_split(digits_data, 
-            digits_target, test_size = 1, random_state = 0)
+        train_X, test_X, train_y, test_y = train_test_split(
+            digits_data, digits_target, test_size=1, random_state=0)
         clf.fit(train_X, np.ravel(train_y))
         control = clf.predict(test_X)[0]
 
         self.assertAlmostEqual(result, control)
 
-        # model persistance 
+        # model persistance
         s = pickle.dumps(stage_clf)
         stage_clf2 = pickle.loads(s)
         self.assertEqual(stage_clf.get_params(), stage_clf2.get_params())

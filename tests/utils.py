@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 import uuid
 import unittest
 import glob
@@ -14,23 +15,26 @@ UPSG_PATH = os.path.join(REPO_PATH, 'upsg')
 TEMP_PATH = os.path.join(TESTS_PATH, 'tmp')
 BIN_PATH = os.path.join(REPO_PATH, 'bin')
 
+
 def path_of_data(filename):
     return os.path.join(DATA_PATH, filename)
 
-def csv_read(filename, as_nd = False):
-    sa =  np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
+
+def csv_read(filename, as_nd=False):
+    sa = np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
     if as_nd:
         return np_sa_to_nd(sa)[0]
     return sa
 
 
 class TempFileManager:
+
     def __init__(self):
         if not os.path.exists(TEMP_PATH):
             os.makedirs(TEMP_PATH)
         self.__files = {}
 
-    def get(self, filename = None):
+    def get(self, filename=None):
         if filename is None:
             filename = uuid.uuid4()
         try:
@@ -40,7 +44,7 @@ class TempFileManager:
             self.__files[filename] = path
         return path
 
-    def __call__(self, filename = None):
+    def __call__(self, filename=None):
         return self.get(filename)
 
     def purge(self):
@@ -48,16 +52,19 @@ class TempFileManager:
             if os.path.exists(self.__files[filename])]
         self.__files = {}
 
-    def csv_read(self, filename, as_nd = False):
+    def csv_read(self, filename, as_nd=False):
         return csv_read(self.__files[filename], as_nd)
 
+
 class UPSGTestCase(unittest.TestCase):
+
     def setUp(self):
         self.__cwd = os.getcwd()
         if not os.path.exists(TEMP_PATH):
             os.makedirs(TEMP_PATH)
         os.chdir(TEMP_PATH)
         self._tmp_files = TempFileManager()
+
     def tearDown(self):
         os.system('{}/cleanup.py'.format(BIN_PATH))
         self._tmp_files.purge()

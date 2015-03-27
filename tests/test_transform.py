@@ -9,10 +9,12 @@ from upsg.transform.rename_cols import RenameCols
 
 from utils import path_of_data, UPSGTestCase
 
+
 class TestTransform(UPSGTestCase):
+
     def test_rename_cols(self):
-        infile_name = path_of_data('mixed_csv.csv')        
-        rename_dict = {'name' : 'designation', 'height' : 'tallness'}
+        infile_name = path_of_data('mixed_csv.csv')
+        rename_dict = {'name': 'designation', 'height': 'tallness'}
 
         p = Pipeline()
 
@@ -27,7 +29,7 @@ class TestTransform(UPSGTestCase):
 
         control = {'id', 'designation', 'tallness'}
         result = set(self._tmp_files.csv_read('out.csv').dtype.names)
-        
+
         self.assertTrue(np.array_equal(result, control))
 
 if __name__ == '__main__':

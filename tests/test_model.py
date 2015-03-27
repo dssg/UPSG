@@ -17,7 +17,9 @@ from upsg.utils import np_sa_to_dict
 
 from utils import path_of_data, UPSGTestCase
 
+
 class TestModel(UPSGTestCase):
+
     def test_grid_search(self):
         """
 
@@ -25,25 +27,25 @@ class TestModel(UPSGTestCase):
         http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
 
         """
-        #>>> from sklearn import svm, grid_search, datasets
-        #>>> iris = datasets.load_iris()
-        #>>> parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
-        #>>> svr = svm.SVC()
-        #>>> clf = grid_search.GridSearchCV(svr, parameters)
-        #>>> clf.fit(iris.data, iris.target)
-
         from sklearn.svm import SVC
 
-        parameters = {'kernel':('rbf', 'linear'), 'C':[1, 10], 'random_state':[0]}
+        parameters = {
+            'kernel': (
+                'rbf',
+                'linear'),
+            'C': [
+                1,
+                10],
+            'random_state': [0]}
         iris = datasets.load_iris()
         iris_data = iris.data
         iris_target = np.array([iris.target]).T
-        
+
         p = Pipeline()
 
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
-        node_split = p.add(SplitTrainTest(2, random_state = 1))
+        node_split = p.add(SplitTrainTest(2, random_state=1))
         node_search = p.add(GridSearch(wrap(SVC), 'score', parameters))
         node_params_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
@@ -57,10 +59,10 @@ class TestModel(UPSGTestCase):
 
         p.run()
 
-        control = {'kernel':'linear', 'C':1, 'random_state':0}
+        control = {'kernel': 'linear', 'C': 1, 'random_state': 0}
         result = self._tmp_files.csv_read('out.csv')
         self.assertEqual(np_sa_to_dict(np.array([result])), control)
-        
+
 
 if __name__ == '__main__':
     unittest.main()

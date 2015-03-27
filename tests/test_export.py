@@ -17,7 +17,9 @@ from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
 from utils import path_of_data, UPSGTestCase
 
+
 class TestExport(UPSGTestCase):
+
     def test_plot_roc(self):
         # based on
         # http://scikit-learn.org/stable/auto_examples/plot_roc_crossval.html
@@ -27,19 +29,18 @@ class TestExport(UPSGTestCase):
         iris = datasets.load_iris()
         iris_data = iris.data[iris.target != 2]
         iris_target = iris.target[iris.target != 2]
-        #np.array([iris.target[iris.target != 2]]).T
-    
+
         p = Pipeline()
 
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
-        node_split = p.add(SplitTrainTest(2, random_state = 0))
-        node_clf = p.add(wrap_instance(SVC, 
-            random_state = 0))
+        node_split = p.add(SplitTrainTest(2, random_state=0))
+        node_clf = p.add(wrap_instance(SVC,
+                                       random_state=0))
         node_select = p.add(SplitColumn(1))
         node_roc = p.add(wrap_instance(roc_curve))
-        node_plot = p.add(Plot(self._tmp_files('result.bmp'), 'co-', 
-            title = 'ROC Curve', xlabel = 'FPR', ylabel = 'TPR'))
+        node_plot = p.add(Plot(self._tmp_files('result.bmp'), 'co-',
+                               title='ROC Curve', xlabel='FPR', ylabel='TPR'))
 
         node_data['out'] > node_split['in0']
         node_target['out'] > node_split['in1']
