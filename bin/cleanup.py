@@ -6,6 +6,7 @@ import glob
 import tables
 import sqlalchemy
 
+from upsg.utils import np_sa_to_dict
 
 def run(path='.'):
     """removes .upsg files and temporary sql tables from

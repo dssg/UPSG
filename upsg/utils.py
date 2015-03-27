@@ -199,4 +199,4 @@ def np_to_sql(A, tbl_name, conn):
 
 
 def random_table_name():
-    return '_UPSG_' + str(uuid.uuid4())
+    return ('_UPSG_' + str(uuid.uuid4())).replace('-', '_')

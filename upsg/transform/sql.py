@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+import sqlalchemy
+
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 from ..utils import random_table_name
@@ -86,7 +88,7 @@ class RunSQL(RunnableStage):
         conn_params = self.__conn_params
         if db_url is not None:
             conn = sqlalchemy.create_engine(self.__db_url,
-                                            conn_params=self.__conn_params)
+                                            connect_args=self.__conn_params)
         else:
             # http://stackoverflow.com/questions/10593651/pythonic-way-to-access-arbitrary-element-from-dictionary
             rep_info = next(sql_info.itervalues())

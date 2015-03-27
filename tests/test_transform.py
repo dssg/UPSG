@@ -6,6 +6,7 @@ from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
 from upsg.transform.rename_cols import RenameCols
+from upsg.transform.sql import RunSQL
 
 from utils import path_of_data, UPSGTestCase
 
@@ -31,6 +32,38 @@ class TestTransform(UPSGTestCase):
         result = set(self._tmp_files.csv_read('out.csv').dtype.names)
 
         self.assertTrue(np.array_equal(result, control))
+
+    def dont_test_sql(self):
+        db_url = 'sqlite:///{}'.format(path_of_data('small.db'))
+        
+        q_sel_employees = 'CREATE TABLE {tmp_emp} AS SELECT * FROM employees;'
+        # We have to be careful about the datetime type in sqlite3. It will
+        # forget if we don't keep reminding it, and if it forgets sqlalchemy
+        # will be unhappy
+        q_sel_hours = ('CREATE TABLE {tmp_hrs} '
+                       '(id INT, employee_id INT, time DATETIME, '
+                       '    event_type TEXT); '
+                       'INSERT INTO {tmp_hrs} SELECT * FROM hours;')
+        q_join = ('CREATE TABLE {joined} '
+                  '(id INT, last_name TEXT, salary REAL, time DATETIME, '
+                  '    event_type TEXT); '
+                  'INSERT INTO {joined} '
+                  'SELECT {tmp_emp}.id, last_name, salary, time, event_type '
+                  'FROM {tmp_emp} JOIN {tmp_hrs} ON '
+                  '{tmp_emp}.id = {tmp_hrs}.employee_id;')
+
+        p = Pipeline()
+        get_emp = p.add(RunSQL(q_sel_employees, [], ['tmp_emp'], db_url, {}))
+        get_hrs = p.add(RunSQL(q_sel_hours, [], ['tmp_hrs'], db_url, {}))
+        join = p.add(RunSQL(q_sel_hours, ['tmp_emp', 'tmp_hrs'], ['joined'],
+                            db_url, {}))
+        csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
+
+        get_emp['tmp_emp'] > join['tmp_emp']
+        get_hrs['tmp_hrs'] > join['tmp_hrs']
+        join['joined'] > csv_out['in']
+
+        p.run(verbose = True)
 
 if __name__ == '__main__':
     unittest.main()
