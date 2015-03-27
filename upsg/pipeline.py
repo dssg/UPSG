@@ -5,10 +5,12 @@ import weakref
 class PipelineException(Exception):
     pass
 
+
 class Connection:
+
     """Object signifying a connection between two Nodes in a pipeline.
 
-    A Connection is not a graph edge. It's more accurate to say that a 
+    A Connection is not a graph edge. It's more accurate to say that a
     Connection is one side of an edge. For example, say we have Nodes A
     and B. Node A has an output key 'out' and Node B has an input key 'in'.
     Then, node A has a Connection A['out'] and Node B has a Connection B['in'].
@@ -21,6 +23,7 @@ class Connection:
     A['out'] > B['in']
 
     """
+
     def __init__(self, key, outgoing, node):
         """
 
@@ -51,10 +54,10 @@ class Connection:
         """
         if not self.outgoing:
             raise PipelineException("Can't connect from an incoming "
-                "edge") 
+                                    "edge")
         if other.outgoing:
             raise PipelineException("Can't connect to an outgoing "
-                "edge") 
+                                    "edge")
         self.__other = other
         other.__other = self
 
@@ -78,17 +81,19 @@ class Connection:
     def node(self):
         return self.__node()
 
+
 class Node:
+
     """A real or virtual Node the Pipeline graph"""
-        
-    def __init__(self, stage, connections = None):
+
+    def __init__(self, stage, connections=None):
         """
 
         Parameters
         ----------
         stage: Stage
             The Stage to be run when this Node is executed
-        connections: dict of {str : Connection} 
+        connections: dict of {str : Connection}
             If provided, the Node will use the provided connections rather than
             making its own. This is useful for virtual nodes which manage
             Connections for a subgraph of the Pipeline rather than for an
@@ -98,10 +103,10 @@ class Node:
         self.__stage = stage
         self.__connections = {}
         if connections is None:
-            self.__connections.update({key : Connection(key, False, self) 
-                for key in stage.input_keys})
-            self.__connections.update({key : Connection(key, True, self) 
-                for key in stage.output_keys})
+            self.__connections.update({key: Connection(key, False, self)
+                                       for key in stage.input_keys})
+            self.__connections.update({key: Connection(key, True, self)
+                                       for key in stage.output_keys})
         else:
             self.__connections.update(connections)
 
@@ -115,7 +120,7 @@ class Node:
     def get_stage(self):
         return self.__stage
 
-    def get_inputs(self, live_only = True):
+    def get_inputs(self, live_only=True):
         """Returns a dictionary of {key : Connection} for all Connections
         that are incoming.
 
@@ -126,13 +131,15 @@ class Node:
                 to another node.
 
         """
-        #TODO raise an error if all of the required inputs have not been
+        # TODO raise an error if all of the required inputs have not been
         # connected yet
-        return {key: self.__connections[key] for key in self.__connections
-             if (not self.__connections[key].outgoing) and
-                 ((not live_only) or (self.__connections[key].other is not None))}
+        return {
+            key: self.__connections[key] for key in self.__connections if (
+                not self.__connections[key].outgoing) and (
+                (not live_only) or (
+                    self.__connections[key].other is not None))}
 
-    def get_outputs(self, live_only = True):
+    def get_outputs(self, live_only=True):
         """Returns a dictionary of {key : Connection} for all Connections
         that are outgoing.
 
@@ -144,17 +151,18 @@ class Node:
 
         """
         return {key: self.__connections[key] for key in self.__connections
-             if self.__connections[key].outgoing and
-                 (not live_only or self.__connections[key].other is not None)}
+                if self.__connections[key].outgoing and
+                (not live_only or self.__connections[key].other is not None)}
+
 
 class Pipeline:
+
     """Internal representation of a UPSG pipeline.
 
     Our structure is merely a graph of pipeline elements. Execution will
     be relegated to either Drake or some simplified, internal replacement.
-    
-    """
 
+    """
 
     def __init__(self):
         self.__nodes = []
@@ -168,7 +176,7 @@ class Pipeline:
 
         Returns
         -------
-        A Node encapsulating the given stage       
+        A Node encapsulating the given stage
 
         """
         # TODO this is here to avoid a circular import. Should refactor
@@ -182,7 +190,6 @@ class Pipeline:
             return metanode
         raise TypeError('Not a valid RunnableStage or MetaStage')
 
-
     def __integrate(self, other, in_node, out_node):
         """Integrates another pipeline into this one and creates a virtual
         uid to access the sub-pipeline.
@@ -193,7 +200,7 @@ class Pipeline:
 
         Returns
         -------
-        Node which can be used to connect nodes to sub-pipeline as if 
+        Node which can be used to connect nodes to sub-pipeline as if
             the sub-pipeline were a single node.
 
         """
@@ -203,50 +210,57 @@ class Pipeline:
         connections.update(out_node.get_outputs(False))
         return Node(None, connections)
 
-    def run_debug(self, verbose = False):
+    def run_debug(self, verbose=False):
         """Run the pipeline in the current Python process.
 
-        This method of running the job runs everything in serial on a single 
+        This method of running the job runs everything in serial on a single
         process. It is provided for debugging purposes for use with small jobs.
         For larger and more performant jobs, use the run method.
         """
-        #TODO what should the user call rather than run?
-        node_queue = [node for node in self.__nodes 
-            if not node.get_outputs()] # start with the root nodes
-        state = dict.fromkeys(self.__nodes, None)  
+        # TODO what should the user call rather than run?
+        node_queue = [node for node in self.__nodes
+                      if not node.get_outputs()]  # start with the root nodes
+        state = dict.fromkeys(self.__nodes, None)
         while node_queue:
             node = node_queue.pop()
-            if state[node] is not None: # already computed
+            if state[node] is not None:  # already computed
                 continue
             input_connections = node.get_inputs()
-            input_nodes = frozenset([input_connections[input_key].other.node 
-                for input_key in input_connections])
-            unfinished_dependencies = [dep_node for dep_node in input_nodes 
-                if state[dep_node] is None] 
+            input_nodes = frozenset([input_connections[input_key].other.node
+                                     for input_key in input_connections])
+            unfinished_dependencies = [dep_node for dep_node in input_nodes
+                                       if state[dep_node] is None]
             if unfinished_dependencies:
                 node_queue.append(node)
                 node_queue += unfinished_dependencies
                 continue
-            input_args = {input_key: state[other][other_key] 
-                for input_key, other, other_key 
-                in map(lambda k: (k, input_connections[k].other.node, 
-                    input_connections[k].other.key), input_connections)}
-            output_args = node.get_stage().run(node.get_outputs().keys(), 
-                **input_args)
+            input_args = {
+                input_key: state[other][other_key] for input_key,
+                other,
+                other_key in map(
+                    lambda k: (
+                        k,
+                        input_connections[k].other.node,
+                        input_connections[k].other.key),
+                    input_connections)}
+            output_args = node.get_stage().run(node.get_outputs().keys(),
+                                               **input_args)
             map(lambda k: output_args[k].write_to_read_phase(), output_args)
             if verbose:
                 print node
                 for arg in input_args:
-                    print '<-{}[{}]:\n\t{}'.format(arg, 
-                        input_args[arg].get_file_name(), 
-                        input_args[arg].to_np())
+                    print '<-{}[{}]:\n\t{}'.format(
+                       arg,
+                       input_args[arg].get_file_name(),
+                       input_args[arg].to_np())
                 for arg in output_args:
-                    print '->{}[{}]:\n\t{}'.format(arg, 
-                        output_args[arg].get_file_name(),
-                        output_args[arg].to_np())
+                    print '->{}[{}]:\n\t{}'.format(
+                       arg,
+                       output_args[arg].get_file_name(),
+                       output_args[arg].to_np())
             state[node] = output_args
 
     def run(self, **kwargs):
         """Run the pipeline"""
-        #TODO a better method of scheduling/running than this
+        # TODO a better method of scheduling/running than this
         self.run_debug(**kwargs)

@@ -7,10 +7,11 @@ from ..pipeline import Pipeline
 
 
 class GridSearch(MetaStage):
+
     """Searches over a grid of parameters for a given classifier and finds the
     set of parameters that score the best.
 
-    Then, the classifier with the best parameters can be used to make a 
+    Then, the classifier with the best parameters can be used to make a
     predicition
 
     Input Keys
@@ -24,44 +25,44 @@ class GridSearch(MetaStage):
     -----------
     y_pred : predicted y data corresponding to X_test
     params : the best parameters found
-    
+
     """
-    
-    
+
     # TODO dynamically generate input and output keys according to the clf
 
     class __MapStage(RunnableStage):
-        """Translates metastage input keys to input stage required by the stage"""
+
+        """Translates metastage input keys to input stage required by the
+        stage
+
+        """
         # Just passes the values on for now. It might need to modify them later
+
         def __init__(self, n_children):
             self.__n_children = n_children
             self.__input_keys = ['X_train', 'y_train', 'X_test', 'y_test']
-#            self.__output_keys_hier = {in_key : map(
-#                lambda child: '{}{}'.format(in_key, child), xrange(n_children))
-#                for in_key in self.__input_keys}
-#            self.__output_keys = list(it.chain.from_iterable(
-#                self.__output_keys_hier.values()))
-            self.__output_keys = ['{}_out'.format(key) for key 
-                in self.__input_keys]
+            self.__output_keys = ['{}_out'.format(key) for key
+                                  in self.__input_keys]
 
         @property
         def input_keys(self):
             return self.__input_keys
 
-        @property 
+        @property
         def output_keys(self):
             return self.__output_keys
 
         def run(self, outputs_requested, **kwargs):
-#            ret_hier = ({out_key : kwargs[in_key] for out_key 
-#                in self.__output_keys_hier[in_key]} for in_key
-#                in self.__input_keys)
-#            ret = {}
-#            map(ret.update, ret_hier)
-#            return ret    
-            return {'{}_out'.format(key) : kwargs[key] for key in kwargs}
-    
+            #            ret_hier = ({out_key : kwargs[in_key] for out_key
+            #                in self.__output_keys_hier[in_key]} for in_key
+            #                in self.__input_keys)
+            #            ret = {}
+            #            map(ret.update, ret_hier)
+            #            return ret
+            return {'{}_out'.format(key): kwargs[key] for key in kwargs}
+
     class __ReduceStage(RunnableStage):
+
         def __init__(self, n_parents):
             self.__n_parents = n_parents
             self.__score_keys = map('score{}'.format, range(n_parents))
@@ -73,20 +74,20 @@ class GridSearch(MetaStage):
         def input_keys(self):
             return self.__input_keys
 
-        @property 
+        @property
         def output_keys(self):
             return self.__output_keys
 
         def run(self, outputs_requested, **kwargs):
-            #TODO return data in a format that tells you what the params were
+            # TODO return data in a format that tells you what the params were
             scores_array = np.array(
                 [kwargs[key].to_np()[0][0] for key in self.__score_keys])
             best = kwargs[self.__params_keys[np.argsort(scores_array)[-1]]]
-            return {'params_out' : best}
+            return {'params_out': best}
 
     def __init__(self, clf_stage, score_key, params_dict):
         """
-        
+
         Parameters
         ----------
         clf_stage : Stage class
@@ -97,20 +98,21 @@ class GridSearch(MetaStage):
         params_dict : dict of (string : list)
             A dictionary where the keys are parameters and their values are a
             list of values to try for that paramter. For example, if given
-            {'param1' : [1, 10], 'param2' : ['a', 'b']}, GridSearch will 
-            search for the highest-scoring among clf_stage(param1 = 1, 
+            {'param1' : [1, 10], 'param2' : ['a', 'b']}, GridSearch will
+            search for the highest-scoring among clf_stage(param1 = 1,
             param2 = 'a'), clf_stage(param1 = 1, param2 = 'b'),
             clf_stage(param1 = 10, param2 = 'b'), clf_stage(param1 = 10,
             param2 = 'b')
 
         """
 
-        #TODO respect score_key
+        # TODO respect score_key
         self.__clf_stage = clf_stage
         # produces dictionaries of the cartesian product of our parameters.
-        # from http://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
-        self.__params_prod = [dict(it.izip(params_dict, x)) 
-            for x in it.product(*params_dict.itervalues())]
+        # from
+        # http://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
+        self.__params_prod = [dict(it.izip(params_dict, x))
+                              for x in it.product(*params_dict.itervalues())]
         width = len(self.__params_prod)
         p = Pipeline()
         self.__pipeline = p
@@ -120,17 +122,17 @@ class GridSearch(MetaStage):
 
         for i, params in enumerate(self.__params_prod):
             node = p.add(clf_stage(**params))
-            [node_map['{}_out'.format(key)] > node[key] for key in 
+            [node_map['{}_out'.format(key)] > node[key] for key in
                 ['X_train', 'X_test', 'y_train', 'y_test']]
             node['score'] > node_reduce['score{}'.format(i)]
             node['params_out'] > node_reduce['params_in{}'.format(i)]
 
-        [node_map['{}_out'.format(key)] > node_final[key] for key in 
+        [node_map['{}_out'.format(key)] > node_final[key] for key in
             ['X_train', 'X_test', 'y_train']]
         node_reduce['params_out'] > node_final['params_in']
         self.__in_node = node_map
         self.__out_node = node_final
-    
+
     @property
     def input_keys(self):
         return ['X_train', 'y_train', 'X_test', 'y_test']
@@ -142,4 +144,3 @@ class GridSearch(MetaStage):
     @property
     def pipeline(self):
         return (self.__pipeline, self.__in_node, self.__out_node)
-

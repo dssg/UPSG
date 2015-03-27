@@ -3,7 +3,9 @@ from sklearn.cross_validation import train_test_split
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
+
 class SplitColumn(RunnableStage):
+
     """Splits a table 'in' into two tables 'X' and 'y' where y is one column of
     A and X is everything else. """
 
@@ -38,14 +40,16 @@ class SplitColumn(RunnableStage):
         uo_y.from_np(in_array[[col_name]])
         names.remove(col_name)
         uo_X.from_np(in_array[names])
-        return {'X' : uo_X, 'y' : uo_y}
-        
-class SplitTrainTest(RunnableStage):
-    """Splits a table 'in' into two tables 'train' and 'test' by rows."""
-    #TODO wrap.wrap_sklearn in a more general way, like in wrap.wrap_sklearn
-    #TODO split more than one array at a time
+        return {'X': uo_X, 'y': uo_y}
 
-    def __init__(self, n_arrays = 1, **kwargs):
+
+class SplitTrainTest(RunnableStage):
+
+    """Splits a table 'in' into two tables 'train' and 'test' by rows."""
+    # TODO wrap.wrap_sklearn in a more general way, like in wrap.wrap_sklearn
+    # TODO split more than one array at a time
+
+    def __init__(self, n_arrays=1, **kwargs):
         """
 
         parameters
@@ -53,16 +57,16 @@ class SplitTrainTest(RunnableStage):
         n_arrays: int (default 1)
             the number of arrays that will be split
         kwargs:
-            arguments corresponding to the keyword arguments of 
-            sklearn.cross_validation.train_test_split 
+            arguments corresponding to the keyword arguments of
+            sklearn.cross_validation.train_test_split
 
         """
         self.__kwargs = kwargs
         self.__n_arrays = n_arrays
 
-        self.__input_keys = map('in{}'.format, xrange(n_arrays)) 
+        self.__input_keys = map('in{}'.format, xrange(n_arrays))
         self.__output_keys = (map('train{}'.format, xrange(n_arrays)) +
-            map('test{}'.format, xrange(n_arrays)))
+                              map('test{}'.format, xrange(n_arrays)))
 
     @property
     def input_keys(self):
@@ -75,8 +79,8 @@ class SplitTrainTest(RunnableStage):
     def run(self, outputs_requested, **kwargs):
         in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
         splits = train_test_split(*in_arrays, **self.__kwargs)
-        results = {key : UObject(UObjectPhase.Write) for key 
-            in self.__output_keys}
+        results = {key: UObject(UObjectPhase.Write) for key
+                   in self.__output_keys}
         for index, in_key in enumerate(self.__input_keys):
             key_number = int(in_key.replace('in', ''))
             results['train{}'.format(key_number)].from_np(splits[2 * index])

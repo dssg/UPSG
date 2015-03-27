@@ -4,13 +4,15 @@ import numpy as np
 from ..stage import RunnableStage
 from ..utils import np_sa_to_nd
 
+
 class Plot(RunnableStage):
-    def __init__(self, filename,  *args, 
-        **kwargs):
-        #TODO documentation
+
+    def __init__(self, filename, *args,
+                 **kwargs):
+        # TODO documentation
         self.__filename = filename
         try:
-            self.__title  = kwargs['title']
+            self.__title = kwargs['title']
             del kwargs['title']
         except KeyError:
             self.__title = ''
@@ -26,7 +28,6 @@ class Plot(RunnableStage):
             self.__ylabel = ''
         self.__args = args
         self.__kwargs = kwargs
-    
 
     @property
     def input_keys(self):

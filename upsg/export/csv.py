@@ -1,11 +1,13 @@
 from ..stage import RunnableStage
 
+
 class CSVWrite(RunnableStage):
+
     def __init__(self, filename):
         self.__filename = filename
-    
+
     def __repr__(self):
-        return 'CSVWrite({})'.format(self.__filename)      
+        return 'CSVWrite({})'.format(self.__filename)
 
     @property
     def input_keys(self):

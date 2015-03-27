@@ -1,4 +1,4 @@
-import tables 
+import tables
 import uuid
 from collections import namedtuple
 import numpy as np
@@ -6,9 +6,14 @@ import sqlalchemy
 from utils import np_nd_to_sa, is_sa, np_type, np_sa_to_dict, dict_to_np_sa
 from utils import sql_to_np, np_to_sql, random_table_name
 
-SQLTableInfo_ = namedtuple('SQLTableInfo', ['table', 'conn', 'db_url', 'conn_params'])
+SQLTableInfo_ = namedtuple(
+    'SQLTableInfo', [
+        'table', 'conn', 'db_url', 'conn_params'])
 # http://stackoverflow.com/questions/1606436/adding-docstrings-to-namedtuples-in-python
+
+
 class SQLTableInfo(SQLTableInfo_):
+
     """A namedtuple representing pertainant information to utilize a sql table
 
     Attributes
@@ -19,56 +24,62 @@ class SQLTableInfo(SQLTableInfo_):
         Connection through which the table can be accessed
     db_url : str
         The sqlalchemy url for the database
-    conn_params : dict of str : ? 
+    conn_params : dict of str : ?
         Parameters to pass to the DBAPI 2 connect() method
 
     """
     pass
 
+
 class UObjectException(Exception):
+
     """Exception related to UObjects"""
     pass
 
+
 class UObjectPhase:
+
     """Enumeration of UObject phases
 
     UObjects are write-once. They must be written, then read.
-    This enumeration specifies what is happening at present. 
+    This enumeration specifies what is happening at present.
 
     """
     Write, Read = range(2)
     All = (Write, Read)
 
+
 class UObject:
+
     """A universal object signifying intermediary state in a pipeline.
 
     Conceptually, this object is a write-once table. It can be written
     and read using a number of interfaces. For example, it can be treated
     as a table in a PostgreSQL database or a Pandas dataframe residing in
-    memory. The internal representation is up to UPSG. Regardless of 
+    memory. The internal representation is up to UPSG. Regardless of
     internal representation, each UObject will be represented by a
     .upsg file that resides on the local disk. This .upsg file will be used
     to communicate between different steps in the pipeline.
 
     The interface to use will be chosen once when the UObject is being
-    written and at least once when the UObject is being read. In order to 
+    written and at least once when the UObject is being read. In order to
     choose an interface, first create a UObject instance, and then invoke one
-    of its methods prefixed with "to_" to read or "from_" to write.  For 
-    example, to_postgres or from_dataframe. 
+    of its methods prefixed with "to_" to read or "from_" to write.  For
+    example, to_postgres or from_dataframe.
 
     If an object is invoked in write mode, it must be finalized
     before it can be read by another phase in the pipeline using one of
     the "to_" methods.
 
     """
-    
-    def __init__(self, phase, file_name = None):
+
+    def __init__(self, phase, file_name=None):
         """initializer
 
         Prepares a UObject to be further used in a program. After a UObject
         instance is created, then the interface can be chosen and it can be
-        read or written to in the rest of the program. Each instance of 
-        UObject must be either read-only or write-only. 
+        read or written to in the rest of the program. Each instance of
+        UObject must be either read-only or write-only.
 
         Parameters
         ----------
@@ -76,9 +87,9 @@ class UObject:
             is being written or read. Should be either UObjectPhase.Write
             or UObjectPhase.Read, respectively.
         file_name: The name of the .upsg file representing this universal
-            intermediary object. 
+            intermediary object.
 
-            If the file is being written, this argument is optional. If not 
+            If the file is being written, this argument is optional. If not
             specified, an arbitrary, unique filename will be chosen. This
             filename can be found by invoking the get_file_name function.
 
@@ -93,16 +104,20 @@ class UObject:
         if phase == UObjectPhase.Write:
             if self.__file_name is None:
                 self.__file_name = str(uuid.uuid4()) + '.upsg'
-            self.__file = tables.open_file(self.__file_name, mode = 'w')
+            self.__file = tables.open_file(self.__file_name, mode='w')
             upsg_inf_grp = self.__file.create_group('/', 'upsg_inf')
-            self.__file.set_node_attr(upsg_inf_grp, 'storage_method', 'INCOMPLETE')
+            self.__file.set_node_attr(
+                upsg_inf_grp,
+                'storage_method',
+                'INCOMPLETE')
             self.__file.flush()
             return
-            
+
         if phase == UObjectPhase.Read:
             if self.__file_name is None:
-                raise UObjectException('Specified read phase without providing file name')
-            self.__file = tables.open_file(self.__file_name, mode = 'r')
+                raise UObjectException(
+                    'Specified read phase without providing file name')
+            self.__file = tables.open_file(self.__file_name, mode='r')
             return
 
         raise UObjectException('Invalid phase provided')
@@ -114,7 +129,7 @@ class UObject:
         """returns a member of UObjectPhase signifying whether the UObject
         is being read or written."""
         return self.__phase
-    
+
     def get_file_name(self):
         """Returns the path of this UObject's .upsg file."""
         return self.__file_name
@@ -149,7 +164,7 @@ class UObject:
         self.__phase = UObjectPhase.Read
         self.__finalized = False
 
-    def __get_conn(self, conn = None, db_url = None, conn_params = {}):
+    def __get_conn(self, conn=None, db_url=None, conn_params={}):
         if conn is not None:
             return conn
         engine = sqlalchemy.create_engine(db_url)
@@ -158,10 +173,12 @@ class UObject:
     def __get_new_table_name(self):
         return random_table_name()
 
-    def __convert_to(self, target_format, conn = None, db_url = None, 
-        conn_params = {}, tbl_name = None):
-        #TODO write this nicer than if statements
-        storage_method = self.__file.get_node_attr('/upsg_inf', 'storage_method')
+    def __convert_to(self, target_format, conn=None, db_url=None,
+                     conn_params={}, tbl_name=None):
+        # TODO write this nicer than if statements
+        storage_method = self.__file.get_node_attr(
+            '/upsg_inf',
+            'storage_method')
         hfile = self.__file
         if storage_method == 'np':
             A = hfile.root.np.table.read()
@@ -172,7 +189,7 @@ class UObject:
                 view_dtype = A.dtype.descr
                 for col in dt_cols:
                     view_dtype[col] = (view_dtype[col][0], 'datetime64[s]')
-                A = A.view(dtype = view_dtype)
+                A = A.view(dtype=view_dtype)
             except tables.NoSuchNodeError:
                 pass
 
@@ -184,11 +201,18 @@ class UObject:
                 conn = self.__get_conn(conn, db_url, conn_params)
                 if tbl_name is None:
                     tbl_name = self.__get_new_table_name()
-                return SQLTableInfo(np_to_sql(A, tbl_name, conn), conn, db_url, conn_params)
+                return SQLTableInfo(
+                    np_to_sql(
+                        A,
+                        tbl_name,
+                        conn),
+                    conn,
+                    db_url,
+                    conn_params)
             raise NotImplementedError('Unsupported conversion')
         if storage_method == 'sql':
             sql_group = hfile.root.sql
-            db_url = hfile.get_node_attr(sql_group, 'db_url') 
+            db_url = hfile.get_node_attr(sql_group, 'db_url')
             tbl_name = hfile.get_node_attr(sql_group, 'tbl_name')
             conn_params = np_sa_to_dict(hfile.root.sql.conn_params.read())
             conn = self.__get_conn(None, db_url, conn_params)
@@ -208,13 +232,13 @@ class UObject:
     def __to(self, converter):
         """Does generic book-keeping when a "to_" function is invoked.
 
-        Every public-facing "to_" function should invoke this function. 
+        Every public-facing "to_" function should invoke this function.
 
         Parameters
         ----------
         converter: -> ?
-            A function that produces the return value of the to_ 
-            function. 
+            A function that produces the return value of the to_
+            function.
 
         Returns
         -------
@@ -226,7 +250,7 @@ class UObject:
             raise UObjectException('UObject is not in the read phase')
 
         to_return = converter()
-        self.__finalized = True 
+        self.__finalized = True
         return to_return
 
     def to_np(self):
@@ -253,14 +277,13 @@ class UObject:
             header = ",".join(map(
                 lambda field_name: '"{}"'.format(field_name),
                 table.dtype.names))
-            np.savetxt(file_name, table, delimiter = ',', header = header,
-                fmt = "%s")
+            np.savetxt(file_name, table, delimiter=',', header=header,
+                       fmt="%s")
             return file_name
 
         return self.__to(converter)
-        
-    
-    def to_sql(self, db_url, conn_params, tbl_name = None):
+
+    def to_sql(self, db_url, conn_params, tbl_name=None):
         """Makes the universal object available in SQL.
 
         Parameters
@@ -272,26 +295,31 @@ class UObject:
         tbl_name: str or None
             Name for created table. If None, a random name is chosen
 
-        Returns 
+        Returns
         -------
         An SQLTableInfo with information for the created table
 
         """
-        sql_table_info = self.__to(lambda: self.__convert_to('sql', None, db_url, 
-            conn_params, tbl_name))    
+        sql_table_info = self.__to(
+            lambda: self.__convert_to(
+                'sql',
+                None,
+                db_url,
+                conn_params,
+                tbl_name))
         return sql_table_info
-    
+
     def to_dict(self):
         """Makes the universal object available in a dictionary.
 
-        Returns 
+        Returns
         -------
         A dictionary containing a representation of the
         object.
 
         This is probably the choice to use when a universal object encodes
         parameters for a model.
-        
+
         """
 
         return self.__to(lambda: self.__convert_to('dict'))
@@ -309,7 +337,7 @@ class UObject:
             being used
 
         """
-        
+
         if self.__phase != UObjectPhase.Write:
             raise UObjectException('UObject is not in write phase')
         if self.__finalized:
@@ -317,7 +345,10 @@ class UObject:
 
         storage_method = converter(self.__file)
 
-        self.__file.set_node_attr('/upsg_inf', 'storage_method', storage_method)
+        self.__file.set_node_attr(
+            '/upsg_inf',
+            'storage_method',
+            storage_method)
         self.__file.flush()
         self.__file.close()
         self.__finalized = True
@@ -332,11 +363,15 @@ class UObject:
             The name of the csv file.
 
         """
-        #TODO this is going to need to take more parameters
+        # TODO this is going to need to take more parameters
 
         def converter(hfile):
-            
-            data = np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
+
+            data = np.genfromtxt(
+                filename,
+                dtype=None,
+                delimiter=",",
+                names=True)
             np_group = hfile.create_group('/', 'np')
             hfile.create_table(np_group, 'table', obj=data)
             return 'np'
@@ -362,12 +397,16 @@ class UObject:
 
             # case datetime64 columns to int64 and note it in metadata
             to_write_dtype = to_write.dtype
-            dt_cols = [i for i, col_dtype in enumerate(to_write_dtype.descr) 
-                if '<M8' in col_dtype[1]]
+            dt_cols = [i for i, col_dtype in enumerate(to_write_dtype.descr)
+                       if '<M8' in col_dtype[1]]
             if dt_cols:
-                view_dtype = [(name, '<i8') if '<M8' in format else 
-                    (name, format) for name, format in to_write_dtype.descr]
-                to_write = to_write.view(dtype = view_dtype) 
+                view_dtype = [
+                    (name,
+                     '<i8') if '<M8' in format else (
+                        name,
+                        format) for name,
+                    format in to_write_dtype.descr]
+                to_write = to_write.view(dtype=view_dtype)
                 hfile.create_array(np_group, 'dt_cols', dt_cols)
 
             hfile.create_table(np_group, 'table', obj=to_write)
@@ -375,15 +414,15 @@ class UObject:
 
         self.__from(converter)
 
-    def from_sql(self, db_url, conn_params, table_name, 
-            pipeline_generated_object):
+    def from_sql(self, db_url, conn_params, table_name,
+                 pipeline_generated_object):
         """Encodes a sql table in the universal object and prepares
         the .upsg file.
 
         Parameters
         ----------
         db_url : str
-            The url of the database. Should conform to the format of 
+            The url of the database. Should conform to the format of
             SQLAlchemy database URLS
             (http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls)
         conn_params : dict of str to ?
@@ -394,24 +433,27 @@ class UObject:
         table_name : str
             Name of the table which this UObject will represent
         pipeline_generated_object : bool
-            Whether or not this table should be regarded as a table generated 
-            by UPSG which, consequently, should not permanently reside in the 
-            database. If the table is a pipeline_object, it will be dropped by 
+            Whether or not this table should be regarded as a table generated
+            by UPSG which, consequently, should not permanently reside in the
+            database. If the table is a pipeline_object, it will be dropped by
             the cleanup.py utility.
 
         """
-        #TODO start with arbitrary query rather than just tables
-            
+        # TODO start with arbitrary query rather than just tables
+
         def converter(hfile):
             sql_group = hfile.create_group('/', 'sql')
-            hfile.create_table(sql_group, 'conn_params', dict_to_np_sa(conn_params))
+            hfile.create_table(
+                sql_group,
+                'conn_params',
+                dict_to_np_sa(conn_params))
             hfile.set_node_attr(sql_group, 'db_url', db_url)
             conn = self.__get_conn(None, db_url, conn_params)
             hfile.set_node_attr(sql_group, 'tbl_name', table_name)
-            hfile.set_node_attr(sql_group, 'pipeline_generated', 
-                pipeline_generated_object)
+            hfile.set_node_attr(sql_group, 'pipeline_generated',
+                                pipeline_generated_object)
             return 'sql'
-        
+
         self.__from(converter)
 
     def from_dict(self, d):
@@ -421,10 +463,10 @@ class UObject:
         This is probably the choice to use when a universal object encodes
         parameters for a model.
         """
-        
+
         def converter(hfile):
             np_group = hfile.create_group('/', 'np')
             hfile.create_table(np_group, 'table', obj=dict_to_np_sa(d))
             return 'np'
-        
+
         self.__from(converter)
