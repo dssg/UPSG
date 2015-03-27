@@ -1,9 +1,29 @@
 import tables 
 import uuid
+from collections import namedtuple
 import numpy as np
 import sqlalchemy
 from utils import np_nd_to_sa, is_sa, np_type, np_sa_to_dict, dict_to_np_sa
 from utils import sql_to_np, np_to_sql, random_table_name
+
+SQLTableInfo_ = namedtuple('SQLTableInfo', ['table', 'conn', 'db_url', 'conn_params'])
+# http://stackoverflow.com/questions/1606436/adding-docstrings-to-namedtuples-in-python
+class SQLTableInfo(SQLTableInfo_):
+    """A namedtuple representing pertainant information to utilize a sql table
+
+    Attributes
+    ----------
+    table : sqlalchemy.schema.Table
+        sqlalchemy representation of the table
+    conn : sqlalchemy.engine.Connectable
+        Connection through which the table can be accessed
+    db_url : str
+        The sqlalchemy url for the database
+    conn_params : dict of str : ? 
+        Parameters to pass to the DBAPI 2 connect() method
+
+    """
+    pass
 
 class UObjectException(Exception):
     """Exception related to UObjects"""
@@ -164,7 +184,7 @@ class UObject:
                 conn = self.__get_conn(conn, db_url, conn_params)
                 if tbl_name is None:
                     tbl_name = self.__get_new_table_name()
-                return (np_to_sql(A, tbl_name, conn), conn, db_url, conn_params)
+                return SQLTableInfo(np_to_sql(A, tbl_name, conn), conn, db_url, conn_params)
             raise NotImplementedError('Unsupported conversion')
         if storage_method == 'sql':
             sql_group = hfile.root.sql
@@ -254,16 +274,12 @@ class UObject:
 
         Returns 
         -------
-        A tuple (tbl, conn, db_url, conn_params) where tbl is the 
-            sqlalchemy.Table representing the UObject, conn is the
-            sqlalchemy.engine.Connection that the db connection,
-            db_url is the sqlalchemy database url, and conn_params are
-            the arguments passed to engine.connect
+        An SQLTableInfo with information for the created table
 
         """
-        sql_tuple = self.__to(lambda: self.__convert_to('sql', None, db_url, 
+        sql_table_info = self.__to(lambda: self.__convert_to('sql', None, db_url, 
             conn_params, tbl_name))    
-        return sql_tuple
+        return sql_table_info
     
     def to_dict(self):
         """Makes the universal object available in a dictionary.
