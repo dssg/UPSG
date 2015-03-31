@@ -43,7 +43,8 @@ class TestTransform(UPSGTestCase):
         q_sel_employees = 'CREATE TABLE {tmp_emp} AS SELECT * FROM employees;'
         # We have to be careful about the datetime type in sqlite3. It will
         # forget if we don't keep reminding it, and if it forgets sqlalchemy
-        # will be unhappy
+        # will be unhappy. Hence, we can't use CREATE TABLE AS if our table
+        # has a DATETIME
         q_sel_hours = ('CREATE TABLE {tmp_hrs} '
                        '(id INT, employee_id INT, time DATETIME, '
                        '    event_type TEXT); '
@@ -57,10 +58,10 @@ class TestTransform(UPSGTestCase):
                   '{tmp_emp}.id = {tmp_hrs}.employee_id;')
 
         p = Pipeline()
-        get_emp = p.add(RunSQL(q_sel_employees, [], ['tmp_emp'], db_url, {}))
-        get_hrs = p.add(RunSQL(q_sel_hours, [], ['tmp_hrs'], db_url, {}))
-        join = p.add(RunSQL(q_join, ['tmp_emp', 'tmp_hrs'], ['joined'],
-                            db_url, {}))
+        get_emp = p.add(RunSQL(db_url, q_sel_employees, [], ['tmp_emp'], {}))
+        get_hrs = p.add(RunSQL(db_url, q_sel_hours, [], ['tmp_hrs'], {}))
+        join = p.add(RunSQL(db_url, q_join, ['tmp_emp', 'tmp_hrs'], ['joined'],
+                            {}))
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
 
         get_emp['tmp_emp'] > join['tmp_emp']

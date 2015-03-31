@@ -108,6 +108,17 @@ re_utf_to_ascii = re.compile(r'[^\x00-\x7F]+')
 
 
 def utf_to_ascii(s):
+    """Converts a unicode string to an ascii string
+    
+    If the passed object is a unicode string, replaces unicode characters
+    with '.' Each contiguous sequence of characters will be replaced with a 
+    single '.' Consequently, the length of the replaced string will not exceed
+    the length of the given string
+
+    If the passed object is not a unicode string, returns the object
+
+    """
+
     if isinstance(s, unicode):
         return str(re_utf_to_ascii.sub('.', s))
     return s
@@ -136,6 +147,21 @@ sql_to_np_types = {
 
 
 def sql_to_np(tbl, conn):
+    """Converts a sql table to a Numpy structured array.
+
+    Parameters
+    ----------
+    tbl : sqlalchemy.schema.table
+        Table to convert
+    conn : sqlalchemy.engine.Connectable
+        Connection to use to connect to the database
+
+    Returns
+    -------
+    A Numpy structured array
+
+    """
+
     # todo sessionmaker is somehow supposed to be global
     Session = sessionmaker(bind=conn)
     session = Session()
@@ -169,13 +195,36 @@ NP_EPOCH = np.datetime64('1970-01-01T00:00:00Z')
 NP_SEC_DELTA = np.timedelta64(1, 's')
 
 
-def fix_datetime64(dt):
+def datetime64_to_datetime(dt):
+    """Converts a numpy.datatime64 to a Python datetime
+
+    If the argument is not a numpy.datetime64, returns the argument
+
+    """
     if not isinstance(dt, np.datetime64):
         return dt
     return datetime.utcfromtimestamp((dt - NP_EPOCH) / NP_SEC_DELTA)
 
 
 def np_to_sql(A, tbl_name, conn):
+    """Converts a numpy structured array to an sql table
+
+    Parameters
+    ----------
+    A : numpy structured array
+        Array to convert
+
+    tbl_name : str
+        Name of table to insert into sql database
+
+    conn : sqlalchemy.engine.Connectable
+        Connection for the sql database
+
+    Returns
+    -------
+    sqlalchemy.schema.table corresponding to the uploaded structured array
+
+    """
     dtype = A.dtype
     col_names = dtype.names
 
@@ -194,9 +243,12 @@ def np_to_sql(A, tbl_name, conn):
             dict(
                 it.izip(
                     col_names, [
-                        fix_datetime64(cell) for cell in row])) for row in A])
+                        datetime64_to_datetime(cell) for cell in row])) for 
+                                row in A])
     return tbl
 
 
 def random_table_name():
+    """Returns a random table name prefixed with _UPSG_ that is unlikely
+    to collide with another random table name"""
     return ('_UPSG_' + str(uuid.uuid4())).replace('-', '_')
