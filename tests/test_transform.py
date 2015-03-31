@@ -13,7 +13,7 @@ from utils import path_of_data, UPSGTestCase, csv_read
 
 class TestTransform(UPSGTestCase):
 
-    def xtest_rename_cols(self):
+    def test_rename_cols(self):
         infile_name = path_of_data('mixed_csv.csv')
         rename_dict = {'name': 'designation', 'height': 'tallness'}
 
@@ -67,7 +67,7 @@ class TestTransform(UPSGTestCase):
         get_hrs['tmp_hrs'] > join['tmp_hrs']
         join['joined'] > csv_out['in']
 
-        p.run(verbose = True)
+        p.run()
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('test_transform_test_sql_ctrl.csv'))
