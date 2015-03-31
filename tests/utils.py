@@ -3,6 +3,7 @@ import sys
 import uuid
 import unittest
 import glob
+import shutil
 
 import numpy as np
 
@@ -34,9 +35,7 @@ class TempFileManager:
             os.makedirs(TEMP_PATH)
         self.__files = {}
 
-    def get(self, filename=None):
-        if filename is None:
-            filename = uuid.uuid4()
+    def get(self, filename):
         try:
             path = self.__files[filename]
         except KeyError:
@@ -53,8 +52,14 @@ class TempFileManager:
         self.__files = {}
 
     def csv_read(self, filename, as_nd=False):
-        return csv_read(self.__files[filename], as_nd)
+        return csv_read(self.get(filename), as_nd)
 
+    def tmp_copy(self, from_path):
+        ext = os.path.splitext(from_path)[1]
+        filename = str(uuid.uuid4()) + ext
+        to_path = self.get(filename)
+        shutil.copyfile(from_path, to_path)
+        return (to_path, filename)
 
 class UPSGTestCase(unittest.TestCase):
 

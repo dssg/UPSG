@@ -220,7 +220,7 @@ class UObject:
             md.reflect(conn)
             tbl = md.tables[tbl_name]
             if target_format == 'sql':
-                return (tbl, conn, db_url, conn_params)
+                return SQLTableInfo(tbl, conn, db_url, conn_params)
             result = sql_to_np(tbl, conn)
             if target_format == 'np':
                 return result

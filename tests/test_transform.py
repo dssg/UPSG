@@ -8,12 +8,12 @@ from upsg.fetch.csv import CSVRead
 from upsg.transform.rename_cols import RenameCols
 from upsg.transform.sql import RunSQL
 
-from utils import path_of_data, UPSGTestCase
+from utils import path_of_data, UPSGTestCase, csv_read
 
 
 class TestTransform(UPSGTestCase):
 
-    def test_rename_cols(self):
+    def xtest_rename_cols(self):
         infile_name = path_of_data('mixed_csv.csv')
         rename_dict = {'name': 'designation', 'height': 'tallness'}
 
@@ -33,8 +33,12 @@ class TestTransform(UPSGTestCase):
 
         self.assertTrue(np.array_equal(result, control))
 
-    def dont_test_sql(self):
-        db_url = 'sqlite:///{}'.format(path_of_data('small.db'))
+    def test_sql(self):
+
+        # Make sure we don't accidentally corrupt our test database
+        db_path, db_file_name = self._tmp_files.tmp_copy(path_of_data(
+            'small.db'))
+        db_url = 'sqlite:///{}'.format(db_path)
         
         q_sel_employees = 'CREATE TABLE {tmp_emp} AS SELECT * FROM employees;'
         # We have to be careful about the datetime type in sqlite3. It will
@@ -55,7 +59,7 @@ class TestTransform(UPSGTestCase):
         p = Pipeline()
         get_emp = p.add(RunSQL(q_sel_employees, [], ['tmp_emp'], db_url, {}))
         get_hrs = p.add(RunSQL(q_sel_hours, [], ['tmp_hrs'], db_url, {}))
-        join = p.add(RunSQL(q_sel_hours, ['tmp_emp', 'tmp_hrs'], ['joined'],
+        join = p.add(RunSQL(q_join, ['tmp_emp', 'tmp_hrs'], ['joined'],
                             db_url, {}))
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
 
@@ -64,6 +68,11 @@ class TestTransform(UPSGTestCase):
         join['joined'] > csv_out['in']
 
         p.run(verbose = True)
+
+        result = self._tmp_files.csv_read('out.csv')
+        ctrl = csv_read(path_of_data('test_transform_test_sql_ctrl.csv'))
+
+        self.assertTrue(np.array_equal(result, ctrl))
 
 if __name__ == '__main__':
     unittest.main()

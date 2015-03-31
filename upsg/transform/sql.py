@@ -77,27 +77,20 @@ class RunSQL(RunnableStage):
         return self.__out_keys
 
     def run(self, outputs_requested, **kwargs):
-        sql_info = {key: kwargs[key].to_sql() for key in kwargs}
-
-        table_names = {key: sqlinfo[key].table.name for key in sql_info}
-        table_names.update({key: random_table_name() for
-                            key in self.__out_keys})
-        query = sqlalchemy.sql.text(self.__query.format(**table_names))
-
         db_url = self.__db_url
         conn_params = self.__conn_params
-        if db_url is not None:
-            conn = sqlalchemy.create_engine(self.__db_url,
-                                            connect_args=self.__conn_params)
-        else:
-            # http://stackoverflow.com/questions/10593651/pythonic-way-to-access-arbitrary-element-from-dictionary
-            rep_info = next(sql_info.itervalues())
-            conn = rep_info.conn
-            db_url = rep_info.db_url
-            conn_params = rep_info.conn_params
-        # TODO fail gracefully if the user doesn't provide either
+        conn = sqlalchemy.create_engine(db_url, connect_args=conn_params)
+        sql_info = {key: kwargs[key].to_sql(db_url, conn_params) for 
+                    key in kwargs}
 
-        conn.execute(query)
+        table_names = {key: sql_info[key].table.name for key in sql_info}
+        table_names.update({key: random_table_name() for
+                            key in self.__out_keys})
+        query = self.__query.format(**table_names)
+
+        # sqlalchemy only lets us
+        [conn.execute(sqlalchemy.sql.text(statement))
+         for statement in query.split(';')]
 
         output = {key: UObject(UObjectPhase.Write) for key in self.__out_keys}
         [output[key].from_sql(db_url, conn_params, table_names[key], True) for

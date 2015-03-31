@@ -53,7 +53,10 @@ class TestUObject(UPSGTestCase):
         self.assertEqual(d, self.test_dict)
 
     def test_sql(self):
-        db_url = 'sqlite:///{}'.format(path_of_data('small.db'))
+        # Make sure we don't accidentally corrupt our test database
+        db_path, db_file_name = self._tmp_files.tmp_copy(path_of_data(
+            'small.db'))
+        db_url = 'sqlite:///{}'.format(db_path)
         for tbl_name in ('employees', 'hours'):
             uo_in = UObject(UObjectPhase.Write)
             uo_in.from_sql(db_url, {}, tbl_name, False)
