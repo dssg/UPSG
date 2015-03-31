@@ -1,7 +1,57 @@
+import tokenize
+from StringIO import StringIO
+from token import *
+
+
 from sklearn.cross_validation import train_test_split
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
+
+class SplitColumns(RunnableStage):
+    """Splits a table 'in' into two tables 'selected' and 'rest' where 
+    'selected' consists of the given columns and 'rest' consists of the rest
+    of the columns"""
+
+    def __init__(self, columns):
+        """
+
+        parameters
+        ----------
+        columns: list of str
+            Colums that will appear in the 'selected' table but not the 'rest'
+            table
+        """
+        self.__columns = columns
+
+    @property
+    def input_keys(self):
+        return ['in']
+
+    @property
+    def output_keys(self):
+        return ['selected', 'rest']
+
+    def run(self, outputs_requested, **kwargs):
+        # TODO different implementation if internally sql?
+        columns = self.__columns
+
+        to_return = {}
+        in_array = kwargs['in'].to_np()
+
+        if 'selected' in outputs_requested:
+            uo_selected = UObject(UObjectPhase.Write)
+            uo_selected.from_np(in_array[columns])
+            to_return['selected'] = uo_selected
+
+        if 'rest' in outputs_requested:
+            uo_rest = UObject(UObjectPhase.Write)
+            # http://stackoverflow.com/questions/3462143/get-difference-between-two-lists
+            remaining_columns = list(set(in_array.dtype.names) - set(columns))
+            uo_rest.from_np(in_array[remaining_columns])
+            to_return['rest'] = uo_rest
+
+        return to_return
 
 
 class SplitColumn(RunnableStage):
@@ -86,3 +136,41 @@ class SplitTrainTest(RunnableStage):
             results['train{}'.format(key_number)].from_np(splits[2 * index])
             results['test{}'.format(key_number)].from_np(splits[2 * index + 1])
         return results
+
+
+class Query(RunnableStage):
+
+    def __init__(self, query):
+        self.__query = query
+
+    @property
+    def input_keys(self):
+        return ['in']
+
+    @property
+    def output_keys(self):
+        return ['out']
+
+    def run(self, outputs_requested, **kwargs):
+        # TODO find some interface that doesn't involve string parsing
+        # modeled after pandas.Dataframe.query:
+        #     http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.query.html
+        # which implements its own computation engine:
+        #     http://pandas.pydata.org/pandas-docs/dev/generated/pandas.eval.html
+        # supports numpy arithmetic comparison operators:
+        #     http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#arithmetic-and-comparison-operations
+        raise NotImplementedError()
+#        result = []
+#        g = tokenize.generate_tokens(StringIO(self.__query).readline)
+#        for toknum, tokval, _, _, _  in g:
+#        if toknum == NUMBER and '.' in tokval:  # replace NUMBER tokens
+#            result.extend([
+#                (NAME, 'Decimal'),
+#                (OP, '('),
+#                (STRING, repr(tokval)),
+#                (OP, ')')
+#            ])
+#        else:
+#            result.append((toknum, tokval))
+#        return untokenize(result)
+
