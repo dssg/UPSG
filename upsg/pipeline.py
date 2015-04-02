@@ -210,6 +210,65 @@ class Pipeline:
         connections.update(out_node.get_outputs(False))
         return Node(None, connections)
 
+    def visualize(self, filename = None):
+        """Creates a pdf to vizualize the pipeline.
+
+        Requires the graphviz python package: 
+        (https://pypi.python.org/pypi/graphviz) 
+        and Graphviz:
+        (http://www.graphviz.org/)
+
+
+        parameters
+        ----------
+        filename : str or None
+            File name for the rendered pdf. If not given, a file name will be
+            selected automatically
+
+        returns
+        -------
+        potentially relative path of the rendered pdf
+
+        """
+        from graphviz import Digraph
+        from os import system
+        dot = Digraph()
+        node_names = {}
+        next_node_number = 0
+        node_queue = [node for node in self.__nodes
+                      if not node.get_outputs()]  # start with the root nodes
+        for node in node_queue:
+            name = 'node_{}'.format(next_node_number)
+            node_names[node] = name
+            dot.node(name, repr(node), shape = 'box')
+            next_node_number += 1
+        processed = set()
+        while node_queue:
+            node = node_queue.pop()
+            if node in processed:
+                continue
+            name = node_names[node]
+            input_connections = node.get_inputs()
+            input_nodes = frozenset([input_connections[input_key].other.node
+                                     for input_key in input_connections])
+            for input_key in input_connections:
+                conn = input_connections[input_key]
+                other_conn = conn.other
+                other_node = other_conn.node
+                try:
+                    other_name = node_names[other_node]
+                except KeyError:
+                    other_name = 'node_{}'.format(next_node_number)
+                    next_node_number += 1
+                    dot.node(other_name, repr(other_node), shape = 'box')
+                    node_names[other_node] = other_name
+                dot.edge(other_name, name, label = '{}\n::\n{}'.format(
+                    other_conn.key, conn.key))
+            node_queue.extend(input_nodes)
+            processed.add(node)
+        out_file = dot.render(filename = filename)
+        return out_file
+
     def run_debug(self, verbose=False):
         """Run the pipeline in the current Python process.
 
