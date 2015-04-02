@@ -7,7 +7,7 @@ from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
 from upsg.transform.rename_cols import RenameCols
 from upsg.transform.sql import RunSQL
-from upsg.transform.split import Query
+from upsg.transform.split import Query, SplitColumns
 
 from utils import path_of_data, UPSGTestCase, csv_read
 
@@ -73,6 +73,31 @@ class TestTransform(UPSGTestCase):
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('test_transform_test_sql_ctrl.csv'))
+
+        self.assertTrue(np.array_equal(result, ctrl))
+
+    def test_split_columns(self):
+
+        p = Pipeline()
+
+        csv_in = p.add(CSVRead(path_of_data('numbers.csv')))
+        split = p.add(SplitColumns(('F1', 'F3')))
+        csv_out_sel = p.add(CSVWrite(self._tmp_files('out_sel.csv')))
+        csv_out_rest = p.add(CSVWrite(self._tmp_files('out_rest.csv')))
+
+        csv_in['out'] > split['in']
+        split['selected'] > csv_out_sel['in']
+        split['rest'] > csv_out_rest['in']
+
+        p.run()
+        
+        result = self._tmp_files.csv_read('out_sel.csv')
+        ctrl = csv_read(path_of_data('test_split_columns_ctrl_selected.csv'))
+
+        self.assertTrue(np.array_equal(result, ctrl))
+
+        result = self._tmp_files.csv_read('out_rest.csv')
+        ctrl = csv_read(path_of_data('test_split_columns_ctrl_rest.csv'))
 
         self.assertTrue(np.array_equal(result, ctrl))
 

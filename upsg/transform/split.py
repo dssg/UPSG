@@ -34,7 +34,7 @@ class SplitColumns(RunnableStage):
 
     def run(self, outputs_requested, **kwargs):
         # TODO different implementation if internally sql?
-        columns = self.__columns
+        columns = list(self.__columns)
 
         to_return = {}
         in_array = kwargs['in'].to_np()
