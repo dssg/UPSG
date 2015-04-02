@@ -7,6 +7,7 @@ from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
 from upsg.transform.rename_cols import RenameCols
 from upsg.transform.sql import RunSQL
+from upsg.transform.split import Query
 
 from utils import path_of_data, UPSGTestCase, csv_read
 
@@ -72,6 +73,46 @@ class TestTransform(UPSGTestCase):
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('test_transform_test_sql_ctrl.csv'))
+
+        self.assertTrue(np.array_equal(result, ctrl))
+
+    def test_query(self):
+        # Make sure we can support simple queries
+        q = Query("id < 10")
+        ctrl = "in_table['id'] < 10".replace(' ', '')
+        result = q.parse_query(('id', 'name')).replace(' ', '')
+        self.assertEqual(result, ctrl)
+
+        q = Query("name == 'Bruce'")
+        ctrl = "in_table['name'] == 'Bruce'".replace(' ', '')
+        result = q.parse_query(('id', 'name')).replace(' ', '')
+        self.assertEqual(result, ctrl)
+
+#        # Make sure we can parse fairly complex queries
+#        # (Not yet supported)
+#        q1 = Query("(id < 10) or (name == 'Bruce' and hired_dt != stop_dt)")
+#        ctrl = ("(in_table ['id']<10 )or (in_table ['name']=='Bruce'and"
+#                " in_table ['hired_dt']!=in_table ['stop_dt'])")
+#        result = q1.parse_query(('id', 'name', 'hired_dt', 'stop_dt'))
+#        self.assertEqual(result, ctrl)
+
+        p = Pipeline()
+
+        csv_in = p.add(CSVRead(path_of_data('query.csv')))
+        q1_node = p.add(Query("id == value"))
+        q2_node = p.add(Query("use_this_col == 'yes'"))
+        q3_node = p.add(Query("value != 1"))
+        csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
+
+        csv_in['out'] > q1_node['in']
+        q1_node['out'] > q2_node['in']
+        q2_node['out'] > q3_node['in']
+        q3_node['out'] > csv_out['in']
+
+        p.run()
+
+        result = self._tmp_files.csv_read('out.csv')
+        ctrl = csv_read(path_of_data('query_ctrl.csv'))
 
         self.assertTrue(np.array_equal(result, ctrl))
 

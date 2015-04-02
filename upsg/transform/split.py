@@ -139,9 +139,62 @@ class SplitTrainTest(RunnableStage):
 
 
 class Query(RunnableStage):
+    """Selects rows to put in table 'out' from table 'in' based on a given
+    query
+    """
+
+    __supported_ops = ['<', '<=', '>', '>=', '==', '!=']
 
     def __init__(self, query):
+        """
+
+        parameters
+        ----------
+        query : str
+            A query used to select rows in the form: 
+            COL_NAME OP VALUE
+            where COL_NAME is the name of a column in the table (not quoted)
+            where OP can be one of: <, <=, >, >=, ==, !=
+            and VALUE can be one of:
+                * The name of a column (not quoted)
+                * a number
+                * a literal string (quoted)
+
+        examples
+        --------
+        >>> q1 = Query("id > 50")
+        >>> q2 = Query("name == 'Sarah'")
+        >>> q3 = Query("start_dt == end_dt")
+
+        """
         self.__query = query
+
+
+    def parse_query(self, col_names):
+        """Returns the query used to generate an indexing array given a
+        table with columns named col_names. Debug purposes only"""
+        # TODO make sure that operation has some statement of the form:
+        #   in_table['col_name'] == condition  
+        #   otherwise, this will eval to nonsense
+        # TODO support and, or, not
+        supported_ops = self.__supported_ops
+        result = []
+        g = tokenize.generate_tokens(StringIO(self.__query).readline)
+        for toknum, tokval, _, _, _  in g:
+            if toknum == NAME:
+                if tokval in col_names:
+                    result.extend(
+                        [(NAME, 'in_table'),
+                         (OP, '['),
+                         (STRING, "'{}'".format(tokval)),
+                         (OP, ']')])
+            elif toknum == OP:
+                if tokval in supported_ops:
+                    result.append((OP, tokval))
+            elif toknum in (NUMBER, STRING):
+                result.append((toknum, tokval))
+        result.append((ENDMARKER, ''))
+        return tokenize.untokenize(result)
 
     @property
     def input_keys(self):
@@ -159,18 +212,10 @@ class Query(RunnableStage):
         #     http://pandas.pydata.org/pandas-docs/dev/generated/pandas.eval.html
         # supports numpy arithmetic comparison operators:
         #     http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#arithmetic-and-comparison-operations
-        raise NotImplementedError()
-#        result = []
-#        g = tokenize.generate_tokens(StringIO(self.__query).readline)
-#        for toknum, tokval, _, _, _  in g:
-#        if toknum == NUMBER and '.' in tokval:  # replace NUMBER tokens
-#            result.extend([
-#                (NAME, 'Decimal'),
-#                (OP, '('),
-#                (STRING, repr(tokval)),
-#                (OP, ')')
-#            ])
-#        else:
-#            result.append((toknum, tokval))
-#        return untokenize(result)
+        in_table = kwargs['in'].to_np()
+        col_names = in_table.dtype.names
+        operation = self.parse_query(col_names)
+        uo_out = UObject(UObjectPhase.Write)
+        uo_out.from_np(in_table[eval(operation)])
+        return {'out': uo_out}
 
