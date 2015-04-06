@@ -1,5 +1,7 @@
 from collections import namedtuple
+import itertools as it
 import weakref
+import numpy as np
 
 
 class PipelineException(Exception):
@@ -281,6 +283,53 @@ class Pipeline:
         out_file = dot.render(filename = filename)
         return out_file
 
+    # for colored debug printing
+    # http://stackoverflow.com/questions/287871/print-in-terminal-with-colors-using-python
+    ANSI_NODE_COLOR = '\x1b[30;43m'
+    ANSI_ARROW_COLOR = '\x1b[1;30;43m'
+    ANSI_KEY_COLOR = '\x1b[30;43m'
+    ANSI_FILE_NAME_COLOR = '\x1b[1;30;43m'
+    ANSI_DATA_COLOR_1 = '\x1b[30;46m'
+    ANSI_DATA_COLOR_2 = '\x1b[30;47m'
+    ANSI_END = '\x1b[0m'
+    fmt_node = '{}{{}}{}'.format(
+        ANSI_NODE_COLOR,
+        ANSI_END)
+    fmt_arg = '{}{{}}{}{}{{}}{}{}[{{}}]:{}\n{{}}'.format(
+        ANSI_ARROW_COLOR,
+        ANSI_END,
+        ANSI_KEY_COLOR,
+        ANSI_END,
+        ANSI_FILE_NAME_COLOR,
+        ANSI_END)
+
+    def __alternate_row_fmt(self, a, fmt1, fmt2):
+        return '\n'.join(('{}{}{}'.format(fmt, row, self.ANSI_END) for row, fmt in
+            it.izip(np.nditer(a), it.cycle((self.ANSI_DATA_COLOR_1,
+                self.ANSI_DATA_COLOR_2)))))
+
+    def __debug_print(self, node, input_args, output_args):
+        print self.fmt_node.format(node)
+        for arg in input_args:
+            print self.fmt_arg.format(
+                '<-',
+                arg,
+                input_args[arg].get_file_name(),
+                self.__alternate_row_fmt(
+                    input_args[arg].to_np(),
+                    self.ANSI_DATA_COLOR_1,
+                    self.ANSI_DATA_COLOR_2))
+
+        for arg in output_args:
+            print self.fmt_arg.format(
+               '->',
+               arg,
+               output_args[arg].get_file_name(),
+                self.__alternate_row_fmt(
+                    output_args[arg].to_np(),
+                    self.ANSI_DATA_COLOR_1,
+                    self.ANSI_DATA_COLOR_2))
+
     def run_debug(self, verbose=False):
         """Run the pipeline in the current Python process.
 
@@ -318,18 +367,9 @@ class Pipeline:
                                                **input_args)
             map(lambda k: output_args[k].write_to_read_phase(), output_args)
             if verbose:
-                print node
-                for arg in input_args:
-                    print '<-{}[{}]:\n\t{}'.format(
-                       arg,
-                       input_args[arg].get_file_name(),
-                       input_args[arg].to_np())
-                for arg in output_args:
-                    print '->{}[{}]:\n\t{}'.format(
-                       arg,
-                       output_args[arg].get_file_name(),
-                       output_args[arg].to_np())
+                self.__debug_print(node, input_args, output_args)
             state[node] = output_args
+            #import pdb; pdb.set_trace()
 
     def run(self, **kwargs):
         """Run the pipeline"""
