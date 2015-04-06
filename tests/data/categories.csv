@@ -1,0 +1,8 @@
+id,state,job,marital_status,salary
+0,NY,CEO,M,1000.0
+1,CA,scientist,F,100
+2,NY,scientist,M,80
+3,WA,code_monkey,F,12
+4,WA,manager,F,20
+5,LA,manager,M,20
+6,WA,janitor,M,10

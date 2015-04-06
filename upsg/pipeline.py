@@ -1,3 +1,4 @@
+import os
 from collections import namedtuple
 import itertools as it
 import weakref
@@ -289,8 +290,8 @@ class Pipeline:
     ANSI_ARROW_COLOR = '\x1b[1;30;43m'
     ANSI_KEY_COLOR = '\x1b[30;43m'
     ANSI_FILE_NAME_COLOR = '\x1b[1;30;43m'
-    ANSI_DATA_COLOR_1 = '\x1b[30;46m'
-    ANSI_DATA_COLOR_2 = '\x1b[30;47m'
+    ANSI_DATA_COLOR_1 = '\x1b[30;47m'
+    ANSI_DATA_COLOR_2 = '\x1b[30;46m'
     ANSI_END = '\x1b[0m'
     fmt_node = '{}{{}}{}'.format(
         ANSI_NODE_COLOR,
@@ -304,9 +305,16 @@ class Pipeline:
         ANSI_END)
 
     def __alternate_row_fmt(self, a, fmt1, fmt2):
-        return '\n'.join(('{}{}{}'.format(fmt, row, self.ANSI_END) for row, fmt in
-            it.izip(np.nditer(a), it.cycle((self.ANSI_DATA_COLOR_1,
-                self.ANSI_DATA_COLOR_2)))))
+        # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
+        # (2nd answer)
+        term_cols = int(os.popen('stty size', 'r').read().split()[1])
+        header = '{}{}{}'.format(fmt1, ','.join(a.dtype.names)[:term_cols], 
+                                 self.ANSI_END)
+        if a.size <= 0:
+            return header
+        return '{}\n{}'.format(header, '\n'.join(('{}{}{}'.format(fmt,
+            str(row)[:term_cols], self.ANSI_END) for row, fmt in
+            it.izip(np.nditer(a), it.cycle((fmt2, fmt1))))))
 
     def __debug_print(self, node, input_args, output_args):
         print self.fmt_node.format(node)
