@@ -146,7 +146,7 @@ class TestTransform(UPSGTestCase):
 
         p = Pipeline()
 
-        csv_in = p.add(CSVRead(path_of_data('missing_vals.csv')))
+        csv_in = p.add(CSVRead(path_of_data('missing_vals_mixed.csv')))
         fill_na = p.add(FillNA(-1))
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
 

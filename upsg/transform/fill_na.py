@@ -30,11 +30,13 @@ class FillNA(RunnableStage):
     def run(self, outputs_requested, **kwargs):
         # TODO maybe we can avoid rewriting all the data (esp in sql) by
         # creating some sort of a "view" object
+        default_value = self.__default_value
         uo_out = UObject(UObjectPhase.Write)
         in_array = kwargs['in'].to_np()
-        nd_view = np_sa_to_nd(in_array)[0]
+        col_names = in_array.dtype.names
         # http://stackoverflow.com/questions/5124376/convert-nan-value-to-zero
-        nd_view[np.isnan(nd_view)] = self.__default_value
+        for col_name in col_names:
+            in_array[col_name][np.isnan(in_array[col_name])] = default_value 
         uo_out.from_np(in_array)
 
         return {'out': uo_out}
