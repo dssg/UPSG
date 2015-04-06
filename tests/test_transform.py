@@ -8,6 +8,7 @@ from upsg.fetch.csv import CSVRead
 from upsg.transform.rename_cols import RenameCols
 from upsg.transform.sql import RunSQL
 from upsg.transform.split import Query, SplitColumns
+from upsg.transform.fill_na import FillNA
 
 from utils import path_of_data, UPSGTestCase, csv_read
 
@@ -139,6 +140,24 @@ class TestTransform(UPSGTestCase):
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('query_ctrl.csv'))
 
+        self.assertTrue(np.array_equal(result, ctrl))
+
+    def test_fill_na(self):
+
+        p = Pipeline()
+
+        csv_in = p.add(CSVRead(path_of_data('missing_vals.csv')))
+        fill_na = p.add(FillNA(-1))
+        csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
+
+        csv_in['out'] > fill_na['in']
+        fill_na['out'] > csv_out['in']
+
+        p.run()
+
+        result = self._tmp_files.csv_read('out.csv')
+        ctrl = csv_read(path_of_data('test_transform_test_fill_na_ctrl.csv'))
+        
         self.assertTrue(np.array_equal(result, ctrl))
 
 if __name__ == '__main__':
