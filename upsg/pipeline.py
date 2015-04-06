@@ -86,18 +86,21 @@ class Node:
 
     """A real or virtual Node the Pipeline graph"""
 
-    def __init__(self, stage, connections=None):
+    def __init__(self, stage, connections=None, label=None):
         """
 
         Parameters
         ----------
         stage: Stage
             The Stage to be run when this Node is executed
-        connections: dict of {str : Connection}
+        connections: dict of {str : Connection} or None
             If provided, the Node will use the provided connections rather than
             making its own. This is useful for virtual nodes which manage
             Connections for a subgraph of the Pipeline rather than for an
             individual stage.
+        label: str or None
+            If provided, will be returned by this node's __str__ method. 
+            Otherwise, will default to using __repr__
 
         """
         self.__stage = stage
@@ -109,6 +112,7 @@ class Node:
                                        for key in stage.output_keys})
         else:
             self.__connections.update(connections)
+        self.__label = label
 
     def __getitem__(self, key):
         """Gets the COnnections specified by key"""
@@ -116,6 +120,11 @@ class Node:
 
     def __repr__(self):
         return 'Node({})'.format(self.__stage)
+
+    def __str__(self):
+        if self.__label is None:
+            return self.__repr__()
+        return self.__label
 
     def get_stage(self):
         return self.__stage
@@ -167,12 +176,15 @@ class Pipeline:
     def __init__(self):
         self.__nodes = []
 
-    def add(self, stage):
+    def add(self, stage, label=None):
         """Add a stage to the pipeline
 
         Parameters
         ----------
         stage: an instance of Stage to add to the pipeline.
+        label: str or None
+            label to be returned by created Node's __str__ method. If not
+            provieded, will use Node's __repr__ method
 
         Returns
         -------
@@ -182,7 +194,7 @@ class Pipeline:
         # TODO this is here to avoid a circular import. Should refactor
         from stage import MetaStage, RunnableStage
         if isinstance(stage, RunnableStage):
-            node = Node(stage)
+            node = Node(stage, label=label)
             self.__nodes.append(node)
             return node
         if isinstance(stage, MetaStage):
@@ -208,7 +220,7 @@ class Pipeline:
         connections = {}
         connections.update(in_node.get_inputs(False))
         connections.update(out_node.get_outputs(False))
-        return Node(None, connections)
+        return Node(None, connections=connections)
 
     def visualize(self, filename = None):
         """Creates a pdf to vizualize the pipeline.
@@ -240,7 +252,7 @@ class Pipeline:
         for node in node_queue:
             name = 'node_{}'.format(next_node_number)
             node_names[node] = name
-            dot.node(name, repr(node), shape = 'box')
+            dot.node(name, str(node), shape = 'box')
             next_node_number += 1
         processed = set()
         while node_queue:
@@ -260,7 +272,7 @@ class Pipeline:
                 except KeyError:
                     other_name = 'node_{}'.format(next_node_number)
                     next_node_number += 1
-                    dot.node(other_name, repr(other_node), shape = 'box')
+                    dot.node(other_name, str(other_node), shape = 'box')
                     node_names[other_node] = other_name
                 dot.edge(other_name, name, label = '{}\n::\n{}'.format(
                     other_conn.key, conn.key))
