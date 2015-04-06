@@ -1,4 +1,5 @@
 import os
+import pdb
 from collections import namedtuple
 import itertools as it
 import weakref
@@ -338,7 +339,7 @@ class Pipeline:
                     self.ANSI_DATA_COLOR_1,
                     self.ANSI_DATA_COLOR_2))
 
-    def run_debug(self, verbose=False):
+    def run_debug(self, verbose=False, single_step=False):
         """Run the pipeline in the current Python process.
 
         This method of running the job runs everything in serial on a single
@@ -377,7 +378,8 @@ class Pipeline:
             if verbose:
                 self.__debug_print(node, input_args, output_args)
             state[node] = output_args
-            #import pdb; pdb.set_trace()
+            if single_step:
+                pdb.set_trace()
 
     def run(self, **kwargs):
         """Run the pipeline"""
