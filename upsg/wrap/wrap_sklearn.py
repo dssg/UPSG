@@ -203,7 +203,9 @@ def unpickle_metric(fun, args, kwargs):
     return cls(*args, **kwargs)
 
 # metrics are whitelisted and we specify their return arguments manually
-supported_metrics = {'roc_curve': ('fpr', 'tpr', 'thresholds')}
+supported_metrics = {'roc_curve': ('fpr', 'tpr', 'thresholds'),
+                     'precision_recall_curve': ('precision', 'recall', 
+                                                'thresholds')}
 
 
 def __wrap_metric(fun):
