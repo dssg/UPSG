@@ -170,8 +170,10 @@ def __wrap_estimator(sk_cls):
             # If the user was inconsiderate enough to ask for probabilities
             #    without setting the probability param to True, we do it for
             #    them.
-            if ('pred_proba' in outputs_requested or
-                    'pred_log_proba' in outputs_requested):
+            if (('pred_proba' in outputs_requested or
+                 'pred_log_proba' in outputs_requested) and
+                 'probability' in inspect.getargspec(
+                     self.__sk_cls.__init__).args):
                 self.__params['probability'] = True
             self.__sk_instance = self.__sk_cls(**self.__params)
             self.__fitted = False

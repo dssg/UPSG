@@ -287,22 +287,24 @@ class Pipeline:
 
     # for colored debug printing
     # http://stackoverflow.com/questions/287871/print-in-terminal-with-colors-using-python
-    ANSI_NODE_COLOR = '\x1b[30;43m'
-    ANSI_ARROW_COLOR = '\x1b[1;30;43m'
-    ANSI_KEY_COLOR = '\x1b[30;43m'
-    ANSI_FILE_NAME_COLOR = '\x1b[1;30;43m'
+    ANSI_HEADER_COLOR = '\x1b[30;42m'
+    ANSI_FOOTER_COLOR = '\x1b[30;41m'
     ANSI_DATA_COLOR_1 = '\x1b[30;47m'
     ANSI_DATA_COLOR_2 = '\x1b[30;46m'
     ANSI_END = '\x1b[0m'
-    fmt_node = '{}{{}}{}'.format(
-        ANSI_NODE_COLOR,
+    fmt_node = '{}{{}}{}'
+    fmt_node_header = fmt_node.format(
+        ANSI_HEADER_COLOR,
         ANSI_END)
-    fmt_arg = '{}{{}}{}{}{{}}{}{}[{{}}]:{}\n{{}}'.format(
-        ANSI_ARROW_COLOR,
-        ANSI_END,
-        ANSI_KEY_COLOR,
-        ANSI_END,
-        ANSI_FILE_NAME_COLOR,
+    fmt_node_footer = fmt_node.format(
+        ANSI_FOOTER_COLOR,
+        ANSI_END)
+    fmt_arg = '{}{{}}{{}}[{{}}]:{}'
+    fmt_arg_header = fmt_arg.format(
+        ANSI_HEADER_COLOR,
+        ANSI_END)
+    fmt_arg_footer = fmt_arg.format(
+        ANSI_FOOTER_COLOR,
         ANSI_END)
 
     def __alternate_row_fmt(self, a, fmt1, fmt2):
@@ -318,26 +320,35 @@ class Pipeline:
             it.izip(np.nditer(a), it.cycle((fmt2, fmt1))))))
 
     def __debug_print(self, node, input_args, output_args):
-        print self.fmt_node.format(node)
+        print self.fmt_node_header.format(node)
         for arg in input_args:
-            print self.fmt_arg.format(
+            print self.fmt_arg_header.format(
                 '<-',
                 arg,
-                input_args[arg].get_file_name(),
-                self.__alternate_row_fmt(
+                input_args[arg].get_file_name())
+            print self.__alternate_row_fmt(
                     input_args[arg].to_np(),
                     self.ANSI_DATA_COLOR_1,
-                    self.ANSI_DATA_COLOR_2))
+                    self.ANSI_DATA_COLOR_2)
+            print self.fmt_arg_footer.format(
+                '<-',
+                arg,
+                input_args[arg].get_file_name())
 
         for arg in output_args:
-            print self.fmt_arg.format(
+            print self.fmt_arg_header.format(
                '->',
                arg,
-               output_args[arg].get_file_name(),
-                self.__alternate_row_fmt(
+               output_args[arg].get_file_name())
+            print self.__alternate_row_fmt(
                     output_args[arg].to_np(),
                     self.ANSI_DATA_COLOR_1,
-                    self.ANSI_DATA_COLOR_2))
+                    self.ANSI_DATA_COLOR_2)
+            print self.fmt_arg_footer.format(
+               '->',
+               arg,
+               output_args[arg].get_file_name())
+        print self.fmt_node_footer.format(node)
 
     def run_debug(self, verbose=False, single_step=False):
         """Run the pipeline in the current Python process.

@@ -13,7 +13,7 @@ import sqlalchemy.types as sqlt
 __type_permissiveness_ranks = {'M': 0, 'i': 100, 'f': 200, 'S': 300}
 def __type_permissiveness(dtype):
     # TODO handle other types
-    return __type_permissiveness_ranks(dtype.kind) + dtype.itemsize
+    return __type_permissiveness_ranks[dtype.kind] + dtype.itemsize
 
 def np_dtype_is_homogeneous(A):
     """True iff dtype is nonstructured or every sub dtype is the same"""
@@ -65,7 +65,7 @@ def np_sa_to_nd(sa):
     most_permissive = max(dtype_it, key=__type_permissiveness)
     col_names = dtype.names
     cols = (sa[col_name].astype(most_permissive) for col_name in col_names)
-    nd = np.column_stack(*cols)
+    nd = np.column_stack(cols)
     return (nd, dtype)
 
 def np_nd_to_sa(nd, dtype=None):
