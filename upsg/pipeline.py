@@ -285,78 +285,151 @@ class Pipeline:
         out_file = dot.render(filename = filename)
         return out_file
 
-    # for colored debug printing
-    # http://stackoverflow.com/questions/287871/print-in-terminal-with-colors-using-python
-    ANSI_HEADER_COLOR = '\x1b[30;42m'
-    ANSI_FOOTER_COLOR = '\x1b[30;41m'
-    ANSI_DATA_COLOR_1 = '\x1b[30;47m'
-    ANSI_DATA_COLOR_2 = '\x1b[30;46m'
-    ANSI_END = '\x1b[0m'
-    fmt_node = '{}{{}}{}'
-    fmt_node_header = fmt_node.format(
-        ANSI_HEADER_COLOR,
-        ANSI_END)
-    fmt_node_footer = fmt_node.format(
-        ANSI_FOOTER_COLOR,
-        ANSI_END)
-    fmt_arg = '{}{{}}{{}}[{{}}]:{}'
-    fmt_arg_header = fmt_arg.format(
-        ANSI_HEADER_COLOR,
-        ANSI_END)
-    fmt_arg_footer = fmt_arg.format(
-        ANSI_FOOTER_COLOR,
-        ANSI_END)
+    class Printer:
+        def __init__(
+                self, 
+                doc_header='',
+                doc_footer='',
+                fmt_node_header='',
+                fmt_node_footer='',
+                fmt_arg_header='',
+                fmt_arg_footer='',
+                fmt_row_1='',
+                fmt_row_2='',
+                max_cols=80):
+            self.__doc_header = doc_header
+            self.__doc_footer = doc_footer
+            self.__fmt_node_header = fmt_node_header
+            self.__fmt_node_footer = fmt_node_footer
+            self.__fmt_arg_header = fmt_arg_header
+            self.__fmt_arg_footer = fmt_arg_footer
+            self.__fmt_row_1 = fmt_row_1
+            self.__fmt_row_2 = fmt_row_2
+            self.__max_cols = max_cols
 
-    def __alternate_row_fmt(self, a, fmt1, fmt2):
-        # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
-        # (2nd answer)
-        term_cols = int(os.popen('stty size', 'r').read().split()[1])
-        header = '{}{}{}'.format(fmt1, ','.join(a.dtype.names)[:term_cols], 
-                                 self.ANSI_END)
-        if a.size <= 0:
-            return header
-        return '{}\n{}'.format(header, '\n'.join(('{}{}{}'.format(fmt,
-            str(row)[:term_cols], self.ANSI_END) for row, fmt in
-            it.izip(np.nditer(a), it.cycle((fmt2, fmt1))))))
+        def __alternate_row_fmt(self, a):
+            # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
+            # (2nd answer)
+            header = self.__fmt_row_1.format(
+                    row=','.join(a.dtype.names)[:self.__max_cols])
+            if a.size <= 0:
+                return header
+            return '{}\n{}'.format(header, '\n'.join((fmt_row.format(
+                row=str(row)[:self.__max_cols]) for row, fmt_row in it.izip(
+                    np.nditer(a),
+                    it.cycle((self.__fmt_row_2, self.__fmt_row_1))))))
 
-    def __debug_print(self, node, input_args, output_args):
-        print self.fmt_node_header.format(node)
-        for arg in input_args:
-            print self.fmt_arg_header.format(
-                '<-',
-                arg,
-                input_args[arg].get_file_name())
-            print self.__alternate_row_fmt(
-                    input_args[arg].to_np(),
-                    self.ANSI_DATA_COLOR_1,
-                    self.ANSI_DATA_COLOR_2)
-            print self.fmt_arg_footer.format(
-                '<-',
-                arg,
-                input_args[arg].get_file_name())
+        def header_print(self):
+            if self.__doc_header:
+                print self.__doc_header
 
-        for arg in output_args:
-            print self.fmt_arg_header.format(
-               '->',
-               arg,
-               output_args[arg].get_file_name())
-            print self.__alternate_row_fmt(
-                    output_args[arg].to_np(),
-                    self.ANSI_DATA_COLOR_1,
-                    self.ANSI_DATA_COLOR_2)
-            print self.fmt_arg_footer.format(
-               '->',
-               arg,
-               output_args[arg].get_file_name())
-        print self.fmt_node_footer.format(node)
+        def footer_print(self):
+            if self.__doc_footer:
+                print self.__doc_footer
 
-    def run_debug(self, verbose=False, single_step=False):
+        def stage_print(self, node, input_args, output_args):
+            if self.__fmt_node_header:
+                print self.__fmt_node_header.format(node=node)
+            for arg in input_args:
+                if self.__fmt_arg_header:
+                    print self.__fmt_arg_header.format(
+                        arrow='<-',
+                        key=arg,
+                        file_name=input_args[arg].get_file_name())
+                if self.__fmt_row_1 or self.__fmt_row_2:
+                    print self.__alternate_row_fmt(
+                            input_args[arg].to_np())
+                if self.__fmt_arg_footer:
+                    print self.__fmt_arg_footer.format(
+                        arrow='<-',
+                        key=arg,
+                        file_name=input_args[arg].get_file_name())
+
+            for arg in output_args:
+                if self.__fmt_arg_header:
+                    print self.__fmt_arg_header.format(
+                       arrow='->',
+                       key=arg,
+                       file_name=output_args[arg].get_file_name())
+                if self.__fmt_row_1 or self.__fmt_row_2:
+                    print self.__alternate_row_fmt(
+                            output_args[arg].to_np())
+                if self.__fmt_arg_footer:
+                    print self.__fmt_arg_footer.format(
+                       arrow='->',
+                       key=arg,
+                       file_name=output_args[arg].get_file_name())
+            if self.__fmt_node_footer:
+                print self.__fmt_node_footer.format(node=node)
+
+    def __get_ansi_stage_printer(self):
+        # for colored debug printing
+        # http://stackoverflow.com/questions/287871/print-in-terminal-with-colors-using-python
+        ANSI_HEADER_COLOR = '\x1b[30;42m'
+        ANSI_FOOTER_COLOR = '\x1b[30;41m'
+        ANSI_ROW_COLOR_1 = '\x1b[30;47m'
+        ANSI_ROW_COLOR_2 = '\x1b[30;46m'
+        ANSI_END = '\x1b[0m'
+        fmt_node = '{}{{node}}{}'
+        fmt_node_header = fmt_node.format(
+            ANSI_HEADER_COLOR,
+            ANSI_END)
+        fmt_node_footer = fmt_node.format(
+            ANSI_FOOTER_COLOR,
+            ANSI_END)
+        fmt_arg = '{}{{arrow}}{{key}}[{{file_name}}]:{}'
+        fmt_arg_header = fmt_arg.format(
+            ANSI_HEADER_COLOR,
+            ANSI_END)
+        fmt_arg_footer = fmt_arg.format(
+            ANSI_FOOTER_COLOR,
+            ANSI_END)
+        fmt_row = '{}{{row}}{}'
+        fmt_row_1 = fmt_row.format(ANSI_ROW_COLOR_1, ANSI_END)
+        fmt_row_2 = fmt_row.format(ANSI_ROW_COLOR_2, ANSI_END)
+        return self.Printer(
+                '',
+                '',
+                fmt_node_header,
+                fmt_node_footer,
+                fmt_arg_header,
+                fmt_arg_footer,
+                fmt_row_1,
+                fmt_row_2)
+
+    def __get_bw_stage_printer(self):
+        fmt_node = '{node}'
+        fmt_arg = '{arrow}{key}[{file_name}]:'
+        fmt_row = '{row}'
+        return self.Printer( 
+                '',
+                '',
+                fmt_node,
+                '/' + fmt_node,
+                fmt_arg,
+                '/' + fmt_arg,
+                fmt_row,
+                fmt_row)
+
+    def run_debug(self, output='', single_step=False):
         """Run the pipeline in the current Python process.
 
         This method of running the job runs everything in serial on a single
         process. It is provided for debugging purposes for use with small jobs.
         For larger and more performant jobs, use the run method.
         """
+
+        if output == 'color':
+            stage_printer = self.__get_ansi_stage_printer()
+        elif output == 'bw':
+            stage_printer = self.__get_bw_stage_printer()
+        elif output == 'progress':
+            stage_printer = self.Printer(fmt_node_header = 'completed: {node}',
+                                         doc_footer='pipeline complete')
+        else:
+            stage_printer = self.Printer()
+
+        stage_printer.header_print()
         # TODO what should the user call rather than run?
         node_queue = [node for node in self.__nodes
                       if not node.get_outputs()]  # start with the root nodes
@@ -386,11 +459,11 @@ class Pipeline:
             output_args = node.get_stage().run(node.get_outputs().keys(),
                                                **input_args)
             map(lambda k: output_args[k].write_to_read_phase(), output_args)
-            if verbose:
-                self.__debug_print(node, input_args, output_args)
+            stage_printer.stage_print(node, input_args, output_args)
             state[node] = output_args
             if single_step:
                 pdb.set_trace()
+        stage_printer.footer_print()
 
     def run(self, **kwargs):
         """Run the pipeline"""
