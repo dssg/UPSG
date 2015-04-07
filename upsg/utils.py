@@ -30,8 +30,15 @@ def np_sa_to_nd(sa):
     returns a 1-d array instead. If the resulting array would have a single
     entry, returns a 0-d array instead
 
-    At present, uses the 0th element of the 0th column to determine the
-    datatype of the array.
+    All elements are converted to the most permissive type. permissiveness
+    is determined first by finding the most permissive type in the ordering:
+    datetime64 < int < float < string
+    then by selecting the longest typelength among all columns with with that
+    type.
+
+    If the sa does not have a homogeneous datatype already, this may require
+    copying and type conversion rather than just casting. Consequently, this
+    operation should be avoided for heterogeneous arrays
 
     Based on http://wiki.scipy.org/Cookbook/Recarray.
 
@@ -71,7 +78,12 @@ def np_nd_to_sa(nd, dtype=None):
         The array to view
     dtype: numpy.dtype or None (optional)
         The type of the structured array. If not provided, or None, nd.dtype is
-        used.
+        used for all columns.
+
+        If the dtype requested is not homogeneous and the datatype of each
+        column is not identical nd.dtype, this operation may involve copying
+        and conversion. Consequently, this operation should be avoided with
+        heterogeneous or different datatypes.
 
     Returns
     -------
@@ -88,7 +100,7 @@ def np_nd_to_sa(nd, dtype=None):
                           'formats': [nd_dtype for i in xrange(n_cols)]})
         return nd.reshape(nd.size).view(dtype)
     type_len = nd_dtype.itemsize
-    if all(dtype[i].itemsize == type_len for i in xrange(len(dtype))):
+    if all(dtype[i] == nd_dtype for i in xrange(len(dtype))):
         return nd.reshape(nd.size).view(dtype)
     # if the user requests an incompatible type, we have to convert
     cols = (nd[:,i].astype(dtype[i]) for i in xrange(len(dtype))) 
