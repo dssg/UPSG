@@ -10,6 +10,20 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy.types as sqlt
 
 
+__type_permissiveness_ranks = {'M': 0, 'i': 100, 'f': 200, 'S': 300}
+def __type_permissiveness(dtype):
+    # TODO handle other types
+    return __type_permissiveness_ranks(dtype.kind) + dtype.itemsize
+
+def np_dtype_is_homogeneous(A):
+    """True iff dtype is nonstructured or every sub dtype is the same"""
+    # http://stackoverflow.com/questions/3787908/python-determine-if-all-items-of-a-list-are-the-same-item
+    if not is_sa(A):
+        return True
+    dtype = A.dtype
+    first_dtype = dtype[0]
+    return all(dtype[i] == first_dtype for i in xrange(len(dtype)))
+
 def np_sa_to_nd(sa):
     """Returns a view of a numpy structured array as a single-type 1 or
     2-dimensional array. If the resulting nd array would be a column vector,
@@ -32,14 +46,20 @@ def np_sa_to_nd(sa):
         where nd is numpy.ndarray array view and dtype is the numpy.dtype of
         the structured array that was passed in.
     """
-    # TODO use a better metric to determine the datatype
-    view = sa.view(dtype=sa.dtype[0])
-    if len(sa.dtype) == 1:
+    dtype = sa.dtype
+    if len(dtype) == 1:
         if sa.size == 1:
-            return (view.reshape(()), sa.dtype)
-        return (view.reshape(len(sa)), sa.dtype)
-    return (view.reshape(len(sa), -1), sa.dtype)
-
+            return (sa.view(dtype=dtype[0]).reshape(()), dtype)
+        return (sa.view(dtype=dtype[0]).reshape(len(sa)), dtype)
+    if np_dtype_is_homogeneous(sa):
+        return (sa.view(dtype=dtype[0]).reshape(len(sa), -1), dtype)
+    # If type isn't homogeneous, we have to convert
+    dtype_it = (dtype[i] for i in xrange(len(dtype)))
+    most_permissive = max(dtype_it, key=__type_permissiveness)
+    col_names = dtype.names
+    cols = (sa[col_name].astype(most_permissive) for col_name in col_names)
+    nd = np.column_stack(*cols)
+    return (nd, dtype)
 
 def np_nd_to_sa(nd, dtype=None):
     """Returns a view of a numpy, single-type, 0, 1 or 2-dimensional array as a
@@ -59,15 +79,20 @@ def np_nd_to_sa(nd, dtype=None):
     """
     if nd.ndim not in (0, 1, 2):
         raise TypeError('np_nd_to_sa only takes 0, 1 or 2-dimensional arrays')
-
+    nd_dtype = nd.dtype
     if nd.ndim <= 1:
         nd = nd.reshape(nd.size, 1)
     if dtype is None:
-        cols = nd.shape[1]
-        dtype = np.dtype({'names': map('f{}'.format, xrange(cols)),
-                          'formats': [nd.dtype for i in xrange(cols)]})
-
-    return nd.reshape(nd.size).view(dtype)
+        n_cols = nd.shape[1]
+        dtype = np.dtype({'names': map('f{}'.format, xrange(n_cols)),
+                          'formats': [nd_dtype for i in xrange(n_cols)]})
+        return nd.reshape(nd.size).view(dtype)
+    type_len = nd_dtype.itemsize
+    if all(dtype[i].itemsize == type_len for i in xrange(len(dtype))):
+        return nd.reshape(nd.size).view(dtype)
+    # if the user requests an incompatible type, we have to convert
+    cols = (nd[:,i].astype(dtype[i]) for i in xrange(len(dtype))) 
+    return np.array(it.izip(*cols), dtype=dtype)
 
 
 def is_sa(A):
