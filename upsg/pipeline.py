@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import pdb
 from collections import namedtuple
@@ -288,79 +289,105 @@ class Pipeline:
     class Printer:
         def __init__(
                 self, 
-                doc_header='',
-                doc_footer='',
+                fmt_doc_header='',
+                fmt_doc_footer='',
                 fmt_node_header='',
                 fmt_node_footer='',
                 fmt_arg_header='',
                 fmt_arg_footer='',
                 fmt_row_1='',
                 fmt_row_2='',
-                max_cols=80):
-            self.__doc_header = doc_header
-            self.__doc_footer = doc_footer
-            self.__fmt_node_header = fmt_node_header
-            self.__fmt_node_footer = fmt_node_footer
-            self.__fmt_arg_header = fmt_arg_header
-            self.__fmt_arg_footer = fmt_arg_footer
-            self.__fmt_row_1 = fmt_row_1
-            self.__fmt_row_2 = fmt_row_2
-            self.__max_cols = max_cols
+                max_cols=2**32,
+                str_cleanup=lambda s: s):
+            if fmt_doc_header:
+                self.__print_doc_header = lambda: print(fmt_doc_header)
+            else:
+                self.__print_doc_header = lambda: None
+            if fmt_doc_footer:
+                self.__print_doc_footer = lambda: print(fmt_doc_footer)
+            else:
+                self.__print_doc_footer = lambda: None
+            if fmt_node_header:
+                self.__print_node_header = lambda node: print(
+                        fmt_node_header.format(node=str_cleanup(str(node))))
+            else:
+                self.__print_node_header = lambda node: None
+            if fmt_node_footer:
+                self.__print_node_footer = lambda node: print(
+                        fmt_node_footer.format(node=str_cleanup(str(node))))
+            else:
+                self.__print_node_footer = lambda node: None
+            if fmt_arg_header:
+                self.__print_arg_header = lambda arrow, key, file_name: print(
+                        fmt_arg_header.format(
+                            arrow=str_cleanup(arrow), 
+                            key=str_cleanup(key), 
+                            file_name=str_cleanup(file_name)))
+            else:
+                self.__print_arg_header = lambda arrow, key, file_name: None
+            if fmt_arg_footer:
+                self.__print_arg_footer = lambda arrow, key, file_name: print(
+                        fmt_arg_footer.format(
+                            arrow=str_cleanup(arrow), 
+                            key=str_cleanup(key), 
+                            file_name=str_cleanup(file_name)))
+            else:
+                self.__print_arg_footer = lambda arrow, key, file_name: None
+            if fmt_row_1 or fmt_row_2:
+                self.__print_data = lambda a: print(self.__alternate_row_fmt(
+                        a, 
+                        fmt_row_1, 
+                        fmt_row_2,
+                        max_cols,
+                        str_cleanup))
+            else:
+                self.__print_data = lambda a: None
 
-        def __alternate_row_fmt(self, a):
+        def __alternate_row_fmt(self, a, fmt_row_1, fmt_row_2, max_cols, str_cleanup):
             # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
             # (2nd answer)
-            header = self.__fmt_row_1.format(
-                    row=','.join(a.dtype.names)[:self.__max_cols])
+            header = fmt_row_1.format(
+                    row=str_cleanup(','.join(a.dtype.names)[:max_cols]))
             if a.size <= 0:
                 return header
             return '{}\n{}'.format(header, '\n'.join((fmt_row.format(
-                row=str(row)[:self.__max_cols]) for row, fmt_row in it.izip(
-                    np.nditer(a),
-                    it.cycle((self.__fmt_row_2, self.__fmt_row_1))))))
+                row=str_cleanup(str(row)[:max_cols])) for 
+                row, fmt_row in it.izip(
+                    np.nditer(a), it.cycle((fmt_row_2, fmt_row_1))))))
 
         def header_print(self):
-            if self.__doc_header:
-                print self.__doc_header
+            self.__print_doc_header()
 
         def footer_print(self):
-            if self.__doc_footer:
-                print self.__doc_footer
+            self.__print_doc_footer()
 
         def stage_print(self, node, input_args, output_args):
-            if self.__fmt_node_header:
-                print self.__fmt_node_header.format(node=node)
+
+            self.__print_node_header(node)
+
             for arg in input_args:
-                if self.__fmt_arg_header:
-                    print self.__fmt_arg_header.format(
-                        arrow='<-',
-                        key=arg,
-                        file_name=input_args[arg].get_file_name())
-                if self.__fmt_row_1 or self.__fmt_row_2:
-                    print self.__alternate_row_fmt(
-                            input_args[arg].to_np())
-                if self.__fmt_arg_footer:
-                    print self.__fmt_arg_footer.format(
-                        arrow='<-',
-                        key=arg,
-                        file_name=input_args[arg].get_file_name())
+                self.__print_arg_header(
+                        '<-', 
+                        arg, 
+                        input_args[arg].get_file_name())
+                self.__print_data(input_args[arg].to_np())
+                self.__print_arg_footer(
+                        '<-',
+                        arg,
+                        input_args[arg].get_file_name())
 
             for arg in output_args:
-                if self.__fmt_arg_header:
-                    print self.__fmt_arg_header.format(
-                       arrow='->',
-                       key=arg,
-                       file_name=output_args[arg].get_file_name())
-                if self.__fmt_row_1 or self.__fmt_row_2:
-                    print self.__alternate_row_fmt(
-                            output_args[arg].to_np())
-                if self.__fmt_arg_footer:
-                    print self.__fmt_arg_footer.format(
-                       arrow='->',
-                       key=arg,
-                       file_name=output_args[arg].get_file_name())
-            if self.__fmt_node_footer:
-                print self.__fmt_node_footer.format(node=node)
+                self.__print_arg_header(
+                       '->',
+                       arg,
+                       output_args[arg].get_file_name())
+                self.__print_data(output_args[arg].to_np())
+                self.__print_arg_footer(
+                       '->',
+                       arg,
+                       output_args[arg].get_file_name())
+
+            self.__print_node_footer(node)
 
     def __get_ansi_stage_printer(self):
         # for colored debug printing
@@ -395,7 +422,8 @@ class Pipeline:
                 fmt_arg_header,
                 fmt_arg_footer,
                 fmt_row_1,
-                fmt_row_2)
+                fmt_row_2,
+                80)
 
     def __get_bw_stage_printer(self):
         fmt_node = '{node}'
@@ -409,7 +437,48 @@ class Pipeline:
                 fmt_arg,
                 '/' + fmt_arg,
                 fmt_row,
-                fmt_row)
+                fmt_row,
+                80)
+
+    def __get_html_stage_printer(self):
+        # Note: Currently, this only works in Webkit
+        doc_header = ('<!DOCTYPE html><html>'
+                      '<head>'
+                      '<style>'
+                      'table td, th {'
+                      '    border: 1px solid black;'
+                      '}'
+                      'table {'
+                      '    border-collapse: collapse;'
+                      '}'
+                      'tr:nth-child(even) {'
+                      '    background: cyan'
+                      '}'
+                      'tr:nth-child(odd) {'
+                      '    background: white'
+                      '}'
+                      '</style>'
+                      '</head>'
+                      '<body>')
+        doc_footer = '</body></html>'
+        fmt_node_header = '<h1>{node}</h1>'
+        fmt_node_footer = ''
+        fmt_arg_header = ('<details>'
+                          '<summary>{arrow}{key}[{file_name}]:</summary>'
+                          '<table>')
+        fmt_arg_footer = '</table></details>'
+        fmt_row = '<tr><td>{row}</td></tr>'
+        str_cleanup = lambda s: s.replace('<', '&lt').replace('>', '&gt')
+        return self.Printer(
+                doc_header,
+                doc_footer,
+                fmt_node_header,
+                fmt_node_footer,
+                fmt_arg_header,
+                fmt_arg_footer,
+                fmt_row,
+                fmt_row,
+                str_cleanup=str_cleanup)
 
     def run_debug(self, output='', single_step=False):
         """Run the pipeline in the current Python process.
@@ -423,9 +492,11 @@ class Pipeline:
             stage_printer = self.__get_ansi_stage_printer()
         elif output == 'bw':
             stage_printer = self.__get_bw_stage_printer()
+        elif output == 'html':
+            stage_printer = self.__get_html_stage_printer()
         elif output == 'progress':
             stage_printer = self.Printer(fmt_node_header = 'completed: {node}',
-                                         doc_footer='pipeline complete')
+                                         fmt_doc_footer='pipeline complete')
         else:
             stage_printer = self.Printer()
 
