@@ -4,6 +4,9 @@ import numpy as np
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
+from ..utils import dict_to_np_sa
+from .cross_validation import CrossValidationScore
+from ..fetch.np import NumpyRead
 
 
 class GridSearch(MetaStage):
@@ -63,7 +66,7 @@ class GridSearch(MetaStage):
 
         def __init__(self, n_parents):
             self.__n_parents = n_parents
-            self.__score_keys = map('score{}'.format, range(n_parents))
+            self.__score_keys = map('score_in{}'.format, range(n_parents))
             self.__params_keys = map('params_in{}'.format, range(n_parents))
             self.__input_keys = self.__score_keys + self.__params_keys
             self.__output_keys = ['params_out']
@@ -83,7 +86,7 @@ class GridSearch(MetaStage):
             best = kwargs[self.__params_keys[np.argsort(scores_array)[-1]]]
             return {'params_out': best}
 
-    def __init__(self, clf_stage, score_key, params_dict):
+    def __init__(self, clf_stage, score_key, params_dict, cv=2):
         """
 
         Parameters
@@ -91,8 +94,8 @@ class GridSearch(MetaStage):
         clf_stage : Stage class
             class of a Stage for which parameters will be tested
         score_key : str
-            key output from clf_stage that should be used for scoring. Should
-                only be a single number.
+            key output from clf_stage that should be used for scoring. 
+                The table that the key stores should be of size 1x1
         params_dict : dict of (string : list)
             A dictionary where the keys are parameters and their values are a
             list of values to try for that paramter. For example, if given
@@ -101,10 +104,11 @@ class GridSearch(MetaStage):
             param2 = 'a'), clf_stage(param1 = 1, param2 = 'b'),
             clf_stage(param1 = 10, param2 = 'b'), clf_stage(param1 = 10,
             param2 = 'b')
+        cv : int (default 2)
+            Number of cross-validation folds used to test a configuration.
 
         """
 
-        # TODO respect score_key
         self.__clf_stage = clf_stage
         # produces dictionaries of the cartesian product of our parameters.
         # from
@@ -119,14 +123,18 @@ class GridSearch(MetaStage):
         node_final = p.add(clf_stage())
 
         for i, params in enumerate(self.__params_prod):
-            node = p.add(clf_stage(**params))
-            [node_map['{}_out'.format(key)] > node[key] for key in
-                ['X_train', 'X_test', 'y_train', 'y_test']]
-            node['score'] > node_reduce['score{}'.format(i)]
-            node['params_out'] > node_reduce['params_in{}'.format(i)]
+            node_cv_score = p.add(
+                    CrossValidationScore(clf_stage, score_key, params, cv))
+            node_map['X_train_out'] > node_cv_score['X_train']
+            node_map['y_train_out'] > node_cv_score['y_train']
+
+            node_params = p.add(NumpyRead(dict_to_np_sa(params)))
+
+            node_cv_score['score'] > node_reduce['score_in{}'.format(i)]
+            node_params['out'] > node_reduce['params_in{}'.format(i)]
 
         [node_map['{}_out'.format(key)] > node_final[key] for key in
-            ['X_train', 'X_test', 'y_train']]
+            ['X_train', 'X_test', 'y_train', 'y_test']]
         node_reduce['params_out'] > node_final['params_in']
         self.__in_node = node_map
         self.__out_node = node_final

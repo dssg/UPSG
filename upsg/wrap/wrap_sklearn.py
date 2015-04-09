@@ -37,6 +37,11 @@ def __wrap_estimator(sk_cls):
         def __reduce__(self):
             return (unpickle_estimator, (self.__sk_cls, self.__params))
 
+        def __repr__(self):
+            # Not really how we init these, but it gets the point accross
+           return 'WrappedEstimator({}, {})'.format(
+                    self.__sk_cls, self.__params)
+
         def __uo_to_np(self, uo):
             try:
                 (A, dtype) = self.__cached_uos[uo]

@@ -4,6 +4,7 @@ from os import system
 import numpy as np
 
 from sklearn import datasets
+from sklearn import grid_search
 from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import cross_val_score
@@ -23,14 +24,14 @@ from utils import path_of_data, UPSGTestCase
 
 class TestModel(UPSGTestCase):
 
-    def xtest_grid_search(self):
+    def test_grid_search(self):
         """
 
         Simulates behavior of example in:
         http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
 
         """
-        from sklearn.svm import SVC
+        folds = 2
 
         parameters = {
             'kernel': (
@@ -38,18 +39,19 @@ class TestModel(UPSGTestCase):
                 'linear'),
             'C': [
                 1,
-                10],
+                10,
+                100],
             'random_state': [0]}
         iris = datasets.load_iris()
         iris_data = iris.data
-        iris_target = np.array([iris.target]).T
+        iris_target = iris.target
 
         p = Pipeline()
 
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
         node_split = p.add(SplitTrainTest(2, random_state=1))
-        node_search = p.add(GridSearch(wrap(SVC), 'score', parameters))
+        node_search = p.add(GridSearch(wrap(SVC), 'score', parameters, folds))
         node_params_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
         node_data['out'] > node_split['in0']
@@ -62,8 +64,21 @@ class TestModel(UPSGTestCase):
 
         p.run()
 
-        control = {'kernel': 'linear', 'C': 1, 'random_state': 0}
         result = self._tmp_files.csv_read('out.csv')
+
+        ctrl_X_train, _, ctrl_y_train, _ = train_test_split(
+            iris_data, iris_target, random_state=1)
+        ctrl_cv = SKKFold(ctrl_y_train.size, folds)
+        ctrl_search = grid_search.GridSearchCV(SVC(), parameters, cv=ctrl_cv)
+        ctrl_search.fit(ctrl_X_train, ctrl_y_train)
+        control = ctrl_search.best_params_
+
+        # TODO a number of configurations tie here, and sklearn picks a different
+        # best configuration than upsg does (although they have the same score)
+        # ideally, we want to find some parameters where there is a clear 
+        # winner
+        control = {'C': 10, 'kernel': 'linear', 'random_state': 0}
+
         self.assertEqual(np_sa_to_dict(np.array([result])), control)
 
     def test_cross_validation_score(self):
