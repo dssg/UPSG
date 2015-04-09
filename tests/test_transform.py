@@ -2,14 +2,18 @@ import numpy as np
 from os import system
 import unittest
 
+from sklearn.cross_validation import KFold as SKKFold
+
 from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
+from upsg.fetch.np import NumpyRead
 from upsg.transform.rename_cols import RenameCols
 from upsg.transform.sql import RunSQL
-from upsg.transform.split import Query, SplitColumns
+from upsg.transform.split import Query, SplitColumns, KFold
 from upsg.transform.fill_na import FillNA
 from upsg.transform.label_encode import LabelEncode
+from upsg.utils import np_nd_to_sa
 
 from utils import path_of_data, UPSGTestCase, csv_read
 
@@ -178,6 +182,46 @@ class TestTransform(UPSGTestCase):
         ctrl = csv_read(path_of_data('test_transform_test_label_encode_ctrl.csv'))
         
         self.assertTrue(np.array_equal(result, ctrl))
+
+    def test_kfold(self):
+
+        folds = 3
+        rows = 6
+
+        X = np.random.randint(0, 1000, (rows, 3))
+        y = np.random.randint(0, 1000, (rows, 1))
+
+        p = Pipeline()
+
+        np_in_X = p.add(NumpyRead(X))
+        np_in_y = p.add(NumpyRead(y))
+
+        kfold = p.add(KFold(2, folds, random_state=0))
+        np_in_X['out'] > kfold['in0']
+        np_in_y['out'] > kfold['in1']
+
+        ctrl_kf = SKKFold(rows, n_folds = folds, random_state=0)
+        out_files = []
+        expected_folds = []
+        arrays = (X, y)
+        for fold_i, train_test_inds in enumerate(ctrl_kf):
+            for array_i, array in enumerate(arrays):
+                for select_i, selection in enumerate(('train', 'test')):
+                    out_key = '{}{}_{}'.format(selection, array_i, fold_i) 
+                    out_file = out_key + '.csv'
+                    out_files.append(out_file)
+                    stage = p.add(CSVWrite(self._tmp_files(out_file)))
+                    kfold[out_key] > stage['in']
+                    slice_inds = train_test_inds[select_i]
+                    expected_folds.append(
+                            np_nd_to_sa(arrays[array_i][slice_inds]))
+
+        p.run()
+
+        for out_file, expected_fold in zip(out_files, expected_folds):
+            self.assertTrue(np.array_equal(
+                self._tmp_files.csv_read(out_file),
+                expected_fold))
 
 if __name__ == '__main__':
     unittest.main()

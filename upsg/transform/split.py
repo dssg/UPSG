@@ -1,9 +1,10 @@
 import tokenize
 from StringIO import StringIO
 from token import *
-
+import itertools as it
 
 from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import KFold as SKKFold
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
@@ -95,7 +96,14 @@ class SplitColumn(RunnableStage):
 
 class SplitTrainTest(RunnableStage):
 
-    """Splits a table 'in' into two tables 'train' and 'test' by rows."""
+    """
+    
+    Splits tables 'in0', 'in1', 'in2', ... into training and testing
+    data 'train0', 'test0', 'train1', 'test1', 'train2', 'test2', ...
+
+    All input tables should have the same number of rows
+    
+    """
     # TODO wrap.wrap_sklearn in a more general way, like in wrap.wrap_sklearn
     # TODO split more than one array at a time
 
@@ -135,6 +143,75 @@ class SplitTrainTest(RunnableStage):
             key_number = int(in_key.replace('in', ''))
             results['train{}'.format(key_number)].from_np(splits[2 * index])
             results['test{}'.format(key_number)].from_np(splits[2 * index + 1])
+        return results
+
+
+class KFold(RunnableStage):
+    """
+    
+    Splits tables 'in0', 'in1', 'in2', ... into n_folds train and test sets 
+    called:
+        'train0_0', 'test0_0', 'train0_1', 'test0_1',... (corresponding to
+        different folds of 'in0')
+        'train1_0', 'test1_0', 'train1_1', 'test1_1',... (corresponding to
+        different folds of 'in1')
+        'train2_0', 'test2_0', 'train2_1', 'test2_1',... (corresponding to
+        different folds of 'in2')
+        ...
+
+    All input tables should have the same number of rows
+
+    """
+
+    def __init__(self, n_arrays=1, n_folds=2, **kwargs):
+        """
+
+        parameters
+        ----------
+        n_arrays: int (default 1)
+            The number of arrays that will be split
+        n_folds: int (default 2)
+            The number of folds. Must be at least 2.
+        kwargs:
+            Arguments corresponding to the keyword arguments of
+            sklearn.cross_validation.KFold other than n and
+            n_folds
+
+        """
+        self.__kwargs = kwargs
+        self.__n_arrays = n_arrays
+        self.__n_folds = n_folds
+
+        self.__input_keys = ['in{}'.format(array) for array in 
+                             xrange(n_arrays)]
+        self.__output_keys = list(it.chain.from_iterable(
+                (('train{}_{}'.format(array, fold), 
+                  'test{}_{}'.format(array, fold))
+                 for array, fold in it.product(
+                     xrange(n_arrays), xrange(n_folds)))))
+
+    @property
+    def input_keys(self):
+        return self.__input_keys
+
+    @property
+    def output_keys(self):
+        return self.__output_keys
+
+    def run(self, outputs_requested, **kwargs):
+        in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
+        if len(in_arrays) < 1:
+            return {}
+        kf = SKKFold(in_arrays[0].shape[0], self.__n_folds, **self.__kwargs)
+        results = {key: UObject(UObjectPhase.Write) for key
+                   in self.__output_keys}
+        for fold_index, (train_inds, test_inds) in enumerate(kf):
+            for array_index, in_key in enumerate(self.__input_keys):
+                key_number = int(in_key.replace('in', ''))
+                results['train{}_{}'.format(key_number, fold_index)].from_np(
+                    in_arrays[array_index][train_inds])
+                results['test{}_{}'.format(key_number, fold_index)].from_np(
+                    in_arrays[array_index][test_inds])
         return results
 
 

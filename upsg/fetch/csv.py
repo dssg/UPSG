@@ -3,9 +3,25 @@ from ..uobject import UObject, UObjectPhase
 
 
 class CSVRead(RunnableStage):
+    """Stage to read in a csv. Output is offered with the 'out' key"""
 
-    def __init__(self, filename):
+    def __init__(self, filename, **kwargs):
+        """
+
+        parameters
+        ----------
+        filename: str
+            filename of the csv
+        kwargs: 
+            keyword arguments to pass to numpy.genfromtxt
+            (http://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html)
+            If no kwargs are provided, we use: dtype=None, delimiter=',', 
+            names=True.
+
+        """
+            
         self.__filename = filename
+        self.__kwargs = kwargs
 
     @property
     def input_keys(self):
@@ -17,5 +33,5 @@ class CSVRead(RunnableStage):
 
     def run(self, outputs_requested, **kwargs):
         uo = UObject(UObjectPhase.Write)
-        uo.from_csv(self.__filename)
+        uo.from_csv(self.__filename, **self.__kwargs)
         return {'out': uo}

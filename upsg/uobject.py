@@ -264,21 +264,34 @@ class UObject:
 
         return self.__to(lambda: self.__convert_to('np'))
 
-    def to_csv(self, file_name):
+    def to_csv(self, file_name, **kwargs):
         """Makes the universal object available in a csv.
+
+        Parameters
+        ----------
+        file_name: str
+            name of csv file to write
+        kwargs:
+            arguments to pass to numpy.savetxt
+            (http://docs.scipy.org/doc/numpy/reference/generated/numpy.savetxt.html)
+            If not provided, will use by default delimiter=',', fmt='%s'. 
+            In any case, UPSG will automatically add a header
 
         Returns
         -------
         The path of the csv file
 
         """
+        if not kwargs:
+            kwargs = {'delimiter': ',', 'fmt':'%s'}
+
         def converter():
             table = self.__convert_to('np')
             header = ",".join(map(
                 lambda field_name: '"{}"'.format(field_name),
                 table.dtype.names))
-            np.savetxt(file_name, table, delimiter=',', header=header,
-                       fmt="%s")
+            kwargs['header'] = header
+            np.savetxt(file_name, table, **kwargs)
             return file_name
 
         return self.__to(converter)
@@ -353,7 +366,7 @@ class UObject:
         self.__file.close()
         self.__finalized = True
 
-    def from_csv(self, filename):
+    def from_csv(self, filename, **kwargs):
         """Writes the contents of a CSV to the UOBject and prepares the .upsg
         file.
 
@@ -361,17 +374,19 @@ class UObject:
         ----------
         filename: str
             The name of the csv file.
+        kwargs: 
+            keyword arguments to pass to numpy.genfromtxt
+            (http://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html)
+            If no kwargs are provided, we use: dtype=None, delimiter=',', 
+            names=True.
 
         """
-        # TODO this is going to need to take more parameters
+        if not kwargs:
+            kwargs = {'dtype': None, 'delimiter': ',', 'names': True}
 
         def converter(hfile):
+            data = np.genfromtxt(filename, **kwargs)
 
-            data = np.genfromtxt(
-                filename,
-                dtype=None,
-                delimiter=",",
-                names=True)
             np_group = hfile.create_group('/', 'np')
             hfile.create_table(np_group, 'table', obj=data)
             return 'np'
