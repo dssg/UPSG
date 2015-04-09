@@ -28,8 +28,6 @@ class GridSearch(MetaStage):
 
     """
 
-    # TODO dynamically generate input and output keys according to the clf
-
     class __MapStage(RunnableStage):
 
         """Translates metastage input keys to input stage required by the
