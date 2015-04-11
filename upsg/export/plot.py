@@ -3,6 +3,7 @@ import numpy as np
 
 from ..stage import RunnableStage
 from ..utils import np_sa_to_nd
+from ..uobject import UObject, UObjectPhase
 
 
 class Plot(RunnableStage):
@@ -35,7 +36,7 @@ class Plot(RunnableStage):
 
     @property
     def output_keys(self):
-        return []
+        return ['plot_file']
 
     def run(self, outputs_requested, **kwargs):
         y = np_sa_to_nd(kwargs['y'].to_np())[0]
@@ -49,4 +50,6 @@ class Plot(RunnableStage):
         plt.xlabel(self.__xlabel)
         plt.ylabel(self.__ylabel)
         plt.savefig(self.__filename)
-        return {}
+        uo_plot = UObject(UObjectPhase.Write)
+        uo_plot.from_external_file(self.__filename)
+        return {'plot_file': uo_plot}

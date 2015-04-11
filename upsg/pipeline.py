@@ -6,6 +6,8 @@ import itertools as it
 import weakref
 import numpy as np
 
+from .uobject import UObjectException
+
 
 class PipelineException(Exception):
     pass
@@ -334,8 +336,8 @@ class Pipeline:
             else:
                 self.__print_arg_footer = lambda arrow, key, file_name: None
             if fmt_row_1 or fmt_row_2:
-                self.__print_data = lambda a: print(self.__alternate_row_fmt(
-                        a, 
+                self.__print_data = lambda uo: print(self.__alternate_row_fmt(
+                        uo, 
                         fmt_row_1, 
                         fmt_row_2,
                         max_cols,
@@ -343,9 +345,13 @@ class Pipeline:
             else:
                 self.__print_data = lambda a: None
 
-        def __alternate_row_fmt(self, a, fmt_row_1, fmt_row_2, max_cols, str_cleanup):
+        def __alternate_row_fmt(self, uo, fmt_row_1, fmt_row_2, max_cols, str_cleanup):
             # http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python
             # (2nd answer)
+            try:
+                a = uo.to_np()
+            except UObjectException: # unsupported conversion
+                return ''
             header = fmt_row_1.format(
                     row=str_cleanup(','.join(a.dtype.names)[:max_cols]))
             if a.size <= 0:
@@ -370,7 +376,7 @@ class Pipeline:
                         '<-', 
                         arg, 
                         input_args[arg].get_file_name())
-                self.__print_data(input_args[arg].to_np())
+                self.__print_data(input_args[arg])
                 self.__print_arg_footer(
                         '<-',
                         arg,
@@ -381,7 +387,7 @@ class Pipeline:
                        '->',
                        arg,
                        output_args[arg].get_file_name())
-                self.__print_data(output_args[arg].to_np())
+                self.__print_data(output_args[arg])
                 self.__print_arg_footer(
                        '->',
                        arg,

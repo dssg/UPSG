@@ -209,7 +209,7 @@ class UObject:
                     conn,
                     db_url,
                     conn_params)
-            raise NotImplementedError('Unsupported conversion')
+            raise UObjectException('Unsupported conversion')
         if storage_method == 'sql':
             sql_group = hfile.root.sql
             db_url = hfile.get_node_attr(sql_group, 'db_url')
@@ -226,8 +226,14 @@ class UObject:
                 return result
             if target_format == 'dict':
                 return np_sa_to_dict(result)
-            raise NotImplementedError('Unsupported conversion')
-        raise NotImplementedError('Unsupported internal format')
+            raise UObjectException('Unsupported conversion')
+        if storage_method == 'external':
+            if target_format == 'external':
+                external_group = hfile.root.external
+                file_name = hfile.get_node_attr(external_group, 'filename')
+                return file_name
+            raise UObjectException('Unsupported conversion')
+        raise UObjectException('Unsupported internal format')
 
     def __to(self, converter):
         """Does generic book-keeping when a "to_" function is invoked.
@@ -336,6 +342,16 @@ class UObject:
         """
 
         return self.__to(lambda: self.__convert_to('dict'))
+
+    def to_external_file(self):
+        """Recovers file name of external file
+        
+        External files cannot be converted to and from tables. The UObject must
+        must have been written using from_external_file 
+        
+        """
+        
+        return self.__to(lambda: self.__convert_to('external'))
 
     def __from(self, converter):
         """Does generic book-keeping when a "from_function is invoked.
@@ -485,3 +501,22 @@ class UObject:
             return 'np'
 
         self.__from(converter)
+
+    def from_external_file(self, file_name):
+        """
+        
+        Writes a reference to an external file to the universal object and
+        prepares the .upsg file. 
+        
+        External files cannot be converted to and from
+        tables. The file must be recovered with to_external_file
+        
+        """
+
+        def converter(hfile):
+            external_group = hfile.create_group('/', 'external')
+            hfile.set_node_attr(external_group, 'filename', file_name)
+            return 'external'
+
+        self.__from(converter)
+
