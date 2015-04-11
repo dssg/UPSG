@@ -1,14 +1,24 @@
-import numpy as np
+import os
+import inspect
 import itertools as it
 import re
 import uuid
+import upsg
 from datetime import datetime
+import numpy as np
 from sqlalchemy.schema import Table, Column
 from sqlalchemy import MetaData
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.types as sqlt
 
+UPSG_PATH = os.path.dirname(inspect.getfile(upsg))
+REPO_PATH = os.path.join(UPSG_PATH, '..')
+RESOURCES_PATH = os.path.join(REPO_PATH, 'resources')
+
+def get_resource_path(file_name):
+    """given the name of a resource, returns the full path"""
+    return os.path.join(RESOURCES_PATH, file_name)
 
 __type_permissiveness_ranks = {'M': 0, 'i': 100, 'f': 200, 'S': 300}
 def __type_permissiveness(dtype):
@@ -289,3 +299,4 @@ def random_table_name():
     """Returns a random table name prefixed with _UPSG_ that is unlikely
     to collide with another random table name"""
     return ('_UPSG_' + str(uuid.uuid4())).replace('-', '_')
+
