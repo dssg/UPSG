@@ -1,10 +1,11 @@
 import itertools as it
 import numpy as np
+import json
 
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
-from ..utils import dict_to_np_sa
+from ..utils import dict_to_np_sa, get_resource_path
 from .cross_validation import CrossValidationScore
 from ..fetch.np import NumpyRead
 
@@ -23,6 +24,10 @@ class MultiClassify(MetaStage):
     y_train
     X_test
     y_test
+
+    Output Keys
+    -----------
+    report_file
 
     """
 
@@ -51,8 +56,43 @@ class MultiClassify(MetaStage):
         def run(self, outputs_requested, **kwargs):
             return {'{}_out'.format(key): kwargs[key] for key in kwargs}
 
+    class __ReduceStage(RunnableStage):
 
-    def __init__(self, score_key, clf_and_params_dict=None, cv=2):
+        def __init__(self, classifiers, file_name):
+            self.__file_name = file_name
+            self.__classifiers = classifiers
+            self.__params_keys = map('params_in_{}'.format, classifiers)
+            self.__report_keys = map('report_in_{}'.format, classifiers)
+            self.__input_keys = self.__report_keys + self.__params_keys
+            self.__output_keys = ['report_file']
+
+        @property
+        def input_keys(self):
+            return self.__input_keys
+
+        @property
+        def output_keys(self):
+            return self.__output_keys
+
+        def __print_classifier_report(self, fout, uo_params, uo_report):
+            # TODO stopped here
+
+        def run(self, outputs_requested, **kwargs):
+            # TODO print reports in some nicer format
+            with fout as open(self.__file_name, 'w') 
+                fout.write('<!DOCTYPE html><html><body>')
+                for classifier in self.__classifiers:
+                    self.__print_classifier_report(
+                        fout,
+                        kwargs['params_in_{}'.format(classifier)],
+                        kwargs['report_in_{}'.format(classifier)])
+                fout.write('</body></html>')
+            uo_report_file = UObject(UObjectPhase.Write)
+            uo_report_file.from_external_file(self.__file_name)
+            return {'report_file': uo_report_file}
+
+
+    def __init__(self, score_key, report_file_name, clf_and_params_dict=None, cv=2):
         """
 
         Parameters
@@ -80,15 +120,22 @@ class MultiClassify(MetaStage):
              will be used. 
 
         score_key: str
-            key output from clf_stage that should be used for scoring. 
+            Key output from clf_stage that should be used for scoring. 
                 The table that the key stores should be of size 1x1
+
+        report_file_name: str
+            Base name of file in which to write the report.
 
         cv : int (default 2)
             Number of cross-validation folds used to test a configuration.
 
         """
 
-        raise NotImplementedError() 
+        if clf_and_params_dict is None:
+            with f_default_dict as open(get_resource_path(
+                'default_multi_classify.json')):
+                clf_and_params_dict = json.load(f_default_dict)    
+
         p = Pipeline()
         self.__pipeline = p
         node_map = p.add(self.__MapStage(width))
