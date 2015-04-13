@@ -26,7 +26,8 @@ class GridSearch(MetaStage):
 
     Output Keys
     -----------
-    y_pred : predicted y data corresponding to X_test
+    y_pred : predicted y data corresponding to X_test for the best parameters
+    pred_proba : class probabilities for the best parameters
     params : the best parameters found
 
     """
@@ -141,11 +142,11 @@ class GridSearch(MetaStage):
 
     @property
     def input_keys(self):
-        return ['X_train', 'y_train', 'X_test', 'y_test']
+        return self.__in_node.input_keys
 
     @property
     def output_keys(self):
-        return ['y_pred', 'params']
+        return self.__out_node.output_keys
 
     @property
     def pipeline(self):

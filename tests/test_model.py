@@ -17,6 +17,7 @@ from upsg.transform.split import SplitTrainTest
 from upsg.pipeline import Pipeline
 from upsg.model.grid_search import GridSearch
 from upsg.model.cross_validation import CrossValidationScore
+from upsg.model.multiclassify import Multiclassify
 from upsg.utils import np_sa_to_dict
 
 from utils import path_of_data, UPSGTestCase
@@ -110,5 +111,37 @@ class TestModel(UPSGTestCase):
 
         self.assertTrue(np.allclose(ctrl, result))
 
+    def xtest_multiclassify(self):
+        rows = 100
+        folds = 3
+
+        X = np.random.random((rows, 10))
+        y = np.random.randint(0, 2, (rows))
+        
+        p = Pipeline()
+
+        np_in_X = p.add(NumpyRead(X))
+        np_in_y = p.add(NumpyRead(y))
+
+        split_train_test = p.add(SplitTrainTest(2))
+        np_in_X['out'] > split_train_test['in0']
+        np_in_y['out'] > split_train_test['in1']
+
+        clf_and_params_dict = {'sklearn.ensemble.RandomForestClassifier': {'n_estimators': [10, 20]}, 'sklearn.dummy.DummyClassifier': {'strategy': ['stratified', 'most_frequent', 'uniform']}}
+
+        multi = p.add(Multiclassify(
+            'score', 
+            'report.html',
+            clf_and_params_dict,
+            folds))
+
+        split_train_test['train0'] > multi['X_train']
+        split_train_test['test0'] > multi['X_test']
+        split_train_test['train1'] > multi['y_train']
+        split_train_test['test1'] > multi['y_test']
+        
+        p.visualize('test_multi')
+        p.run(output='progress')
+        
 if __name__ == '__main__':
     unittest.main()
