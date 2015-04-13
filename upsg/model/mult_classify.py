@@ -37,10 +37,8 @@ class MultiClassify(MetaStage):
         stage
 
         """
-        # Just passes the values on for now. It might need to modify them later
 
-        def __init__(self, n_children):
-            self.__n_children = n_children
+        def __init__(self)
             self.__input_keys = ['X_train', 'y_train', 'X_test', 'y_test']
             self.__output_keys = ['{}_out'.format(key) for key
                                   in self.__input_keys]
@@ -74,8 +72,12 @@ class MultiClassify(MetaStage):
         def output_keys(self):
             return self.__output_keys
 
-        def __print_classifier_report(self, fout, uo_params, uo_report):
-            # TODO stopped here
+        def __print_classifier_report(self, fout, classifier, uo_params, 
+                                      uo_report):
+            fout.write('<h3>{}<\h3><p>{}<p><img src="{}">'.format(
+                classifier,
+                uo_params.to_dict(),
+                uo_report.to_external_file()))
 
         def run(self, outputs_requested, **kwargs):
             # TODO print reports in some nicer format
@@ -84,6 +86,7 @@ class MultiClassify(MetaStage):
                 for classifier in self.__classifiers:
                     self.__print_classifier_report(
                         fout,
+                        classifier,
                         kwargs['params_in_{}'.format(classifier)],
                         kwargs['report_in_{}'.format(classifier)])
                 fout.write('</body></html>')
@@ -136,11 +139,11 @@ class MultiClassify(MetaStage):
                 'default_multi_classify.json')):
                 clf_and_params_dict = json.load(f_default_dict)    
 
+        classifiers = clf_and_params_dict.keys()
         p = Pipeline()
         self.__pipeline = p
-        node_map = p.add(self.__MapStage(width))
-        node_reduce = p.add(self.__ReduceStage(width))
-        node_final = p.add(clf_stage())
+        node_map = p.add(self.__MapStage())
+        node_reduce = p.add(self.__ReduceStage(classifiers))
 
         for i, params in enumerate(self.__params_prod):
             node_cv_score = p.add(
@@ -157,7 +160,7 @@ class MultiClassify(MetaStage):
             ['X_train', 'X_test', 'y_train', 'y_test']]
         node_reduce['params_out'] > node_final['params_in']
         self.__in_node = node_map
-        self.__out_node = node_final
+        self.__out_node = node_reduce
 
     @property
     def input_keys(self):

@@ -8,7 +8,7 @@ from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 
 from upsg.fetch.np import NumpyRead
-from upsg.wrap.wrap_sklearn import wrap_instance
+from upsg.wrap.wrap_sklearn import wrap_and_make_instance
 from upsg.export.csv import CSVWrite
 from upsg.transform.split import SplitTrainTest
 from upsg.pipeline import Pipeline
@@ -40,7 +40,7 @@ class TestSKLearnParity(UPSGTestCase):
         stage_split_data = SplitTrainTest(2, test_size=1, random_state=0)
 
         # build a classifier
-        stage_clf = wrap_instance(SVC, gamma=0.001, C=100.)
+        stage_clf = wrap_and_make_instance(SVC, gamma=0.001, C=100.)
 
         # output to a csv
         stage_csv = CSVWrite(self._tmp_files('out.csv'))

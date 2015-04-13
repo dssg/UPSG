@@ -7,7 +7,7 @@ from StringIO import StringIO
 from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
 from upsg.fetch.csv import CSVRead
-from upsg.wrap.wrap_sklearn import wrap_instance
+from upsg.wrap.wrap_sklearn import wrap_and_make_instance
 from upsg.stage import RunnableStage
 from upsg.uobject import UObject, UObjectPhase
 from utils import path_of_data, UPSGTestCase
@@ -83,7 +83,7 @@ class TestPipleline(UPSGTestCase):
 
         csv_read_node = p.add(CSVRead(infile_name))
         csv_write_node = p.add(CSVWrite(self._tmp_files.get('out.csv')))
-        impute_node = p.add(wrap_instance(Imputer))
+        impute_node = p.add(wrap_and_make_instance(Imputer))
 
         csv_read_node['out'] > impute_node['X_train']
         impute_node['X_new'] > csv_write_node['in']

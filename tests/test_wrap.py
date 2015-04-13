@@ -5,7 +5,7 @@ from inspect import getargspec
 
 from sklearn.cross_validation import train_test_split
 
-from upsg.wrap.wrap_sklearn import wrap, wrap_instance
+from upsg.wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from upsg.uobject import UObject, UObjectPhase
 from upsg.pipeline import Pipeline
 from upsg.fetch.csv import CSVRead
@@ -29,8 +29,8 @@ class TestWrap(UPSGTestCase):
         WrappedImputer = wrap('sklearn.preprocessing.Imputer')
         impute_stage = WrappedImputer()
 
-    def test_wrap_instance(self):
-        impute_stage = wrap_instance('sklearn.preprocessing.Imputer',
+    def test_wrap_and_make_instance(self):
+        impute_stage = wrap_and_make_instance('sklearn.preprocessing.Imputer',
                                      strategy='median')
         params = impute_stage.get_params()
         self.assertEqual(params['strategy'], 'median')
@@ -142,13 +142,13 @@ class TestWrap(UPSGTestCase):
         # parameters from
         # http://scikit-learn.org/stable/auto_examples/plot_classifier_comparison.html
         node_clf1 = p.add(
-            wrap_instance(
+            wrap_and_make_instance(
                 RandomForestClassifier,
                 max_depth=5,
                 n_estimators=10,
                 max_features=1,
                 random_state=0))
-        node_clf2 = p.add(wrap_instance(RandomForestClassifier, max_depth=12,
+        node_clf2 = p.add(wrap_and_make_instance(RandomForestClassifier, max_depth=12,
                                         n_estimators=100, max_features=1000))
         node_params_out_1 = p.add(CSVWrite(self._tmp_files.get(
             'out_params_1.csv')))
@@ -204,10 +204,10 @@ class TestWrap(UPSGTestCase):
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
         node_split = p.add(SplitTrainTest(2, random_state=0))
-        node_clf = p.add(wrap_instance(SVC,
+        node_clf = p.add(wrap_and_make_instance(SVC,
                                        random_state=0))
         node_select = p.add(SplitColumn(1))
-        node_roc = p.add(wrap_instance(roc_curve))
+        node_roc = p.add(wrap_and_make_instance(roc_curve))
         node_fpr_out = p.add(CSVWrite(self._tmp_files.get('out_fpr.csv')))
         node_tpr_out = p.add(CSVWrite(self._tmp_files.get('out_tpr.csv')))
 

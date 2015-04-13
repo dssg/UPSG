@@ -311,7 +311,7 @@ def wrap(target):
          'or a function or a package name of one of the above objects'))
 
 
-def wrap_instance(target, *args, **kwargs):
+def wrap_and_make_instance(target, *args, **kwargs):
     """returns an instance of a Stage class that wraps an sklearn object.
 
     Parameters
@@ -328,17 +328,17 @@ def wrap_instance(target, *args, **kwargs):
     Examples
     --------
     >>> from sklearn.preprocessing import Imputer
-    >>> impute_stage = wrap_instance(Imputer, missing_values=0)
+    >>> impute_stage = wrap_and_make_instance(Imputer, missing_values=0)
 
     or
 
-    >>> impute_stage = wrap_instance('sklearn.preprocessing.Imputer',
+    >>> impute_stage = wrap_and_make_instance('sklearn.preprocessing.Imputer',
             strategy='median')
 
-    >>> roc_stage = wrap_instance('sklearn.metrics.roc_curve')
+    >>> roc_stage = wrap_and_make_instance('sklearn.metrics.roc_curve')
 
     >>> from sklearn.metrics import roc_curve
-    >>> roc_stage = wrap_instance(roc_curve)
+    >>> roc_stage = wrap_and_make_instance(roc_curve)
 
     """
     cls = wrap(target)
