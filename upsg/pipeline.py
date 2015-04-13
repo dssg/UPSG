@@ -4,6 +4,7 @@ import pdb
 from collections import namedtuple
 import itertools as it
 import weakref
+import uuid
 import numpy as np
 
 from .uobject import UObjectException
@@ -11,6 +12,43 @@ from .uobject import UObjectException
 
 class PipelineException(Exception):
     pass
+
+
+class Edge:
+    """A directed graph edge"""
+
+    def __init__(self, conn_from, conn_to, name=None):
+        """
+
+        Parameters
+        ----------
+        conn_from: Connection
+            The Connection which the edge is directed from
+
+        conn_to: Connection
+            The Connection which the edge is directed to
+
+        name: str or None
+            The unique name of edge. If not provided, a name will be generated
+
+        """
+        self.__conn_from = weakref.ref(conn_from)
+        self.__conn_to = weakref.ref(conn_to)
+        if name is None:
+            name = str(uuid.uuid4())
+        self.__name = name
+
+    @property
+    def conn_from(self):
+        return self.__conn_from
+
+    @property
+    def conn_to(self):
+        return self.__conn_to
+
+    @property
+    def name(self):
+        return self.__name
 
 
 class Connection:
