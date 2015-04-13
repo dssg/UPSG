@@ -4,7 +4,7 @@ import numpy as np
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
-from ..utils import dict_to_np_sa
+from ..utils import dict_to_np_sa, utf_to_ascii
 from .cross_validation import CrossValidationScore
 from ..fetch.np import NumpyRead
 
@@ -125,7 +125,11 @@ class GridSearch(MetaStage):
 
         for i, params in enumerate(self.__params_prod):
             node_cv_score = p.add(
-                    CrossValidationScore(clf_stage, score_key, params, cv))
+                    CrossValidationScore(
+                        clf_stage, 
+                        score_key, 
+                        {key: utf_to_ascii(params[key]) for key in params}, 
+                        cv))
             node_map['X_train_out'] > node_cv_score['X_train']
             node_map['y_train_out'] > node_cv_score['y_train']
 

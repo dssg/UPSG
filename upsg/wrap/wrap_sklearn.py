@@ -111,8 +111,12 @@ def __wrap_estimator(sk_cls):
                         kwargs['sample_weight'])
                 except KeyError:
                     sample_weight = None
-                self.__sk_instance.fit(X_train, y_train,
+                if 'sample_weight' in inspect.getargspec(
+                    self.__sk_instance.fit).args:
+                    self.__sk_instance.fit(X_train, y_train,
                                        sample_weight)
+                else:
+                    self.__sk_instance.fit(X_train, y_train)
                 self.__fitted = True
             if hasattr(sk_cls, 'score'):
                 __output_keys.add('score')
@@ -294,7 +298,7 @@ def wrap(target):
     >>> roc_stage = WrappedRoc()
 
     """
-    if isinstance(target, str):
+    if isinstance(target, basestring):
         split = target.split('.')
         object_name = split[-1]
         module_name = '.'.join(split[:-1])

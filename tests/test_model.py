@@ -23,6 +23,12 @@ from upsg.utils import np_sa_to_dict
 from utils import path_of_data, UPSGTestCase
 
 
+import unittest
+import sys
+import pdb
+import functools
+import traceback
+
 class TestModel(UPSGTestCase):
 
     def test_grid_search(self):
@@ -111,12 +117,13 @@ class TestModel(UPSGTestCase):
 
         self.assertTrue(np.allclose(ctrl, result))
 
-    def xtest_multiclassify(self):
-        rows = 100
-        folds = 3
+    def test_multiclassify(self):
+        samples = 100
+        features = 3
+        folds = 2
 
-        X = np.random.random((rows, 10))
-        y = np.random.randint(0, 2, (rows))
+        X = np.random.random((samples, features))
+        y = np.random.randint(0, 2, (samples))
         
         p = Pipeline()
 
@@ -127,12 +134,10 @@ class TestModel(UPSGTestCase):
         np_in_X['out'] > split_train_test['in0']
         np_in_y['out'] > split_train_test['in1']
 
-        clf_and_params_dict = {'sklearn.ensemble.RandomForestClassifier': {'n_estimators': [10, 20]}, 'sklearn.dummy.DummyClassifier': {'strategy': ['stratified', 'most_frequent', 'uniform']}}
-
         multi = p.add(Multiclassify(
             'score', 
-            'report.html',
-            clf_and_params_dict,
+            self._tmp_files('report.html'),
+            None,
             folds))
 
         split_train_test['train0'] > multi['X_train']
@@ -140,8 +145,7 @@ class TestModel(UPSGTestCase):
         split_train_test['train1'] > multi['y_train']
         split_train_test['test1'] > multi['y_test']
         
-        p.visualize('test_multi')
-        p.run(output='progress')
+        p.run()
         
 if __name__ == '__main__':
     unittest.main()

@@ -27,14 +27,6 @@
             25
         ]
     },
-    "sklearn.svm.LinearSVC":
-        {"C": [
-            1.0,
-            2.0,
-            0.5,
-            0.25
-        ]
-    },
     "sklearn.svm.SVC": {
         "kernel": [
             "linear",

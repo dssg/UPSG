@@ -126,17 +126,26 @@ def is_sa(A):
 def np_type(val):
     """Returns a string or type that can be passed to numpy.dtype() to
     generate the type of val"""
-    if isinstance(val, str):
+    if isinstance(val, basestring):
         return 'S{}'.format(len(val))
     return type(val)
 
+
+def __fix_dict_typing(o):
+    if isinstance(o, np.string_):
+        if o == '_UPSG_NONE_':
+            return None
+        return str(o)
+    return o
 
 def np_sa_to_dict(sa):
     """Converts an Numpy structured array with one row to a dictionary"""
     if '_UPSG_EMPTY_DICT' in sa.dtype.names:
         # because Numpy doesn't let us get away with 0-column arrays
         return {}
-    return {col_name: sa[col_name][0] for col_name in sa.dtype.names}
+    return {col_name: __fix_dict_typing(sa[col_name][0]) for 
+            col_name in sa.dtype.names}
+    #return {col_name: sa[col_name][0] for col_name in sa.dtype.names}
 
 
 def dict_to_np_sa(d):
@@ -144,8 +153,12 @@ def dict_to_np_sa(d):
     if not d:
         # because Numpy doesn't let us get away with 0-column arrays
         return np.array([], dtype=[('_UPSG_EMPTY_DICT', 'S1')])
+    # because Numpy/pytables doesn't seem to have a good way to encode None
+    # TODO a better way to encode None?
     keys = d.keys()
-    dtype = np.dtype([(key, np_type(d[key])) for key in keys])
+    d = {key: '_UPSG_NONE_' if d[key] is None else d[key] for 
+                  key in d} 
+    dtype = np.dtype([(utf_to_ascii(key), np_type(d[key])) for key in keys])
     vals = [tuple([d[key] for key in keys])]
     return np.array(vals, dtype=dtype)
 
@@ -167,7 +180,7 @@ def utf_to_ascii(s):
     """
 
     if isinstance(s, unicode):
-        return str(re_utf_to_ascii.sub('.', s))
+        return s.encode('ascii', 'replace')
     return s
 
 # TODO I'm missing a lot of these, most notably datetime, which we don't have

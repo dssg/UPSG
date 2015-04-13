@@ -4,6 +4,7 @@ import uuid
 import unittest
 import glob
 import shutil
+from HTMLParser import HTMLParser
 
 import numpy as np
 
@@ -46,9 +47,26 @@ class TempFileManager:
     def __call__(self, filename=None):
         return self.get(filename)
 
+    class __PurgeFromHTML(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            if tag == 'img':
+                for name, value in attrs:
+                    if name == 'src':
+                        os.remove(value)
+    
+    __purge_from_HTML_inst = __PurgeFromHTML()
+
+    def __purge_file(self, filename):
+        path = self.__files[filename]
+        if not os.path.exists(path):
+            return
+        if path.split('.')[-1] == 'html':
+            with open(path) as fin:
+                self.__purge_from_HTML_inst.feed(fin.read())
+        os.remove(path)
+
     def purge(self):
-        [os.remove(self.__files[filename]) for filename in self.__files
-            if os.path.exists(self.__files[filename])]
+        [self.__purge_file(filename) for filename in self.__files]
         self.__files = {}
 
     def csv_read(self, filename, as_nd=False):

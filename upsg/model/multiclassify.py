@@ -2,10 +2,12 @@ import itertools as it
 import numpy as np
 import json
 
+from sklearn.base import BaseEstimator
+
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
-from ..utils import dict_to_np_sa, get_resource_path
+from ..utils import dict_to_np_sa, get_resource_path, utf_to_ascii
 from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..transform.split import SplitColumn
 from ..export.plot import Plot
@@ -79,6 +81,7 @@ class Multiclassify(MetaStage):
 
         def __print_classifier_report(self, fout, classifier, uo_params, 
                                       uo_report):
+            # TODO replace < and > w/ html equivalents
             fout.write(
                 '<h3>{}</h3><p>Best params: {}<p><img src="{}">'.format(
                     classifier,
@@ -145,7 +148,7 @@ class Multiclassify(MetaStage):
                 get_resource_path(
                     'default_multi_classify.json')) as f_default_dict:
                 clf_and_params_dict = json.load(f_default_dict)    
-
+                
         classifiers = clf_and_params_dict.keys()
         p = Pipeline()
         self.__pipeline = p
@@ -153,16 +156,18 @@ class Multiclassify(MetaStage):
         node_reduce = p.add(self.__ReduceStage(classifiers, report_file_name))
 
         for i, clf in enumerate(clf_and_params_dict):
-            if (isinstance(clf, str) or 
-                issubclass(sklearn.base.BaseEstimator)): # an sklearn object
+            if (isinstance(clf, basestring) or
+                issubclass(clf, BaseEstimator)): # an sklearn object
                 clf_stage = wrap(clf)
             else: # presumably, a upsg.stage.Stage already
+                #TODO type safety
                 clf_stage = clf
+            params = clf_and_params_dict[clf]
             node_grid_search = p.add(
                     GridSearch(
                         clf_stage, 
                         'score', 
-                        clf_and_params_dict[clf],
+                        params,
                         cv))
             node_map['X_train_out'] > node_grid_search['X_train']
             node_map['y_train_out'] > node_grid_search['y_train']

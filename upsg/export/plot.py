@@ -50,6 +50,7 @@ class Plot(RunnableStage):
         plt.xlabel(self.__xlabel)
         plt.ylabel(self.__ylabel)
         plt.savefig(self.__filename)
+        plt.close()
         uo_plot = UObject(UObjectPhase.Write)
         uo_plot.from_external_file(self.__filename)
         return {'plot_file': uo_plot}
