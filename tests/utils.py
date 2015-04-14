@@ -4,6 +4,7 @@ import uuid
 import unittest
 import glob
 import shutil
+import gc
 from HTMLParser import HTMLParser
 
 import numpy as np
@@ -89,6 +90,7 @@ class UPSGTestCase(unittest.TestCase):
         self._tmp_files = TempFileManager()
 
     def tearDown(self):
-        os.system('{}/cleanup.py'.format(BIN_PATH))
+        gc.collect()
+        os.system('python {}'.format(os.path.join(BIN_PATH, 'cleanup.py')))
         self._tmp_files.purge()
         os.chdir(self.__cwd)

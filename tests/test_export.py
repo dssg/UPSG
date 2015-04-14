@@ -39,7 +39,7 @@ class TestExport(UPSGTestCase):
                                        random_state=0))
         node_select = p.add(SplitColumn(1))
         node_roc = p.add(wrap_and_make_instance(roc_curve))
-        node_plot = p.add(Plot(self._tmp_files('result.bmp'), 'co-',
+        node_plot = p.add(Plot(self._tmp_files('result.png'), 'co-',
                                title='ROC Curve', xlabel='FPR', ylabel='TPR'))
 
         node_data['out'] > node_split['in0']
@@ -57,7 +57,7 @@ class TestExport(UPSGTestCase):
         node_roc['tpr'] > node_plot['y']
 
         p.run()
-        self.assertTrue(os.path.isfile(self._tmp_files('result.bmp')))
+        self.assertTrue(os.path.isfile(self._tmp_files('result.png')))
 
 if __name__ == '__main__':
     unittest.main()
