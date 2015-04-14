@@ -6,24 +6,24 @@ Requirements
 
 Python
 ------
-- (Python 2.7) [https://www.python.org/]
-- (Numpy) [http://www.numpy.org/]
-- (scikit-learn) [http://scikit-learn.org/stable/]
-- (PyTables) [https://pytables.github.io/]
-- (SQLAlchemy) [http://www.sqlalchemy.org/]
+- [Python 2.7](https://www.python.org/)
+- [Numpy](http://www.numpy.org/)
+- [scikit-learn](http://scikit-learn.org/stable/)
+- [PyTables](https://pytables.github.io/)
+- [SQLAlchemy](http://www.sqlalchemy.org/)
 
 Other
 -----
-- (HDF5) [https://www.hdfgroup.org/downloads/index.html]
+- [HDF5](https://www.hdfgroup.org/downloads/index.html)
  
 Optional
 ========
 
 Python
 ------
-- (matplotlib) [http://matplotlib.org/]
-- (graphviz) [https://pypi.python.org/pypi/graphviz]
+- [plotlib](http://matplotlib.org/)
+- [graphviz](https://pypi.python.org/pypi/graphviz)
 
 Other
 -----
-- (Graphviz) [http://www.graphviz.org/]
+- [Graphviz](http://www.graphviz.org/)
