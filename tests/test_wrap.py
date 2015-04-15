@@ -3,7 +3,15 @@ from os import system
 import unittest
 from inspect import getargspec
 
+from sklearn import datasets
 from sklearn.cross_validation import train_test_split
+from sklearn.preprocessing import Imputer
+from sklearn.svm import SVC, LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_curve
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.feature_selection import RFE 
 
 from upsg.wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from upsg.uobject import UObject, UObjectPhase
@@ -21,7 +29,6 @@ from utils import path_of_data, UPSGTestCase, csv_read
 class TestWrap(UPSGTestCase):
 
     def test_from_module(self):
-        from sklearn.preprocessing import Imputer
         WrappedImputer = wrap(Imputer)
         impute_stage = WrappedImputer()
 
@@ -36,7 +43,7 @@ class TestWrap(UPSGTestCase):
         self.assertEqual(params['strategy'], 'median')
 
     def __simple_pipeline(self, sk_cls, sk_method_name, upsg_out_key, 
-                          init_args=(), init_kwargs={}, in_data=None):
+                          init_kwargs={}, in_data=None):
 
         if in_data is None:
             in_data = a = np.hstack(
@@ -47,28 +54,30 @@ class TestWrap(UPSGTestCase):
 
         p = Pipeline()
 
+        sk_stage = p.add(wrap_and_make_instance(
+            sk_cls, 
+            **init_kwargs))
+
         data_in = p.add(NumpyRead(in_data))
 
         split_y = p.add(SplitColumn(-1))
         data_in['out'] > split_y['in']
 
-        train_test = p.add(SplitTrainTest(2, random_state=0))
-        split_y['X'] > train_test['in0']
-        split_y['y'] > train_test['in1']
+        if sk_method_name == 'predict':
+            train_test = p.add(SplitTrainTest(2, random_state=0))
+            split_y['X'] > train_test['in0']
+            split_y['y'] > train_test['in1']
 
-        sk_stage = p.add(wrap_and_make_instance(
-            sk_cls, 
-            *init_args, 
-            **init_kwargs))
-        input_keys = sk_stage.get_stage().input_keys
-        if 'X_train' in input_keys:
-            train_test['train0'] > sk_stage['X_train']
-        if 'X_test' in input_keys:
-            train_test['test0'] > sk_stage['X_test']
-        if 'y_train' in input_keys:
-            train_test['train1'] > sk_stage['y_train']
-        if 'y_test' in input_keys:
-            train_test['test1'] > sk_stage['y_test']
+            input_keys = sk_stage.get_stage().input_keys
+            if 'X_train' in input_keys:
+                train_test['train0'] > sk_stage['X_train']
+            if 'X_test' in input_keys:
+                train_test['test0'] > sk_stage['X_test']
+            if 'y_train' in input_keys:
+                train_test['train1'] > sk_stage['y_train']
+        else:
+            split_y['X'] > sk_stage['X_train']
+            split_y['y'] > sk_stage['y_train']
 
         csv_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
         sk_stage[upsg_out_key] > csv_out['in']
@@ -77,38 +86,53 @@ class TestWrap(UPSGTestCase):
 
         ctrl_y = in_data[:, -1]
         ctrl_X = in_data[:, :-1]
-        ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
-            train_test_split(ctrl_X, ctrl_y, random_state=0))
-        ctrl_sk_inst = sk_cls(*init_args, **init_kwargs)
-        ctrl_sk_inst.fit(ctrl_X_train, ctrl_y_train)
-        ctrl_method = getattr(ctrl_sk_inst, sk_method_name)
-        # TODO this is hacky. Find a nicer method to decide what arguments we
-        #   put in.
-        if sk_method_name == 'transform':
-            control = ctrl_method(ctrl_X_train)
-        elif sk_method_name == 'predict':
-            control = ctrl_method(ctrl_X_test)
+
+        ctrl_sk_inst = sk_cls(**init_kwargs)
+        if sk_method_name == 'predict':
+            ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
+                train_test_split(ctrl_X, ctrl_y, random_state=0))
+            ctrl_sk_inst.fit(ctrl_X_train, ctrl_y_train)
+            control = ctrl_sk_inst.predict(ctrl_X_test)
         else:
-            control = ctrl_method(ctrl_X_test, ctrl_y_test)
+            control = ctrl_sk_inst.fit_transform(ctrl_X, ctrl_y)
 
         result = self._tmp_files.csv_read('out.csv', as_nd=True)
 
-        self.assertTrue(np.array_equal(result, control) or
+        self.assertTrue(result.shape == control.shape and 
                         np.allclose(result, control))
 
     def test_transform(self):
-        from sklearn.preprocessing import Imputer
         kwargs = {'strategy': 'mean', 'missing_values': 'NaN'}
         self.__simple_pipeline(Imputer, 'transform', 'X_new', 
                                init_kwargs=kwargs, in_data='missing_vals.csv')
 
     def test_predict(self):
-        from sklearn.svm import SVC
         self.__simple_pipeline(SVC, 'predict', 'y_pred', in_data='numbers.csv')
 
+    def test_factor_selection(self):
+        # These are based on the documentation: 
+        # http://scikit-learn.org/stable/modules/feature_selection.html
+        # and
+        # http://scikit-learn.org/stable/auto_examples/feature_selection/plot_rfe_digits.html#example-feature-selection-plot-rfe-digits-py
+        vt_in =  np.array([[0, 0, 1, 1], 
+                           [0, 1, 0, 0], 
+                           [1, 0, 0, 1], 
+                           [0, 1, 1, 0], 
+                           [0, 1, 0, 1], 
+                           [0, 1, 1, 0]])
+        trials = [(VarianceThreshold, {'threshold': (.8 * (1 - .8))}, 
+                   vt_in),
+                  (SelectKBest, {'score_func': chi2, 'k': 2}, None),]
+                  # TODO make these work
+#                  (RFE, {'estimator': SVC(kernel="linear", C=1), 
+#                             'n_features_to_select': 1,
+#                             'step': 1}, None),
+#                  (LinearSVC, {'C': 0.01, 'penalty': "l1", 'dual': False},
+#                   None)]
+        for clf, kwargs, data in trials:
+            self.__simple_pipeline(clf, 'transform', 'X_new', kwargs, data)
+
     def test_moving_params(self):
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn import datasets
         digits = datasets.load_digits()
         digits_data = digits.data
         digits_target = digits.target
@@ -171,9 +195,6 @@ class TestWrap(UPSGTestCase):
 
         # based on
         # http://scikit-learn.org/stable/auto_examples/plot_roc_crossval.html
-        from sklearn.svm import SVC
-        from sklearn.metrics import roc_curve
-        from sklearn import datasets
         iris = datasets.load_iris()
         iris_data = iris.data[iris.target != 2]
         iris_target = iris.target[iris.target != 2]

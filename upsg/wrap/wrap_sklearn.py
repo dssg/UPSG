@@ -91,9 +91,18 @@ def __wrap_estimator(sk_cls):
                     fit_params = kwargs['fit_params'].to_dict()
                 except KeyError:
                     fit_params = {}
-                fit_params = {}
                 X_new_nd = self.__sk_instance.fit_transform(X_train, y_train,
                                                             **fit_params)
+                if X_new_nd.shape[1] < len(X_train_dtype): 
+                    # We have lost some columns. Presumably our Estimator did
+                    # feature selection, so we can ask for its support
+                    X_train_dtype = np.dtype(
+                            [dt for dt, support in 
+                             zip(
+                                 X_train_dtype.descr, 
+                                 self.__sk_instance.get_support()) if
+                             support])
+
                 return self.__np_to_uo(X_new_nd, X_train_dtype)
             __funcs_to_run['X_new'] = __do_fit_transform
         if hasattr(sk_cls, 'fit'):
@@ -315,7 +324,7 @@ def wrap(target):
          'or a function or a package name of one of the above objects'))
 
 
-def wrap_and_make_instance(target, *args, **kwargs):
+def wrap_and_make_instance(target, **kwargs):
     """returns an instance of a Stage class that wraps an sklearn object.
 
     Parameters
@@ -346,4 +355,4 @@ def wrap_and_make_instance(target, *args, **kwargs):
 
     """
     cls = wrap(target)
-    return cls(*args, **kwargs)
+    return cls(**kwargs)
