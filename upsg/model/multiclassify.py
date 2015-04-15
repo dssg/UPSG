@@ -190,7 +190,7 @@ class Multiclassify(MetaStage):
                     xlabel='Recall',
                     ylabel='Precision'))
             (node_calc_precision_recall['recall'] > 
-             node_plot_calc_precision_recall['x'])
+             node_plot_calc_precision_recall['X'])
             (node_calc_precision_recall['precision'] > 
              node_plot_calc_precision_recall['y'])
 

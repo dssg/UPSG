@@ -1,6 +1,7 @@
 import unittest
 import pickle
 from os import system
+import os
 import numpy as np
 
 from sklearn import datasets
@@ -146,6 +147,8 @@ class TestModel(UPSGTestCase):
         split_train_test['test1'] > multi['y_test']
         
         p.run()
+        
+        self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
         
 if __name__ == '__main__':
     unittest.main()

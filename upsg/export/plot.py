@@ -7,11 +7,42 @@ from ..uobject import UObject, UObjectPhase
 
 
 class Plot(RunnableStage):
+    """Stage to make a plot
 
-    def __init__(self, filename, *args,
+    Input Keys
+    ----------
+    X
+    y
+
+    Output Keys
+    -----------
+    plot_file
+        the name of the file to which the plot was saved
+
+    """
+
+    def __init__(self, file_name, *args,
                  **kwargs):
-        # TODO documentation
-        self.__filename = filename
+        """
+
+        Parameters
+        ----------
+        file_name: str
+            The name of the file to which the plot will be saved
+        title: str
+            Title of the plot
+        xlabel: str
+            Label of the x-axis
+        ylabel: str
+            Label of the y-axis
+        args: list
+            additional args to pass to matplotlib.pyplot.plot
+        kwargs: dict
+            additional kwargs to pass to matplotlib.pyplot.plot
+
+        """
+
+        self.__file_name = file_name
         try:
             self.__title = kwargs['title']
             del kwargs['title']
@@ -32,7 +63,7 @@ class Plot(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['x', 'y']
+        return ['X', 'y']
 
     @property
     def output_keys(self):
@@ -49,8 +80,8 @@ class Plot(RunnableStage):
         plt.title(self.__title)
         plt.xlabel(self.__xlabel)
         plt.ylabel(self.__ylabel)
-        plt.savefig(self.__filename)
+        plt.savefig(self.__file_name)
         plt.close()
         uo_plot = UObject(UObjectPhase.Write)
-        uo_plot.from_external_file(self.__filename)
+        uo_plot.from_external_file(self.__file_name)
         return {'plot_file': uo_plot}
