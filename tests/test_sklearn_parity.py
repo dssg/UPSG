@@ -58,8 +58,8 @@ class TestSKLearnParity(UPSGTestCase):
         node_split['test0'] > node_clf['X_test']
         node_clf['y_pred'] > node_csv['in']
 
-        p.run()
-
+        p.run(output='graph')
+        
         result = self._tmp_files.csv_read('out.csv', True)
 
         # making sure we get the same result as sklearn

@@ -5,6 +5,8 @@ from collections import namedtuple
 import itertools as it
 import weakref
 import uuid
+import abc
+from HTMLParser import HTMLParser
 import numpy as np
 
 from .uobject import UObjectException
@@ -17,7 +19,7 @@ class PipelineException(Exception):
 class Edge:
     """A directed graph edge"""
 
-    def __init__(self, conn_from, conn_to, name=None):
+    def __init__(self, conn_from, conn_to, uid=None):
         """
 
         Parameters
@@ -28,15 +30,15 @@ class Edge:
         conn_to: Connection
             The Connection which the edge is directed to
 
-        name: str or None
-            The unique name of edge. If not provided, a name will be generated
+        uid: str or None
+            The unique uid of edge. If not provided, a uid will be generated
 
         """
         self.__conn_from = weakref.ref(conn_from)
         self.__conn_to = weakref.ref(conn_to)
-        if name is None:
-            name = str(uuid.uuid4())
-        self.__name = name
+        if uid is None:
+            uid = 'edge_{}'.format(uuid.uuid4())
+        self.__uid = uid
 
     @property
     def conn_from(self):
@@ -47,8 +49,8 @@ class Edge:
         return self.__conn_to
 
     @property
-    def name(self):
-        return self.__name
+    def uid(self):
+        return self.__uid
 
 
 class Connection:
@@ -87,6 +89,7 @@ class Connection:
         self.__other = None
         self.__outgoing = outgoing
         self.__node = weakref.ref(node)
+        self.__edge = None
 
     def connect_to(self, other):
         """Create an edge between self.node and other.node using a link
@@ -105,6 +108,9 @@ class Connection:
                                     "edge")
         self.__other = other
         other.__other = self
+        edge = Edge(self, other)
+        self.__edge = edge
+        other.__edge = edge
 
     def __gt__(self, other):
         """Synonym for self.connect_to(other)"""
@@ -126,12 +132,16 @@ class Connection:
     def node(self):
         return self.__node()
 
+    @property
+    def edge(self):
+        return self.__edge
+
 
 class Node:
 
     """A real or virtual Node the Pipeline graph"""
 
-    def __init__(self, stage, connections=None, label=None):
+    def __init__(self, stage, connections=None, label=None, uid=None):
         """
 
         Parameters
@@ -146,6 +156,8 @@ class Node:
         label: str or None
             If provided, will be returned by this node's __str__ method. 
             Otherwise, will default to using __repr__
+        uid: str or None
+            The unique uid of edge. If not provided, a uid will be generated
 
         """
         self.__stage = stage
@@ -158,6 +170,9 @@ class Node:
         else:
             self.__connections.update(connections)
         self.__label = label
+        if uid == None:
+            uid = 'node_{}'.format(uuid.uuid4())
+        self.__uid = uid    
 
     def __getitem__(self, key):
         """Gets the COnnections specified by key"""
@@ -208,6 +223,9 @@ class Node:
                 if self.__connections[key].outgoing and
                 (not live_only or self.__connections[key].other is not None)}
 
+    @property
+    def uid(self):
+        return self.__uid
 
 class Pipeline:
 
@@ -267,7 +285,7 @@ class Pipeline:
         connections.update(out_node.get_outputs(False))
         return Node(None, connections=connections)
 
-    def visualize(self, filename = None):
+    def visualize(self, filename=None, html_map=False):
         """Creates a pdf to vizualize the pipeline.
 
         Requires the graphviz python package: 
@@ -284,12 +302,13 @@ class Pipeline:
 
         returns
         -------
+        
         potentially relative path of the rendered pdf
 
         """
         from graphviz import Digraph
         from os import system
-        dot = Digraph()
+        dot = Digraph(name='G')
         node_names = {}
         next_node_number = 0
         node_queue = [node for node in self.__nodes
@@ -297,7 +316,7 @@ class Pipeline:
         for node in node_queue:
             name = 'node_{}'.format(next_node_number)
             node_names[node] = name
-            dot.node(name, str(node), shape = 'box')
+            dot.node(name, str(node), shape='box', URL='#{}'.format(node.uid))
             next_node_number += 1
         processed = set()
         while node_queue:
@@ -317,16 +336,41 @@ class Pipeline:
                 except KeyError:
                     other_name = 'node_{}'.format(next_node_number)
                     next_node_number += 1
-                    dot.node(other_name, str(other_node), shape = 'box')
+                    dot.node(other_name, str(other_node), shape='box',
+                             URL='#{}'.format(other_node.uid))
                     node_names[other_node] = other_name
-                dot.edge(other_name, name, label = '{}\n::\n{}'.format(
-                    other_conn.key, conn.key))
+                dot.edge(other_name, name, label='{}\n::\n{}'.format(
+                    other_conn.key, 
+                    conn.key), URL='#{}'.format(conn.edge.uid))
             node_queue.extend(input_nodes)
             processed.add(node)
+        if html_map:
+            dot_file = dot.save(filename)
+            map_file = dot_file + '.html'
+            png_file = dot_file + '.png'
+            # Some help from:
+            # http://stackoverflow.com/questions/15837283/graphviz-embedded-url
+            os.system('dot -Tcmapx {} -o {}'.format(dot_file, map_file))
+            os.system('dot -Tpng {} -o {}'.format(dot_file, png_file))
+            return (png_file, map_file)    
         out_file = dot.render(filename = filename)
         return out_file
 
-    class Printer:
+    class BasePrinter:
+        __metaclass__ = abc.ABCMeta
+        @abc.abstractmethod
+        def header_print(self):
+            pass
+
+        @abc.abstractmethod
+        def footer_print(self):
+            pass
+
+        @abc.abstractmethod
+        def stage_print(self, node, input_args, output_args):
+            pass
+
+    class Printer(BasePrinter):
         def __init__(
                 self, 
                 fmt_doc_header='',
@@ -433,6 +477,133 @@ class Pipeline:
 
             self.__print_node_footer(node)
 
+    class GraphPrinter(BasePrinter):
+        def __init__(self, png_file, map_file, out_file, term_printer):
+            self.__out_file = out_file
+            self.__fout = open(out_file, 'w')
+            with open(map_file) as f_map_file:
+                map = f_map_file.read()
+            get_map_id = self.__GetMapID()
+            get_map_id.feed(map)
+            self.__map_id = get_map_id.id
+            self.__map = map
+            self.__png_file = png_file
+            self.__term_printer = term_printer
+
+        def __del__(self):
+            self.__fout.close()
+
+        class __GetMapID(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                if tag == 'map':
+                    for name, value in attrs:
+                        if name == 'id':
+                            self.id = value
+
+        def __clean_str(self, s):
+            return str(s).replace('<', '&lt;').replace('>', '&gt;')
+        
+        def __html_format(self, fmt, *args, **kwargs):
+            clean_args = [self.__clean_str(arg) for arg in args]
+            clean_kwargs = {key: self.__clean_str(kwargs[key]) for 
+                            key in kwargs}
+            return fmt.format(*clean_args, **clean_kwargs)
+
+        def header_print(self):
+            doc_header = ('<!DOCTYPE html>\n'
+                          '<html>\n'
+                          '<head>\n'
+                          '<style>\n'
+                          ':target {\n'
+                          '    background-color: yellow;\n'
+                          '}\n'
+                          'table td, th {\n'
+                          '    border: 1px solid black;\n'
+                          '}\n'
+                          'table {\n'
+                          '    border-collapse: collapse;\n'
+                          '}\n'
+                          'tr:nth-child(even) {\n'
+                          '    background: cyan\n'
+                          '}\n'
+                          'tr:nth-child(odd) {\n'
+                          '    background: white\n'
+                          '}\n'
+                          '</style>\n'
+                          '</head>\n'
+                          '<body>\n')
+            self.__fout.write(doc_header)
+            self.__fout.write(self.__html_format(
+                '<img src="{}" usemap="#{}"/>\n',
+                self.__png_file, 
+                self.__map_id))
+            self.__fout.write(self.__map)
+            self.__term_printer.header_print()
+
+        def footer_print(self):
+            self.__fout.write('</body>\n</html>')
+            self.__term_printer.footer_print()
+            print('Report printed to: {}'.format(
+                os.path.abspath(self.__out_file)))
+
+        def __data_print(self, a):
+            self.__fout.write('<table>\n')
+            header = '<tr>{}</tr>\n'.format(
+                ''.join(
+                        [self.__html_format(
+                            '<th>{}</th>',
+                            name) for 
+                         name in a.dtype.names]))
+            self.__fout.write(header)
+            rows = a[:100]
+            data = '\n'.join(
+                ['<tr>{}</tr>'.format(
+                    ''.join(
+                        [self.__html_format(
+                            '<td>{}</td>',
+                            cell) for
+                         cell in row])) for
+                 row in rows])
+            self.__fout.write(data)
+            self.__fout.write('\n')
+            self.__fout.write('</table>')
+
+        def stage_print(self, node, input_args, output_args):
+
+            self.__fout.write(self.__html_format(
+                '<div id={}><h3>{}</h3>\n',
+                node.uid,
+                node))
+
+            for arg in output_args:
+                if not node[arg].other: 
+                    # This output isn't connected to anything. Ignore it.
+                    continue
+                self.__fout.write(self.__html_format(
+                       ('<div id={}><details><summary>'
+                        '<b>&rarr;{}::{}&rarr;<a href=#{}>{}</a> '
+                        '<a href={}>[{}]</a><b></summary>\n'),
+                       node[arg].edge.uid,
+                       arg,
+                       node[arg].other.key,
+                       node[arg].other.node.uid,
+                       node[arg].other.node,
+                       output_args[arg].get_file_name(),
+                       output_args[arg].get_file_name()))
+                uo = output_args[arg]
+                try:
+                    a = uo.to_np()
+                    self.__data_print(a)
+                except UObjectException:
+                    try:
+                        a = uo.to_external_file()
+                        self.__fout.write(self.__html_format('<p>{}', a))
+                    except UObjectException:
+                        pass
+                self.__fout.write('</details></div>\n')
+            self.__fout.write('</div>\n')
+            self.__term_printer.stage_print(node, input_args, output_args)
+
     def __get_ansi_stage_printer(self):
         # for colored debug printing
         # http://stackoverflow.com/questions/287871/print-in-terminal-with-colors-using-python
@@ -484,63 +655,54 @@ class Pipeline:
                 fmt_row,
                 80)
 
-    def __get_html_stage_printer(self):
-        # Note: Currently, this only works in Webkit
-        doc_header = ('<!DOCTYPE html><html>'
-                      '<head>'
-                      '<style>'
-                      'table td, th {'
-                      '    border: 1px solid black;'
-                      '}'
-                      'table {'
-                      '    border-collapse: collapse;'
-                      '}'
-                      'tr:nth-child(even) {'
-                      '    background: cyan'
-                      '}'
-                      'tr:nth-child(odd) {'
-                      '    background: white'
-                      '}'
-                      '</style>'
-                      '</head>'
-                      '<body>')
-        doc_footer = '</body></html>'
-        fmt_node_header = '<h1>{node}</h1>'
-        fmt_node_footer = ''
-        fmt_arg_header = ('<details>'
-                          '<summary>{arrow}{key}[{file_name}]:</summary>'
-                          '<table>')
-        fmt_arg_footer = '</table></details>'
-        fmt_row = '<tr><td>{row}</td></tr>'
-        str_cleanup = lambda s: s.replace('<', '&lt').replace('>', '&gt')
-        return self.Printer(
-                doc_header,
-                doc_footer,
-                fmt_node_header,
-                fmt_node_footer,
-                fmt_arg_header,
-                fmt_arg_footer,
-                fmt_row,
-                fmt_row,
-                str_cleanup=str_cleanup)
+    def __get_progress_stage_printer(self):    
+        return self.Printer(fmt_node_header = 'completed: {node}',
+                            fmt_doc_footer='pipeline complete')
 
-    def run_debug(self, output='', single_step=False):
+    def run_debug(self, output='', report_path='', single_step=False):
         """Run the pipeline in the current Python process.
 
         This method of running the job runs everything in serial on a single
         process. It is provided for debugging purposes for use with small jobs.
         For larger and more performant jobs, use the run method.
+
+        Parameters
+        ----------
+        output: str
+            Method of displaying output. One of:
+                'bw': prints progress and truncated stage output to terminal
+                'color': prints progress and truncated stage output 
+                         to terminal using ANSI colors
+                'progress': only prints progress
+                'html': prints pipeline visualization and truncated output
+                        in an html report. Also prints progress to terminal
+                'silent' or unspecified: prints no output.
+        
+        report_path: str
+            If output='html', the path of the html file to be generated.
+            If unspecified, will use graph_out.html in the current working
+            directory
+
+        single_step: bool
+            If True, will invoke pdb after every stage is run
+
         """
 
         if output == 'color':
             stage_printer = self.__get_ansi_stage_printer()
         elif output == 'bw':
             stage_printer = self.__get_bw_stage_printer()
-        elif output == 'html':
-            stage_printer = self.__get_html_stage_printer()
         elif output == 'progress':
-            stage_printer = self.Printer(fmt_node_header = 'completed: {node}',
-                                         fmt_doc_footer='pipeline complete')
+            stage_printer = self.__get_progress_stage_printer()
+        elif output == 'html':
+            if not report_path:
+                report_path = 'graph_out.html'
+            png_file, map_file = self.visualize(html_map=True)
+            stage_printer = self.GraphPrinter(
+                    png_file, 
+                    map_file, 
+                    report_path,
+                    self.__get_progress_stage_printer())
         else:
             stage_printer = self.Printer()
 

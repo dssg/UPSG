@@ -118,7 +118,7 @@ class TestModel(UPSGTestCase):
         self.assertTrue(np.allclose(ctrl, result))
 
     def test_multiclassify(self):
-        samples = 100
+        samples = 150
         features = 3
         folds = 2
 
