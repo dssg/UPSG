@@ -7,6 +7,9 @@ import weakref
 import uuid
 import abc
 from HTMLParser import HTMLParser
+import subprocess
+import re
+from StringIO import StringIO
 import numpy as np
 
 from .uobject import UObjectException
@@ -348,11 +351,20 @@ class Pipeline:
             dot_file = dot.save(filename)
             map_file = dot_file + '.html'
             png_file = dot_file + '.png'
+            scale = 1.0
             # Some help from:
             # http://stackoverflow.com/questions/15837283/graphviz-embedded-url
-            os.system('dot -Tcmapx {} -o {}'.format(dot_file, map_file))
-            os.system('dot -Tpng {} -o {}'.format(dot_file, png_file))
-            return (png_file, map_file)    
+            proc = subprocess.Popen(
+                    ['dot', '-Tpng', dot_file, '-o', png_file],
+                    stderr=subprocess.PIPE)
+            _, stderr = proc.communicate()
+            if 'Scaling' in stderr: 
+                # dot has decided to scale the image, so we'll have to
+                # scale the map
+                scale = float(re.search('\d+(\.\d*)?', stderr).group(0))
+            proc = subprocess.call(
+                    ['dot', '-Tcmapx', dot_file, '-o', map_file])
+            return (png_file, map_file, scale)    
         out_file = dot.render(filename = filename)
         return out_file
 
@@ -478,27 +490,52 @@ class Pipeline:
             self.__print_node_footer(node)
 
     class GraphPrinter(BasePrinter):
-        def __init__(self, png_file, map_file, out_file, term_printer):
+        def __init__(self, png_file, map_file, scale, out_file, term_printer):
             self.__out_file = out_file
             self.__fout = open(out_file, 'w')
             with open(map_file) as f_map_file:
-                map = f_map_file.read()
-            get_map_id = self.__GetMapID()
-            get_map_id.feed(map)
-            self.__map_id = get_map_id.id
-            self.__map = map
+                html_map = f_map_file.read()
+            map_parser = self.MapParser(scale)
+            map_parser.feed(html_map)
+            self.__map_id = map_parser.map_id
+            self.__map = map_parser.get_map()
             self.__png_file = png_file
             self.__term_printer = term_printer
 
         def __del__(self):
             self.__fout.close()
 
-        class __GetMapID(HTMLParser):
+        class MapParser(HTMLParser):
+            def __init__(self, scale):
+                HTMLParser.__init__(self)
+                self.__scale = scale
+                self.__sio = StringIO()
+                self.map_id = ''
             def handle_starttag(self, tag, attrs):
-                if tag == 'map':
-                    for name, value in attrs:
-                        if name == 'id':
-                            self.id = value
+                sio = self.__sio
+                scale = self.__scale
+                sio.write('<{} '.format(tag))
+                for name, value in attrs:
+                    if name=='coords':
+                        value = ','.join(
+                                [str(int(float(coord) * scale)) for
+                                 coord in value.split(',')])
+                    elif name=='id' and tag=='map':
+                        self.map_id = value
+                    value = value.replace(
+                        '<', '&lt;').replace('>', '&gt;')
+                    sio.write('{}="{}" '.format(name, value))
+                sio.write('>')
+            def handle_endtag(self, tag):
+                self.__sio.write('</{}>'.format(tag))
+            def handle_data(self, data):
+                self.__sio.write(data)
+            def handle_entityref(self, name):
+                self.__sio.write('&{};'.format(name))
+            def handle_charref(self, name):
+                self.__sio.write('&#{};'.format(name))
+            def get_map(self):
+                return self.__sio.getvalue()
 
         def __clean_str(self, s):
             return str(s).replace('<', '&lt;').replace('>', '&gt;')
@@ -533,11 +570,11 @@ class Pipeline:
                           '</head>\n'
                           '<body>\n')
             self.__fout.write(doc_header)
+            self.__fout.write(self.__map)
             self.__fout.write(self.__html_format(
-                '<img src="{}" usemap="#{}"/>\n',
+                '<div id=top><img src="{}" usemap="#{}"/></div>\n',
                 self.__png_file, 
                 self.__map_id))
-            self.__fout.write(self.__map)
             self.__term_printer.header_print()
 
         def footer_print(self):
@@ -547,7 +584,10 @@ class Pipeline:
                 os.path.abspath(self.__out_file)))
 
         def __data_print(self, a):
-            self.__fout.write('<table>\n')
+            self.__fout.write('<p>table of shape: ({},{})</p>'.format(
+                len(a),
+                len(a.dtype)))
+            self.__fout.write('<p><table>\n')
             header = '<tr>{}</tr>\n'.format(
                 ''.join(
                         [self.__html_format(
@@ -566,12 +606,12 @@ class Pipeline:
                  row in rows])
             self.__fout.write(data)
             self.__fout.write('\n')
-            self.__fout.write('</table>')
+            self.__fout.write('</table></p>')
 
         def stage_print(self, node, input_args, output_args):
 
             self.__fout.write(self.__html_format(
-                '<div id={}><h3>{}</h3>\n',
+                '<p><div id={}><h3>{}</h3>\n',
                 node.uid,
                 node))
 
@@ -580,7 +620,7 @@ class Pipeline:
                     # This output isn't connected to anything. Ignore it.
                     continue
                 self.__fout.write(self.__html_format(
-                       ('<div id={}><details><summary>'
+                       ('<p><div id={}><details><summary>'
                         '<b>&rarr;{}::{}&rarr;<a href=#{}>{}</a> '
                         '<a href={}>[{}]</a><b></summary>\n'),
                        node[arg].edge.uid,
@@ -597,11 +637,14 @@ class Pipeline:
                 except UObjectException:
                     try:
                         a = uo.to_external_file()
-                        self.__fout.write(self.__html_format('<p>{}', a))
+                        self.__fout.write(self.__html_format(
+                            '<p>external file: <a href={}>{}</a></p>', 
+                            a,
+                            a))
                     except UObjectException:
                         pass
-                self.__fout.write('</details></div>\n')
-            self.__fout.write('</div>\n')
+                self.__fout.write('</details></div></p>\n')
+            self.__fout.write('<p><a href=#top>[TOP]</a></p></div></p>\n')
             self.__term_printer.stage_print(node, input_args, output_args)
 
     def __get_ansi_stage_printer(self):
@@ -697,12 +740,15 @@ class Pipeline:
         elif output == 'html':
             if not report_path:
                 report_path = 'graph_out.html'
-            png_file, map_file = self.visualize(html_map=True)
+            print('Generating graph visualization')
+            png_file, map_file, scale = self.visualize(html_map=True)
             stage_printer = self.GraphPrinter(
                     png_file, 
                     map_file, 
+                    scale,
                     report_path,
                     self.__get_progress_stage_printer())
+            print('Visualization complete')
         else:
             stage_printer = self.Printer()
 
