@@ -2,6 +2,8 @@ import numpy as np
 from os import system
 import unittest
 from inspect import getargspec
+import string
+import random
 
 from sklearn import datasets
 from sklearn.cross_validation import train_test_split
@@ -12,6 +14,11 @@ from sklearn.metrics import roc_curve
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.feature_selection import RFE 
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import Normalizer
+from sklearn.preprocessing import Binarizer
+from sklearn.preprocessing import OneHotEncoder
 
 from upsg.wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from upsg.uobject import UObject, UObjectPhase
@@ -133,6 +140,18 @@ class TestWrap(UPSGTestCase):
                              'step': 1}, None),
                   (LinearSVC, {'C': 0.01, 'penalty': "l1", 'dual': False},
                    in_svc)]
+        for clf, kwargs, data in trials:
+            self.__simple_pipeline(clf, 'transform', 'X_new', kwargs, data)
+
+
+    def test_feature_generation(self):
+        # examples based on:
+        # http://scikit-learn.org/stable/modules/preprocessing.html
+        trials = [(StandardScaler, {}, None),
+                  (MinMaxScaler, {}, None),
+                  (Normalizer, {}, None),
+                  (Binarizer, {'threshold': 0.5}, None)]
+
         for clf, kwargs, data in trials:
             self.__simple_pipeline(clf, 'transform', 'X_new', kwargs, data)
 
