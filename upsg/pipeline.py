@@ -19,7 +19,7 @@ class PipelineException(Exception):
     pass
 
 
-class Edge:
+class Edge(object):
     """A directed graph edge"""
 
     def __init__(self, conn_from, conn_to, uid=None):
@@ -56,7 +56,7 @@ class Edge:
         return self.__uid
 
 
-class Connection:
+class Connection(object):
 
     """Object signifying a connection between two Nodes in a pipeline.
 
@@ -140,7 +140,7 @@ class Connection:
         return self.__edge
 
 
-class Node:
+class Node(object):
 
     """A real or virtual Node the Pipeline graph"""
 
@@ -230,7 +230,7 @@ class Node:
     def uid(self):
         return self.__uid
 
-class Pipeline:
+class Pipeline(object):
 
     """Internal representation of a UPSG pipeline.
 
@@ -368,7 +368,7 @@ class Pipeline:
         out_file = dot.render(filename = filename)
         return out_file
 
-    class BasePrinter:
+    class BasePrinter(object):
         __metaclass__ = abc.ABCMeta
         @abc.abstractmethod
         def header_print(self):

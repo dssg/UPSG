@@ -3,7 +3,7 @@ import abc
 from pipeline import Pipeline
 
 
-class __Stage:
+class __Stage(object):
 
     """Base class of all pipeline stages"""
     __metaclass__ = abc.ABCMeta

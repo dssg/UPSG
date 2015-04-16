@@ -37,7 +37,7 @@ class UObjectException(Exception):
     pass
 
 
-class UObjectPhase:
+class UObjectPhase(object):
 
     """Enumeration of UObject phases
 
@@ -49,7 +49,7 @@ class UObjectPhase:
     All = (Write, Read)
 
 
-class UObject:
+class UObject(object):
 
     """A universal object signifying intermediary state in a pipeline.
 

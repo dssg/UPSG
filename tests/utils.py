@@ -30,7 +30,7 @@ def csv_read(filename, as_nd=False):
     return sa
 
 
-class TempFileManager:
+class TempFileManager(object):
 
     def __init__(self):
         if not os.path.exists(TEMP_PATH):
