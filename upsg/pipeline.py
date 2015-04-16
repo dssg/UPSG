@@ -1,18 +1,19 @@
 from __future__ import print_function
-import os
-import pdb
 from collections import namedtuple
-import itertools as it
+from StringIO import StringIO
+from HTMLParser import HTMLParser
+import os
 import weakref
 import uuid
 import abc
-from HTMLParser import HTMLParser
 import subprocess
 import re
-from StringIO import StringIO
+import cgi
+import itertools as it
 import numpy as np
 
 from .uobject import UObjectException
+from .utils import html_escape
 
 
 class PipelineException(Exception):
@@ -522,8 +523,7 @@ class Pipeline(object):
                                  coord in value.split(',')])
                     elif name=='id' and tag=='map':
                         self.map_id = value
-                    value = value.replace(
-                        '<', '&lt;').replace('>', '&gt;')
+                    value = html_escape(value)
                     sio.write('{}="{}" '.format(name, value))
                 sio.write('>')
             def handle_endtag(self, tag):
@@ -537,12 +537,9 @@ class Pipeline(object):
             def get_map(self):
                 return self.__sio.getvalue()
 
-        def __clean_str(self, s):
-            return str(s).replace('<', '&lt;').replace('>', '&gt;')
-        
         def __html_format(self, fmt, *args, **kwargs):
-            clean_args = [self.__clean_str(arg) for arg in args]
-            clean_kwargs = {key: self.__clean_str(kwargs[key]) for 
+            clean_args = [html_escape(str(arg)) for arg in args]
+            clean_kwargs = {key: html_escape(str(kwargs[key])) for 
                             key in kwargs}
             return fmt.format(*clean_args, **clean_kwargs)
 

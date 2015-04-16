@@ -4,6 +4,7 @@ import itertools as it
 import re
 import uuid
 import upsg
+import cgi
 from datetime import datetime
 import numpy as np
 from sqlalchemy.schema import Table, Column
@@ -312,4 +313,9 @@ def random_table_name():
     """Returns a random table name prefixed with _UPSG_ that is unlikely
     to collide with another random table name"""
     return ('_UPSG_' + str(uuid.uuid4())).replace('-', '_')
+
+
+def html_escape(s):
+    """Returns a string with all its html-averse characters html escaped"""
+    return cgi.escape(s).encode('ascii', 'xmlcharrefreplace')
 

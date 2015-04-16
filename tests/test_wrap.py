@@ -97,6 +97,8 @@ class TestWrap(UPSGTestCase):
             control = ctrl_sk_inst.fit_transform(ctrl_X, ctrl_y)
 
         result = self._tmp_files.csv_read('out.csv', as_nd=True)
+        if result.ndim != control.ndim and result.ndim == 1:
+            result = result.reshape(result.size, 1)
 
         self.assertTrue(result.shape == control.shape and 
                         np.allclose(result, control))
@@ -120,15 +122,17 @@ class TestWrap(UPSGTestCase):
                            [0, 1, 1, 0], 
                            [0, 1, 0, 1], 
                            [0, 1, 1, 0]])
+        iris = datasets.load_iris()
+        in_svc = np.hstack(
+                (iris.data, iris.target.reshape(iris.target.size, 1)))
         trials = [(VarianceThreshold, {'threshold': (.8 * (1 - .8))}, 
                    vt_in),
-                  (SelectKBest, {'score_func': chi2, 'k': 2}, None),]
-                  # TODO make these work
-#                  (RFE, {'estimator': SVC(kernel="linear", C=1), 
-#                             'n_features_to_select': 1,
-#                             'step': 1}, None),
-#                  (LinearSVC, {'C': 0.01, 'penalty': "l1", 'dual': False},
-#                   None)]
+                  (SelectKBest, {'score_func': chi2, 'k': 2}, None),
+                  (RFE, {'estimator': SVC(kernel="linear", C=1), 
+                             'n_features_to_select': 1,
+                             'step': 1}, None),
+                  (LinearSVC, {'C': 0.01, 'penalty': "l1", 'dual': False},
+                   in_svc)]
         for clf, kwargs, data in trials:
             self.__simple_pipeline(clf, 'transform', 'X_new', kwargs, data)
 

@@ -2,6 +2,7 @@ import importlib
 import numpy as np
 from types import FunctionType
 import inspect
+from operator import itemgetter
 
 import sklearn.base
 
@@ -96,11 +97,18 @@ def __wrap_estimator(sk_cls):
                 if X_new_nd.shape[1] < len(X_train_dtype): 
                     # We have lost some columns. Presumably our Estimator did
                     # feature selection, so we can ask for its support
+                    try:
+                        support = self.__sk_instance.get_support()
+                    except AttributeError: 
+                        # doesn't have a get support method. try for
+                        # coeficients:
+                        # http://stackoverflow.com/questions/25007640/sklearn-get-feature-names-after-l1-based-feature-selection
+                        support = np.any(self.__sk_instance.coef_ != 0, 0)  
                     X_train_dtype = np.dtype(
                             [dt for dt, support in 
                              zip(
                                  X_train_dtype.descr, 
-                                 self.__sk_instance.get_support()) if
+                                 support) if
                              support])
 
                 return self.__np_to_uo(X_new_nd, X_train_dtype)
