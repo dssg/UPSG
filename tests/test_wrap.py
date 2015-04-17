@@ -12,6 +12,8 @@ from sklearn.preprocessing import Imputer
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import precision_recall_curve
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.feature_selection import RFE 
@@ -51,15 +53,20 @@ class TestWrap(UPSGTestCase):
         params = impute_stage.get_params()
         self.assertEqual(params['strategy'], 'median')
 
+    def __process_in_data(self, in_data):
+        if in_data is None:
+            return (np.random.random((100,10)), 
+                    np.random.randint(0, 2, 100))
+        elif isinstance(in_data, str) and in_data.split('.')[-1] == 'csv':
+            a = np_sa_to_nd(csv_read(path_of_data(in_data)))[0]
+            return (a[:, :-1], a[:, -1])
+        # assume in_data is a tuple (X, y)
+        return (in_data[0], in_data[1])
+
     def __simple_pipeline(self, sk_cls, sk_method_name, upsg_out_key, 
                           init_kwargs={}, in_data=None):
-
-        if in_data is None:
-            in_data = a = np.hstack(
-                    (np.random.random((100,10)), 
-                     np.random.randint(0, 2, (100,1))))
-        elif isinstance(in_data, str) and in_data.split('.')[-1] == 'csv':
-            in_data, _ = np_sa_to_nd(csv_read(path_of_data(in_data)))
+        
+        X_in, y_in = self.__process_in_data(in_data)
 
         ctrl_sk_inst = sk_cls(**init_kwargs)
         est_params = ctrl_sk_inst.get_params()
@@ -78,15 +85,13 @@ class TestWrap(UPSGTestCase):
             sk_cls, 
             **init_kwargs))
 
-        data_in = p.add(NumpyRead(in_data))
-
-        split_y = p.add(SplitColumn(-1))
-        data_in['out'] > split_y['in']
+        X_in_stage = p.add(NumpyRead(X_in))
+        y_in_stage = p.add(NumpyRead(y_in))
 
         if sk_method_name == 'predict':
             train_test = p.add(SplitTrainTest(2, random_state=0))
-            split_y['X'] > train_test['in0']
-            split_y['y'] > train_test['in1']
+            X_in_stage['out'] > train_test['in0']
+            y_in_stage['out'] > train_test['in1']
 
             input_keys = sk_stage.get_stage().input_keys
             if 'X_train' in input_keys:
@@ -96,24 +101,21 @@ class TestWrap(UPSGTestCase):
             if 'y_train' in input_keys:
                 train_test['train1'] > sk_stage['y_train']
         else:
-            split_y['X'] > sk_stage['X_train']
-            split_y['y'] > sk_stage['y_train']
+            X_in_stage['out'] > sk_stage['X_train']
+            y_in_stage['out'] > sk_stage['y_train']
 
         csv_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
         sk_stage[upsg_out_key] > csv_out['in']
 
         p.run()
 
-        ctrl_y = in_data[:, -1]
-        ctrl_X = in_data[:, :-1]
-
         if sk_method_name == 'predict':
             ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
-                train_test_split(ctrl_X, ctrl_y, random_state=0))
+                train_test_split(X_in, y_in, random_state=0))
             ctrl_sk_inst.fit(ctrl_X_train, ctrl_y_train)
             control = ctrl_sk_inst.predict(ctrl_X_test)
         else:
-            control = ctrl_sk_inst.fit_transform(ctrl_X, ctrl_y)
+            control = ctrl_sk_inst.fit_transform(X_in, y_in)
 
         result = self._tmp_files.csv_read('out.csv', as_nd=True)
         if result.ndim != control.ndim and result.ndim == 1:
@@ -145,15 +147,15 @@ class TestWrap(UPSGTestCase):
         # http://scikit-learn.org/stable/modules/feature_selection.html
         # and
         # http://scikit-learn.org/stable/auto_examples/feature_selection/plot_rfe_digits.html#example-feature-selection-plot-rfe-digits-py
-        vt_in =  np.array([[0, 0, 1, 1], 
-                           [0, 1, 0, 0], 
-                           [1, 0, 0, 1], 
-                           [0, 1, 1, 0], 
-                           [0, 1, 0, 1], 
-                           [0, 1, 1, 0]])
+        vt_in =  (np.array([[0, 0, 1], 
+                            [0, 1, 0], 
+                            [1, 0, 0], 
+                            [0, 1, 1], 
+                            [0, 1, 0], 
+                            [0, 1, 1]]),
+                  np.zeros(6))
         iris = datasets.load_iris()
-        in_svc = np.hstack(
-                (iris.data, iris.target.reshape(iris.target.size, 1)))
+        in_svc = (iris.data, iris.target)
         trials = [(VarianceThreshold, {'threshold': (.8 * (1 - .8))}, 
                    vt_in),
                   (SelectKBest, {'score_func': chi2, 'k': 2}, None),
@@ -236,13 +238,86 @@ class TestWrap(UPSGTestCase):
         y_pred_2 = self._tmp_files.csv_read('out_pred_2.csv')
         self.assertTrue(np.array_equal(y_pred_1, y_pred_2))
 
+    def __metric_pipeline(self, metric, params={}, in_data=None):
+
+        X_in, y_in = self.__process_in_data(in_data)
+
+        metric_stage = wrap_and_make_instance(metric, **params)
+        in_keys = metric_stage.input_keys
+        out_keys = metric_stage.output_keys
+
+        p = Pipeline()
+
+        node_X_in = p.add(NumpyRead(X_in))
+        node_y_in = p.add(NumpyRead(y_in))
+
+        node_split = p.add(SplitTrainTest(2, random_state=0))
+        node_X_in['out'] > node_split['in0']
+        node_y_in['out'] > node_split['in1']
+
+        ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
+            train_test_split(X_in, y_in, random_state=0))
+
+        node_clf = p.add(wrap_and_make_instance(SVC,
+                                       random_state=0))
+        node_split['train0'] > node_clf['X_train']
+        node_split['train1'] > node_clf['y_train']
+        node_split['test0'] > node_clf['X_test']
+
+        ctrl_clf = SVC(random_state=0, probability=True)
+        ctrl_clf.fit(ctrl_X_train, ctrl_y_train)
+
+        node_proba_1 = p.add(SplitColumn(1))
+        node_clf['pred_proba'] > node_proba_1['in']
+
+        ctrl_y_score = ctrl_clf.predict_proba(ctrl_X_test)[:, 1]
+
+        node_metric = p.add(metric_stage)
+
+        ctrl_metric_args = {}
+        if 'y_true' in in_keys:
+            node_split['test1'] > node_metric['y_true']
+            ctrl_metric_args['y_true'] = ctrl_y_test
+        if 'y_score' in in_keys:
+            node_proba_1['y'] > node_metric['y_score']
+            ctrl_metric_args['y_score'] = ctrl_y_score
+        if 'probas_pred' in in_keys:
+            node_proba_1['y'] > node_metric['probas_pred']
+            ctrl_metric_args['probas_pred'] = ctrl_y_score
+
+        out_nodes = [p.add(CSVWrite(self._tmp_files('out_{}.csv'.format(
+            out_key)))) for out_key in out_keys]
+        [node_metric[out_key] > out_nodes[i]['in'] for i, out_key in
+         enumerate(out_keys)]
+
+        p.run()
+
+        ctrl_returns = metric(**ctrl_metric_args)
+        if len(out_keys) == 1:
+            ctrl_returns = (ctrl_returns,)
+
+        for i, out_key in enumerate(out_keys):
+            control = ctrl_returns[i]
+            result = self._tmp_files.csv_read(
+                    'out_{}.csv'.format(out_key),
+                    as_nd=True)
+            self.assertTrue(result.shape == control.shape and 
+                            np.allclose(result, control))
+
     def test_metric(self):
 
-        # based on
+        # roc test based on
         # http://scikit-learn.org/stable/auto_examples/plot_roc_crossval.html
         iris = datasets.load_iris()
         iris_data = iris.data[iris.target != 2]
         iris_target = iris.target[iris.target != 2]
+
+        in_data = (iris_data, iris_target)
+
+        for metric in [roc_curve, roc_auc_score, precision_recall_curve]:
+            self.__metric_pipeline(metric, in_data=in_data)
+
+        return
 
         p = Pipeline()
 

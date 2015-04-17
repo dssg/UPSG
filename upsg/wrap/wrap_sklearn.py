@@ -232,7 +232,8 @@ def unpickle_metric(fun, args, kwargs):
 # metrics are whitelisted and we specify their return arguments manually
 supported_metrics = {'roc_curve': ('fpr', 'tpr', 'thresholds'),
                      'precision_recall_curve': ('precision', 'recall', 
-                                                'thresholds')}
+                                                'thresholds'),
+                     'roc_auc_score': ('auc',)}
 
 
 def __wrap_metric(fun):
@@ -266,9 +267,9 @@ def __wrap_metric(fun):
             np_out = self.__fun(
                 *(input_args + list(self.__args)), **self.__kwargs)
             if len(self.__output_keys) <= 0:
-                np_out = []
+                np_out = ()
             elif len(self.__output_keys) == 1:
-                np_out = [np_out]
+                np_out = (np_out,)
             out = {key: UObject(UObjectPhase.Write) for key in
                    self.__output_keys}
             [out[key].from_np(np_nd_to_sa(np_out[i])) for i, key in
