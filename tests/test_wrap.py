@@ -4,6 +4,7 @@ import unittest
 from inspect import getargspec
 import string
 import random
+import json
 
 from sklearn import datasets
 from sklearn.cross_validation import train_test_split
@@ -28,7 +29,8 @@ from upsg.fetch.np import NumpyRead
 from upsg.export.csv import CSVWrite
 from upsg.export.plot import Plot
 from upsg.transform.split import SplitColumn, SplitTrainTest
-from upsg.utils import np_nd_to_sa, np_sa_to_nd
+from upsg.utils import np_nd_to_sa, np_sa_to_nd, get_resource_path
+from upsg.utils import import_object_by_name
 
 from utils import path_of_data, UPSGTestCase, csv_read
 
@@ -58,6 +60,17 @@ class TestWrap(UPSGTestCase):
                      np.random.randint(0, 2, (100,1))))
         elif isinstance(in_data, str) and in_data.split('.')[-1] == 'csv':
             in_data, _ = np_sa_to_nd(csv_read(path_of_data(in_data)))
+
+        ctrl_sk_inst = sk_cls(**init_kwargs)
+        est_params = ctrl_sk_inst.get_params()
+        try:
+            random_state = est_params['random_state']
+            if random_state is None:
+                # This has to be fixed. Set a state and try again
+                init_kwargs['random_state'] = 0
+                ctrl_sk_inst = sk_cls(**init_kwargs)
+        except KeyError:
+            pass
 
         p = Pipeline()
 
@@ -94,7 +107,6 @@ class TestWrap(UPSGTestCase):
         ctrl_y = in_data[:, -1]
         ctrl_X = in_data[:, :-1]
 
-        ctrl_sk_inst = sk_cls(**init_kwargs)
         if sk_method_name == 'predict':
             ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
                 train_test_split(ctrl_X, ctrl_y, random_state=0))
@@ -116,7 +128,17 @@ class TestWrap(UPSGTestCase):
                                init_kwargs=kwargs, in_data='missing_vals.csv')
 
     def test_predict(self):
-        self.__simple_pipeline(SVC, 'predict', 'y_pred', in_data='numbers.csv')
+
+        with open(
+            get_resource_path(
+                'default_multi_classify.json')) as f_default_dict:
+            clf_and_params_dict = json.load(f_default_dict)    
+         
+        for clf in clf_and_params_dict:
+            self.__simple_pipeline(
+                    import_object_by_name(clf), 
+                    'predict', 
+                    'y_pred')
 
     def test_factor_selection(self):
         # These are based on the documentation: 
@@ -214,7 +236,7 @@ class TestWrap(UPSGTestCase):
         y_pred_2 = self._tmp_files.csv_read('out_pred_2.csv')
         self.assertTrue(np.array_equal(y_pred_1, y_pred_2))
 
-    def testMetric(self):
+    def test_metric(self):
 
         # based on
         # http://scikit-learn.org/stable/auto_examples/plot_roc_crossval.html

@@ -5,6 +5,7 @@ import re
 import uuid
 import upsg
 import cgi
+import importlib
 from datetime import datetime
 import numpy as np
 from sqlalchemy.schema import Table, Column
@@ -318,4 +319,11 @@ def random_table_name():
 def html_escape(s):
     """Returns a string with all its html-averse characters html escaped"""
     return cgi.escape(s).encode('ascii', 'xmlcharrefreplace')
+
+def import_object_by_name(target):
+    split = target.split('.')
+    object_name = split[-1]
+    module_name = '.'.join(split[:-1])
+    skl_module = importlib.import_module(module_name)
+    return skl_module.__dict__[object_name]
 

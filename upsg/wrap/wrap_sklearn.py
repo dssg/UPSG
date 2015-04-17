@@ -1,4 +1,3 @@
-import importlib
 import numpy as np
 from types import FunctionType
 import inspect
@@ -8,7 +7,7 @@ import sklearn.base
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
-from ..utils import np_nd_to_sa, np_sa_to_nd
+from ..utils import np_nd_to_sa, np_sa_to_nd, import_object_by_name
 
 
 class WrapSKLearnException(Exception):
@@ -316,11 +315,7 @@ def wrap(target):
 
     """
     if isinstance(target, basestring):
-        split = target.split('.')
-        object_name = split[-1]
-        module_name = '.'.join(split[:-1])
-        skl_module = importlib.import_module(module_name)
-        skl_object = skl_module.__dict__[object_name]
+        skl_object = import_object_by_name(target)
     else:
         skl_object = target
     if isinstance(skl_object, FunctionType):  # Assuming this is a metric
