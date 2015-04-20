@@ -96,11 +96,10 @@ class Multiclassify(MetaStage):
             with open(self.__file_name, 'w') as fout:
                 fout.write('<!DOCTYPE html><html><body>')
                 for i, classifier in enumerate(self.__classifiers):
-                    self.__print_classifier_report(
-                        fout,
-                        classifier,
-                        kwargs['params_in{}'.format(i)],
-                        kwargs['report_in{}'.format(i)])
+                    with open(
+                        kwargs['report_in{}'.format(i)].to_external_file()
+                        ) as fin:
+                        fout.write(fin.read())
                 fout.write('</body></html>')
             uo_report_file = UObject(UObjectPhase.Write)
             uo_report_file.from_external_file(self.__file_name)
@@ -198,27 +197,32 @@ class Multiclassify(MetaStage):
             node_proba_cat_1 = p.add(SplitColumn(-1))
             node_grid_search['pred_proba'] > node_proba_cat_1['in']
 
-            node_calc_precision_recall = p.add(
-                wrap_and_make_instance(
-                    'sklearn.metrics.precision_recall_curve'))
-                
-            node_proba_cat_1['y'] > node_calc_precision_recall['probas_pred']
-            node_map['y_test_out'] > node_calc_precision_recall['y_true']
-
-            node_plot_calc_precision_recall = p.add(
-                Plot(
-                    'calc_precision_recall{}.png'.format(i),
-                    xlabel='Recall',
-                    ylabel='Precision'))
-            (node_calc_precision_recall['recall'] > 
-             node_plot_calc_precision_recall['X'])
-            (node_calc_precision_recall['precision'] > 
-             node_plot_calc_precision_recall['y'])
-
-            (node_plot_calc_precision_recall['plot_file'] > 
-             node_reduce['report_in{}'.format(i)])
-            (node_grid_search['params_out'] > 
-             node_reduce['params_in{}'.format(i)])
+            node_metric = p.add(Multimetric(metrics, str(clf)))
+            node_proba_cat_1['y'] > multi_metric['pred_proba']
+            node_map['y_test_out'] > multi['y_true']
+            node_grid_search['params_out'] > multi['params']
+#
+#            node_calc_precision_recall = p.add(
+#                wrap_and_make_instance(
+#                    'sklearn.metrics.precision_recall_curve'))
+#                
+#            node_proba_cat_1['y'] > node_calc_precision_recall['probas_pred']
+#            node_map['y_test_out'] > node_calc_precision_recall['y_true']
+#
+#            node_plot_calc_precision_recall = p.add(
+#                Plot(
+#                    'calc_precision_recall{}.png'.format(i),
+#                    xlabel='Recall',
+#                    ylabel='Precision'))
+#            (node_calc_precision_recall['recall'] > 
+#             node_plot_calc_precision_recall['X'])
+#            (node_calc_precision_recall['precision'] > 
+#             node_plot_calc_precision_recall['y'])
+#
+#            (node_plot_calc_precision_recall['plot_file'] > 
+#             node_reduce['report_in{}'.format(i)])
+#            (node_grid_search['params_out'] > 
+#             node_reduce['params_in{}'.format(i)])
 
         self.__in_node = node_map
         self.__out_node = node_reduce
