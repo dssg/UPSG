@@ -12,13 +12,15 @@ from sklearn.cross_validation import cross_val_score
 from sklearn.cross_validation import KFold as SKKFold
 
 from upsg.fetch.np import NumpyRead
-from upsg.wrap.wrap_sklearn import wrap
+from upsg.wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from upsg.export.csv import CSVWrite
-from upsg.transform.split import SplitTrainTest
+from upsg.transform.split import SplitTrainTest, SplitColumn
 from upsg.pipeline import Pipeline
 from upsg.model.grid_search import GridSearch
 from upsg.model.cross_validation import CrossValidationScore
 from upsg.model.multiclassify import Multiclassify
+from upsg.model.multimetric import Multimetric 
+from upsg.model.multimetric import VisualMetricSpec, NumericMetricSpec
 from upsg.utils import np_sa_to_dict
 
 from utils import path_of_data, UPSGTestCase
@@ -117,6 +119,61 @@ class TestModel(UPSGTestCase):
         ctrl = np.mean(cross_val_score(SVC(), X, y, cv=ctrl_kf))
 
         self.assertTrue(np.allclose(ctrl, result))
+
+    def test_multimetric(self):
+        samples = 150
+        features = 3
+        metrics = (VisualMetricSpec(
+                           'sklearn.metrics.precision_recall_curve', # metric
+                           'recall', # output key corresponding to x-axis
+                           'precision', # output key corresponding to y-axis
+                           'Precision/Recall Curve', # graph title
+                           'recall', # x-label
+                           'precision',), # y-label
+                   VisualMetricSpec(
+                           'sklearn.metrics.roc_curve',
+                           'fpr',
+                           'tpr',
+                           'ROC Curve',
+                           'FPR',
+                           'TPR'),
+                   NumericMetricSpec(
+                           'sklearn.metrics.roc_auc_score',
+                           'auc',
+                           'ROC AUC Score'))
+
+        X = np.random.random((samples, features))
+        y = np.random.randint(0, 2, (samples))
+
+        p = Pipeline()
+
+        np_in_X = p.add(NumpyRead(X))
+        np_in_y = p.add(NumpyRead(y))
+
+        split_train_test = p.add(SplitTrainTest(2))
+        np_in_X['out'] > split_train_test['in0']
+        np_in_y['out'] > split_train_test['in1']
+
+        clf = p.add(wrap_and_make_instance(SVC, kernel='linear')) 
+        split_train_test['train0'] > clf['X_train']
+        split_train_test['test0'] > clf['X_test']
+        split_train_test['train1'] > clf['y_train']
+        split_train_test['test1'] > clf['y_test']
+
+        node_proba_cat_1 = p.add(SplitColumn(-1))
+        clf['pred_proba'] > node_proba_cat_1['in']
+
+        multi = p.add(Multimetric(
+            metrics, 'SVC', 
+            self._tmp_files('report.html')))
+        node_proba_cat_1['y'] > multi['pred_proba']
+        split_train_test['test1'] > multi['y_true']
+        clf['params_out'] > multi['params']
+
+        p.run(output = 'progress')
+
+        import pdb; pdb.set_trace()
+        self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
 
     def test_multiclassify(self):
         samples = 150

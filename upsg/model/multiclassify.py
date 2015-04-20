@@ -14,6 +14,7 @@ from ..export.plot import Plot
 from .grid_search import GridSearch
 
 
+
 class Multiclassify(MetaStage):
 
     # TODO declare which metrics
@@ -58,17 +59,19 @@ class Multiclassify(MetaStage):
         def run(self, outputs_requested, **kwargs):
             return {'{}_out'.format(key): kwargs[key] for key in kwargs}
 
+
+
     class __ReduceStage(RunnableStage):
 
         def __init__(self, classifiers, file_name):
             self.__file_name = file_name
             self.__classifiers = classifiers
             self.__width = len(classifiers)
-            self.__params_keys = map('params_in{}'.format, 
-                                     xrange(self.__width))
+#            self.__params_keys = map('params_in{}'.format, 
+#                                     xrange(self.__width))
             self.__report_keys = map('report_in{}'.format, 
                                      xrange(self.__width))
-            self.__input_keys = self.__report_keys + self.__params_keys
+            self.__input_keys = self.__report_keys #+ self.__params_keys
             self.__output_keys = ['report_file']
 
         @property
@@ -79,14 +82,14 @@ class Multiclassify(MetaStage):
         def output_keys(self):
             return self.__output_keys
 
-        def __print_classifier_report(self, fout, classifier, uo_params, 
-                                      uo_report):
-            # TODO replace < and > w/ html equivalents
-            fout.write(
-                '<h3>{}</h3><p>Best params: {}<p><img src="{}">'.format(
-                    classifier,
-                    uo_params.to_dict(),
-                    uo_report.to_external_file()))
+#        def __print_classifier_report(self, fout, classifier, uo_params, 
+#                                      uo_report):
+#            # TODO replace < and > w/ html equivalents
+#            fout.write(
+#                '<h3>{}</h3><p>Best params: {}<p><img src="{}">'.format(
+#                    classifier,
+#                    uo_params.to_dict(),
+#                    uo_report.to_external_file()))
 
         def run(self, outputs_requested, **kwargs):
             # TODO print reports in some nicer format
@@ -142,6 +145,24 @@ class Multiclassify(MetaStage):
             Number of cross-validation folds used to test a configuration.
 
         """
+        metrics = (VisualMetricSpec(
+                           'sklearn.metrics.precision_recall_curve', # metric
+                           'recall', # output key corresponding to x-axis
+                           'precision', # output key corresponding to y-axis
+                           'Precision/Recall Curve', # graph title
+                           'recall', # x-label
+                           'precision'), # y-label
+                   VisualMetricSpec(
+                           'sklearn.metrics.roc_curve',
+                           'fpr',
+                           'tpr',
+                           'ROC Curve',
+                           'FPR',
+                           'TPR'),
+                   NumericMetricSpec(
+                           'sklearn.metrics.roc_auc_score',
+                           'auc',
+                           'ROC AUC Score'))
 
         if clf_and_params_dict is None:
             with open(
