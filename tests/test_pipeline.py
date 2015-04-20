@@ -14,7 +14,7 @@ from utils import path_of_data, UPSGTestCase
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
 
-class LambdaStage(RunnableStage):
+class OneCellLambdaStage(RunnableStage):
 
     def __init__(self, lam, fout=None, n_results=1):
         self.__lam = lam
@@ -105,16 +105,16 @@ class TestPipleline(UPSGTestCase):
     def test_DAG(self):
         p = Pipeline()
 
-        s0 = LambdaStage(lambda: 'S0')
-        s1 = LambdaStage(lambda: 'S1')
-        s2 = LambdaStage(lambda: 'S2')
-        s3 = LambdaStage(lambda x, y: '({},{})->I{}'.format(x, y, '3'))
-        s4 = LambdaStage(lambda x, y: '({},{})->I{}'.format(x, y, '4'))
+        s0 = OneCellLambdaStage(lambda: 'S0')
+        s1 = OneCellLambdaStage(lambda: 'S1')
+        s2 = OneCellLambdaStage(lambda: 'S2')
+        s3 = OneCellLambdaStage(lambda x, y: '({},{})->I{}'.format(x, y, '3'))
+        s4 = OneCellLambdaStage(lambda x, y: '({},{})->I{}'.format(x, y, '4'))
         s5out = StringIO()
         s6out = StringIO()
-        s5 = LambdaStage(lambda x, y: '({},{})->T{}'.format(x, y, '5'),
+        s5 = OneCellLambdaStage(lambda x, y: '({},{})->T{}'.format(x, y, '5'),
                          fout=s5out)
-        s6 = LambdaStage(lambda x: '({})->T{}'.format(x, '6'),
+        s6 = OneCellLambdaStage(lambda x: '({})->T{}'.format(x, '6'),
                          fout=s6out)
         nodes = [p.add(s) for s in (s0, s1, s2, s3, s4, s5, s6)]
 
@@ -137,16 +137,16 @@ class TestPipleline(UPSGTestCase):
         p_outer = Pipeline()
         p_inner = Pipeline()
 
-        out0 = LambdaStage(lambda: 'hamster,elderberry')
-        out1 = LambdaStage(lambda x: ''.join(sorted(x.replace(',', ''))) +
+        out0 = OneCellLambdaStage(lambda: 'hamster,elderberry')
+        out1 = OneCellLambdaStage(lambda x: ''.join(sorted(x.replace(',', ''))) +
                            '_out1')
         sio = StringIO()
-        out2 = LambdaStage(lambda x, y: '[{},{}]'.format(x, y), fout=sio)
+        out2 = OneCellLambdaStage(lambda x, y: '[{},{}]'.format(x, y), fout=sio)
 
-        in0 = LambdaStage(lambda x: x.split(','), n_results=2)
-        in1 = LambdaStage(lambda x: ''.join(sorted(x)) + '_in1')
-        in2 = LambdaStage(lambda x: ''.join(sorted(x)) + '_in2')
-        in3 = LambdaStage(lambda x, y: '({},{})'.format(x, y))
+        in0 = OneCellLambdaStage(lambda x: x.split(','), n_results=2)
+        in1 = OneCellLambdaStage(lambda x: ''.join(sorted(x)) + '_in1')
+        in2 = OneCellLambdaStage(lambda x: ''.join(sorted(x)) + '_in2')
+        in3 = OneCellLambdaStage(lambda x, y: '({},{})'.format(x, y))
 
         in_nodes = [p_inner.add(s) for s in (in0, in1, in2, in3)]
         out_nodes = [p_outer.add(s) for s in (out0, out1, out2)]

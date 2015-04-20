@@ -63,7 +63,7 @@ class LambdaStage(RunnableStage):
 
         self.__func = func
         self.__input_keys = inspect.getargspec(func).args
-        self.__n_results = n_results
+        self.__n_results = len(output_keys)
         self.__output_keys = output_keys
 
     @property
@@ -77,13 +77,12 @@ class LambdaStage(RunnableStage):
     def run(self, outputs_requested, **kwargs):
         fxs = self.__func(**{key: kwargs[key].to_np()
                             for key in kwargs})
-        if self.__fout:
-            self.__fout.write(str(fxs))
-            return {}
-        if self.__n_results <= 1:
+        if self.__n_results == 0:
+            fxs = []
+        if self.__n_results == 1:
             fxs = [fxs]
         ret = {key: UObject(UObjectPhase.Write) for key in self.__output_keys}
-        [ret[key].from_np(fxs_np[i])
+        [ret[key].from_np(fxs[i])
             for i, key in enumerate(self.__output_keys)]
         return ret
 

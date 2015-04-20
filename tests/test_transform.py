@@ -2,6 +2,8 @@ import numpy as np
 from os import system
 import unittest
 
+from numpy.lib.recfunctions import append_fields
+
 from sklearn.cross_validation import KFold as SKKFold
 
 from upsg.pipeline import Pipeline
@@ -13,7 +15,8 @@ from upsg.transform.sql import RunSQL
 from upsg.transform.split import Query, SplitColumns, KFold
 from upsg.transform.fill_na import FillNA
 from upsg.transform.label_encode import LabelEncode
-from upsg.utils import np_nd_to_sa
+from upsg.transform.lambda_stage import LambdaStage
+from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
 
 from utils import path_of_data, UPSGTestCase, csv_read
 
@@ -222,6 +225,61 @@ class TestTransform(UPSGTestCase):
             self.assertTrue(np.array_equal(
                 self._tmp_files.csv_read(out_file),
                 expected_fold))
+
+    def test_lambda(self):
+
+        in_data = np_nd_to_sa(np.random.random((100, 10)))
+        scale = np_nd_to_sa(np.array(3))
+        out_keys = ['augmented', 'log_col', 'sqrt_col', 'scale_col'] 
+
+        def log1_sqrt2_scale3(A, scale):
+            names = A.dtype.names
+            log_col = np.log(A[names[0]])
+            sqrt_col = np.sqrt(A[names[1]])
+            scale_col = A[names[2]] * scale[0][0]
+
+            return (append_fields(
+                        A, 
+                        ['log1', 'sqrt2', 'scale3'], 
+                        (log_col, sqrt_col, scale_col)),
+                    log_col,
+                    sqrt_col,
+                    scale_col)
+
+        p = Pipeline()
+
+        np_in = p.add(NumpyRead(in_data))
+        scale_in = p.add(NumpyRead(scale))
+
+        lambda_stage = p.add(
+            LambdaStage(
+                log1_sqrt2_scale3, 
+                out_keys))
+        np_in['out'] > lambda_stage['A']
+        scale_in['out'] > lambda_stage['scale']
+
+        csv_out_stages = []
+        for key in out_keys:
+            stage = p.add(
+                    CSVWrite(
+                        self._tmp_files(
+                            'out_{}.csv'.format(key))))
+            csv_out_stages.append(stage)
+            lambda_stage[key] > stage['in']
+
+        p.run()
+
+        controls = log1_sqrt2_scale3(in_data, scale)
+
+        for i, key in enumerate(out_keys):
+            control = controls[i]
+            if is_sa(control):
+                control = np_sa_to_nd(control)[0]
+            result = self._tmp_files.csv_read(
+                        'out_{}.csv'.format(key), 
+                        as_nd=True)
+            self.assertTrue(np.allclose(control, result))
+
 
 if __name__ == '__main__':
     unittest.main()
