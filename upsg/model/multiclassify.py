@@ -12,6 +12,7 @@ from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..transform.split import SplitColumn
 from ..export.plot import Plot
 from .grid_search import GridSearch
+from .multimetric import Multimetric, VisualMetricSpec, NumericMetricSpec
 
 
 
@@ -67,8 +68,6 @@ class Multiclassify(MetaStage):
             self.__file_name = file_name
             self.__classifiers = classifiers
             self.__width = len(classifiers)
-#            self.__params_keys = map('params_in{}'.format, 
-#                                     xrange(self.__width))
             self.__report_keys = map('report_in{}'.format, 
                                      xrange(self.__width))
             self.__input_keys = self.__report_keys #+ self.__params_keys
@@ -81,15 +80,6 @@ class Multiclassify(MetaStage):
         @property
         def output_keys(self):
             return self.__output_keys
-
-#        def __print_classifier_report(self, fout, classifier, uo_params, 
-#                                      uo_report):
-#            # TODO replace < and > w/ html equivalents
-#            fout.write(
-#                '<h3>{}</h3><p>Best params: {}<p><img src="{}">'.format(
-#                    classifier,
-#                    uo_params.to_dict(),
-#                    uo_report.to_external_file()))
 
         def run(self, outputs_requested, **kwargs):
             # TODO print reports in some nicer format
@@ -106,7 +96,14 @@ class Multiclassify(MetaStage):
             return {'report_file': uo_report_file}
 
 
-    def __init__(self, score_key, report_file_name, clf_and_params_dict=None, cv=2):
+    def __init__(
+            self, 
+            score_key, 
+            report_file_name, 
+            clf_and_params_dict=None, 
+            cv=2,
+            metrics=None):
+
         """
 
         Parameters
@@ -140,25 +137,32 @@ class Multiclassify(MetaStage):
         report_file_name: str
             Base name of file in which to write the report.
 
-        cv : int (default 2)
+        cv: int (default 2)
             Number of cross-validation folds used to test a configuration.
+        
+        metrics: list of (upsg.model.multimetric.VisualMetricSpec or 
+                          upsg.model.multimetric.NumericMetricSpec) or
+                            None              
+            Metrics to report for each classifier. If None, reports a 
+            precision-recall, an ROC, and auc for the ROC
 
         """
-        metrics = (VisualMetricSpec(
+        if metrics is None:
+            metrics = (VisualMetricSpec(
                            'sklearn.metrics.precision_recall_curve', # metric
                            'recall', # output key corresponding to x-axis
                            'precision', # output key corresponding to y-axis
                            'Precision/Recall Curve', # graph title
-                           'recall', # x-label
-                           'precision'), # y-label
-                   VisualMetricSpec(
+                           'Recall', # x-label
+                           'Precision'), # y-label
+                       VisualMetricSpec(
                            'sklearn.metrics.roc_curve',
                            'fpr',
                            'tpr',
                            'ROC Curve',
                            'FPR',
                            'TPR'),
-                   NumericMetricSpec(
+                       NumericMetricSpec(
                            'sklearn.metrics.roc_auc_score',
                            'auc',
                            'ROC AUC Score'))
@@ -198,31 +202,12 @@ class Multiclassify(MetaStage):
             node_grid_search['pred_proba'] > node_proba_cat_1['in']
 
             node_metric = p.add(Multimetric(metrics, str(clf)))
-            node_proba_cat_1['y'] > multi_metric['pred_proba']
-            node_map['y_test_out'] > multi['y_true']
-            node_grid_search['params_out'] > multi['params']
-#
-#            node_calc_precision_recall = p.add(
-#                wrap_and_make_instance(
-#                    'sklearn.metrics.precision_recall_curve'))
-#                
-#            node_proba_cat_1['y'] > node_calc_precision_recall['probas_pred']
-#            node_map['y_test_out'] > node_calc_precision_recall['y_true']
-#
-#            node_plot_calc_precision_recall = p.add(
-#                Plot(
-#                    'calc_precision_recall{}.png'.format(i),
-#                    xlabel='Recall',
-#                    ylabel='Precision'))
-#            (node_calc_precision_recall['recall'] > 
-#             node_plot_calc_precision_recall['X'])
-#            (node_calc_precision_recall['precision'] > 
-#             node_plot_calc_precision_recall['y'])
-#
-#            (node_plot_calc_precision_recall['plot_file'] > 
-#             node_reduce['report_in{}'.format(i)])
-#            (node_grid_search['params_out'] > 
-#             node_reduce['params_in{}'.format(i)])
+            node_proba_cat_1['y'] > node_metric['pred_proba']
+            node_map['y_test_out'] > node_metric['y_true']
+            node_grid_search['params_out'] > node_metric['params']
+
+            (node_metric['report_file'] > 
+             node_reduce['report_in{}'.format(i)])
 
         self.__in_node = node_map
         self.__out_node = node_reduce

@@ -170,9 +170,8 @@ class TestModel(UPSGTestCase):
         split_train_test['test1'] > multi['y_true']
         clf['params_out'] > multi['params']
 
-        p.run(output = 'progress')
+        p.run()
 
-        import pdb; pdb.set_trace()
         self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
 
     def test_multiclassify(self):
