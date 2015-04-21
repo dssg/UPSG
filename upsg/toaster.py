@@ -88,6 +88,7 @@ class Toaster(MetaStage):
     def __split(self, stage, y_col):
         if self.__state != self.PREPROC:
             raise ToasterError('Not in preprocessing phase')
+        
         raise NotImplementedError()
 
     def split_random(self, y_col, **kwargs):
