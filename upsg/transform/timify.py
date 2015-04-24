@@ -1,6 +1,8 @@
+import numpy as np
+import itertools as it
 
-from datetime import strptime
-
+from upsg.uobject import UObject, UObjectPhase
+from upsg.stage import RunnableStage
 
 class Timify(RunnableStage):
     """Transforms string columns that look like dates into datetime64 columns
@@ -26,25 +28,24 @@ class Timify(RunnableStage):
     def output_keys(self):
         return ['out']
 
-
     def run(self, outputs_requested, **kwargs):
         in_data = kwargs['in'].to_np()
         cols = []
         dtype = []
         
-        for name, sub_dtype in_data.dtype.descr:
+        for name, sub_dtype in in_data.dtype.descr:
             col = in_data[name]
             if 'S' in sub_dtype:
                 try:
                     col = col.astype('M8')
-                    sub_dtype = 'M8'
+                    sub_dtype = col.dtype
                 except ValueError: # not a time
                     pass
             cols.append(col)
             dtype.append((name, sub_dtype))
 
         uo_out = UObject(UObjectPhase.Write)
-        uo_out.from_np(np.array(it.izip(*cols), dtype=dtype))
+        uo_out.from_np(np.fromiter(it.izip(*cols), dtype=dtype))
         return {'out': uo_out}
 
         

@@ -8,6 +8,7 @@ from sklearn.cross_validation import KFold as SKKFold
 
 from upsg.pipeline import Pipeline
 from upsg.export.csv import CSVWrite
+from upsg.export.np import NumpyWrite
 from upsg.fetch.csv import CSVRead
 from upsg.fetch.np import NumpyRead
 from upsg.transform.rename_cols import RenameCols
@@ -16,6 +17,7 @@ from upsg.transform.split import Query, SplitColumns, KFold
 from upsg.transform.fill_na import FillNA
 from upsg.transform.label_encode import LabelEncode
 from upsg.transform.lambda_stage import LambdaStage
+from upsg.transform.timify import Timify
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
 
 from utils import path_of_data, UPSGTestCase, csv_read
@@ -280,6 +282,30 @@ class TestTransform(UPSGTestCase):
                         as_nd=True)
             self.assertTrue(np.allclose(control, result))
 
+    def test_timify(self):
+        in_file = path_of_data('with_dates.csv')
+
+        p = Pipeline()
+
+        csv_in = p.add(CSVRead(in_file))
+
+        timify = p.add(Timify())
+        csv_in['out'] > timify['in']
+
+        np_out = p.add(NumpyWrite())
+        timify['out'] > np_out['in']
+
+        p.run()
+        result = np_out.get_stage().result
+
+        ctrl_raw = csv_read(in_file)
+        ctrl_dtype = np.dtype([(name, '<M8[D]') if 'dt' in name else 
+                               (name, fmt) for name, fmt in 
+                               ctrl_raw.dtype.descr])
+        ctrl_better = csv_read(in_file, dtype=ctrl_dtype)
+
+        self.assertEqual(result.dtype, ctrl_better.dtype)
+        self.assertTrue(np.array_equal(result, ctrl_better))
 
 if __name__ == '__main__':
     unittest.main()

@@ -12,6 +12,7 @@ from upsg.uobject import UObject, UObjectPhase
 from upsg.pipeline import Pipeline
 from upsg.fetch.np import NumpyRead
 from upsg.export.plot import Plot
+from upsg.export.np import NumpyWrite
 from upsg.transform.split import SplitColumn, SplitTrainTest
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
@@ -58,6 +59,17 @@ class TestExport(UPSGTestCase):
 
         p.run()
         self.assertTrue(os.path.isfile(self._tmp_files('result.png')))
+
+    def test_numpy_write(self): 
+        in_data = np.random.rand(10,10)
+        p = Pipeline()
+        np_in = p.add(NumpyRead(in_data))
+        np_out = p.add(NumpyWrite())
+        np_in['out'] > np_out['in']
+        p.run()
+        self.assertTrue(np.allclose(
+            in_data, 
+            np_sa_to_nd(np_out.get_stage().result)[0]))
 
 if __name__ == '__main__':
     unittest.main()

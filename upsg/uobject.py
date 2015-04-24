@@ -187,8 +187,8 @@ class UObject(object):
             try:
                 dt_cols = hfile.get_node(hfile.root.np, 'dt_cols').read()
                 view_dtype = A.dtype.descr
-                for col in dt_cols:
-                    view_dtype[col] = (view_dtype[col][0], 'datetime64[s]')
+                for col, dt_dtype in dt_cols:
+                    view_dtype[col] = (view_dtype[col][0], dt_dtype)
                 A = A.view(dtype=view_dtype)
             except tables.NoSuchNodeError:
                 pass
@@ -428,17 +428,17 @@ class UObject(object):
 
             # case datetime64 columns to int64 and note it in metadata
             to_write_dtype = to_write.dtype
-            dt_cols = [i for i, col_dtype in enumerate(to_write_dtype.descr)
-                       if '<M8' in col_dtype[1]]
+            dt_cols = [(i, col_dtype[1]) for i, col_dtype in 
+                       enumerate(to_write_dtype.descr)
+                       if 'M8' in col_dtype[1]]
             if dt_cols:
-                view_dtype = [
-                    (name,
-                     '<i8') if '<M8' in format else (
-                        name,
-                        format) for name,
-                    format in to_write_dtype.descr]
+                view_dtype = [(name, '<i8') if 'M8' in fmt else (name, fmt) 
+                              for name, fmt in to_write_dtype.descr]
                 to_write = to_write.view(dtype=view_dtype)
-                hfile.create_array(np_group, 'dt_cols', dt_cols)
+                dt_cols_sa = np.array(
+                        dt_cols, 
+                        dtype=[('col_num', int), ('dtype', '|S6')])
+                hfile.create_table(np_group, 'dt_cols', dt_cols_sa)
 
             hfile.create_table(np_group, 'table', obj=to_write)
             return 'np'

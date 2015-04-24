@@ -23,8 +23,8 @@ def path_of_data(filename):
     return os.path.join(DATA_PATH, filename)
 
 
-def csv_read(filename, as_nd=False):
-    sa = np.genfromtxt(filename, dtype=None, delimiter=",", names=True)
+def csv_read(filename, as_nd=False, dtype=None):
+    sa = np.genfromtxt(filename, dtype=dtype, delimiter=",", names=True)
     if as_nd:
         return np_sa_to_nd(sa)[0]
     return sa
