@@ -1,3 +1,4 @@
+import ast
 import numpy as np
 from os import system
 import unittest
@@ -112,43 +113,65 @@ class TestTransform(UPSGTestCase):
 
         self.assertTrue(np.array_equal(result, ctrl))
 
+    def __test_ast_trans(self, raw, target, col_names):    
+        # There doesn't seem to be a better easy way to test AST equality
+        # than seeing if their dumps are equal:
+        # http://stackoverflow.com/questions/3312989/elegant-way-to-test-python-asts-for-equality-not-reference-or-object-identity
+        # If it gets to be a problem, we'll hand-roll something
+        q = Query(raw)
+        ctrl = ast.dump(ast.parse(target, mode='eval'))
+        result = q.dump_ast(col_names)
+        self.assertEqual(result, ctrl)
+
     def test_query(self):
         # Make sure we can support simple queries
-        q = Query("id < 10")
-        ctrl = "in_table['id'] < 10".replace(' ', '')
-        result = q.parse_query(('id', 'name')).replace(' ', '')
-        self.assertEqual(result, ctrl)
-
-        q = Query("name == 'Bruce'")
-        ctrl = "in_table['name'] == 'Bruce'".replace(' ', '')
-        result = q.parse_query(('id', 'name')).replace(' ', '')
-        self.assertEqual(result, ctrl)
-
-#        # Make sure we can parse fairly complex queries
-#        # (Not yet supported)
-#        q1 = Query("(id < 10) or (name == 'Bruce' and hired_dt != stop_dt)")
-#        ctrl = ("(in_table ['id']<10 )or (in_table ['name']=='Bruce'and"
-#                " in_table ['hired_dt']!=in_table ['stop_dt'])")
-#        result = q1.parse_query(('id', 'name', 'hired_dt', 'stop_dt'))
-#        self.assertEqual(result, ctrl)
+        ast_tests = [("id < 10", 
+                      "in_table['id'] < 10", 
+                      ('id', 'name')),
+                     ("name == 'Bruce'", 
+                      "in_table['name'] == 'Bruce'",
+                      ('id', 'name')),
+                     ("(id < 10) or (name == 'Bruce' and hired_dt != stop_dt)",
+                      ("np.logical_or("
+                           "in_table['id'] < 10, "
+                           "np.logical_and("
+                               "in_table['name'] == 'Bruce', "
+                               "in_table['hired_dt'] != in_table['stop_dt']))"),
+                      ('id', 'name', 'hired_dt', 'stop_dt')),
+                     ("id >= 5 and not (terminated or not salary < 10000)",
+                      ("np.logical_and("
+                           "in_table['id'] >= 5, "
+                           "np.logical_not("
+                               "np.logical_or("
+                                   "in_table['terminated'], "
+                                   "np.logical_not("
+                                        "in_table['salary'] < 10000))))"),
+                      ('id', 'terminated', 'salary', 'demerits'))]
+        for raw, target, col_names in ast_tests:
+            self.__test_ast_trans(raw, target, col_names)
 
         p = Pipeline()
 
+        # NEXT redesign this test so it has an or in it
         csv_in = p.add(CSVRead(path_of_data('query.csv')))
-        q1_node = p.add(Query("id == value"))
-        q2_node = p.add(Query("use_this_col == 'yes'"))
-        q3_node = p.add(Query("value != 1"))
+        q1_node = p.add(Query("((id == value) and not (use_this_col == 'no'))"
+                              "or name == 'fish'"))
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
+        csv_comp = p.add(CSVWrite(self._tmp_files('out_comp.csv')))
 
         csv_in['out'] > q1_node['in']
-        q1_node['out'] > q2_node['in']
-        q2_node['out'] > q3_node['in']
-        q3_node['out'] > csv_out['in']
+        q1_node['out'] > csv_out['in']
+        q1_node['complement'] > csv_comp['in']
 
         p.run()
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('query_ctrl.csv'))
+
+        self.assertTrue(np.array_equal(result, ctrl))
+
+        result = self._tmp_files.csv_read('out_comp.csv')
+        ctrl = csv_read(path_of_data('query_ctrl_comp.csv'))
 
         self.assertTrue(np.array_equal(result, ctrl))
 

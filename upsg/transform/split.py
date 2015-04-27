@@ -2,6 +2,8 @@ import tokenize
 from StringIO import StringIO
 from token import *
 import itertools as it
+import numpy as np
+import ast
 
 from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import KFold as SKKFold
@@ -214,64 +216,164 @@ class KFold(RunnableStage):
                     in_arrays[array_index][test_inds])
         return results
 
+class QueryError(Exception):
+    pass
 
 class Query(RunnableStage):
-    """Selects rows to put in table 'out' from table 'in' based on a given
-    query
-    """
+    """Selects rows to put in a table based on a given query
 
-    __supported_ops = ['<', '<=', '>', '>=', '==', '!=']
+    Input Keys
+    ----------
+    in
+
+    Ouptu Keys
+    ----------
+    out: table containing only rows that match the query
+    complement: table containing only rows that do not match the query
+    
+    """
+    __IN_TABLE_NAME = 'in_table'
+
+    class __QueryParser(ast.NodeTransformer):
+        # TODO enforce the constraint that some object somewhere has to be a
+        # column name
+
+        BINARY_OPS = {
+            ast.Or: 'np.logical_or',
+            ast.And: 'np.logical_and'
+        }
+
+        UNARY_OPS = {
+            ast.Not: 'np.logical_not'
+        }
+
+        SUPPORTED_CMP = [
+            ast.Eq, 
+            ast.NotEq, 
+            ast.Lt, 
+            ast.LtE,
+            ast.Gt,
+            ast.GtE]
+
+        def __init__(self, col_names, array_name):
+            self.__col_names = col_names
+            self.__array_name = ast.Name(id=array_name, ctx=ast.Load())
+
+        def __visit_op(self, np_op, *args):
+            module, attr = np_op.split('.')
+            func = ast.Attribute(
+                    value=ast.Name(
+                        id=module,
+                        ctx=ast.Load()),
+                    attr=attr,
+                    ctx=ast.Load())
+            call_args = [self.visit(arg) for arg in args]
+            return ast.Call(
+                    func=func, 
+                    args=call_args,
+                    keywords=[],
+                    starargs=None,
+                    kwargs=None)
+
+        def visit_Expression(self, node):
+            return ast.Expression(self.visit(node.body))
+
+        def visit_Expr(self, node):
+            return ast.Expr(value=self.visit(node.value))
+            
+        def visit_BoolOp(self, node):
+            try:
+                np_op = self.BINARY_OPS[type(node.op)]
+            except KeyError:
+                raise QueryError('BoolOp {} not supported'.format(node.op))
+            return self.__visit_op(np_op, *node.values)
+
+        def visit_UnaryOp(self, node):
+            try:
+                np_op = self.UNARY_OPS[type(node.op)]
+            except KeyError:
+                raise QueryError('UnOp {} not supported'.format(node.op))
+            return self.__visit_op(np_op, node.operand)
+
+        def visit_Compare(self, node):
+            if len(node.ops) > 1:
+                raise QueryError('cascading comparisons (e.g. 1 < 2 < 3) not'
+                                 ' supported')
+            op = node.ops[0]
+            if type(op) not in self.SUPPORTED_CMP:
+                raise QueryError('Compare op {} not supported'.format(op))
+            return ast.Compare(
+                    left=self.visit(node.left),
+                    ops=node.ops,
+                    comparators=[self.visit(comp) for comp in 
+                                 node.comparators])
+
+        def visit_Name(self, node):
+            col_name = node.id
+            if col_name not in self.__col_names:
+                raise QueryError('\'{}\' is not a valid column name'.format(
+                    col_name))
+            sub_slice = ast.Index(value=ast.Str(s=col_name)) 
+            return ast.Subscript(
+                    value=self.__array_name, 
+                    slice=sub_slice,
+                    ctx=ast.Load())
+
+        def visit_Str(self, node):
+            return node
+
+        def visit_Num(self, node):
+            return node
+
+        def generic_visit(self, node):
+            raise QueryError('node {} not supported'.format(node))
 
     def __init__(self, query):
         """
 
-        parameters
+        Parameters
         ----------
         query : str
-            A query used to select rows in the form: 
-            COL_NAME OP VALUE
-            where COL_NAME is the name of a column in the table (not quoted)
-            where OP can be one of: <, <=, >, >=, ==, !=
-            and VALUE can be one of:
-                * The name of a column (not quoted)
-                * a number
-                * a literal string (quoted)
+            A query used to select rows conforming to a small, Python-like
+            langauge defined as follows:
+
+            primary_expr: 
+                '(' expr ')' | 
+                expr
+            expr: 
+                mask | 
+                unop primary_expr | 
+                binop_expr
+            binop_expr:
+                '(' expr ')' binop '(' expr ')' |
+                '(' expr ')' binop variable |
+                variable binop '(' expr ')' 
+            variable: 
+                literal | 
+                col_name | 
+                '(' literal ')' | 
+                '(' col_name ')'
+            mask: 
+                col_name binop col_name | 
+                col_name binop literal |
+                literal binop col_name |
+                col_name -- for columns of boolean type
+            unop : 'not'
+            binop: '>' | '>=' | '<' | '<=' | '==' | '!=' | 'and' | 'or'
+            literal: NUMBER | STRING
+
+            col_names need to be the name of a column in the table. col_names
+            SHOULD NOT be quoted. Literal string SHOULD be quoted
 
         examples
         --------
         >>> q1 = Query("id > 50")
-        >>> q2 = Query("name == 'Sarah'")
-        >>> q3 = Query("start_dt == end_dt")
+        >>> q2 = Query("(name == 'Sarah') and (salary > 50000)")
+        >>> q3 = Query("(start_dt != end_dt) or (not category == 2")
 
         """
         self.__query = query
 
-
-    def parse_query(self, col_names):
-        """Returns the query used to generate an indexing array given a
-        table with columns named col_names. Debug purposes only"""
-        # TODO make sure that operation has some statement of the form:
-        #   in_table['col_name'] == condition  
-        #   otherwise, this will eval to nonsense
-        # TODO support and, or, not
-        supported_ops = self.__supported_ops
-        result = []
-        g = tokenize.generate_tokens(StringIO(self.__query).readline)
-        for toknum, tokval, _, _, _  in g:
-            if toknum == NAME:
-                if tokval in col_names:
-                    result.extend(
-                        [(NAME, 'in_table'),
-                         (OP, '['),
-                         (STRING, "'{}'".format(tokval)),
-                         (OP, ']')])
-            elif toknum == OP:
-                if tokval in supported_ops:
-                    result.append((OP, tokval))
-            elif toknum in (NUMBER, STRING):
-                result.append((toknum, tokval))
-        result.append((ENDMARKER, ''))
-        return tokenize.untokenize(result)
 
     @property
     def input_keys(self):
@@ -279,7 +381,18 @@ class Query(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['out', 'complement']
+
+    def __get_ast(self, col_names):
+        parser = self.__QueryParser(col_names, self.__IN_TABLE_NAME)
+        query = ast.fix_missing_locations(
+                parser.visit(ast.parse(self.__query, mode='eval')))
+        return query
+
+    def dump_ast(self, col_names):
+        """Dumps the AST of the query transformed into Python. Provided for debugging purposes."""
+        query = self.__get_ast(col_names)
+        return ast.dump(query)
 
     def run(self, outputs_requested, **kwargs):
         # TODO find some interface that doesn't involve string parsing
@@ -291,8 +404,16 @@ class Query(RunnableStage):
         #     http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#arithmetic-and-comparison-operations
         in_table = kwargs['in'].to_np()
         col_names = in_table.dtype.names
-        operation = self.parse_query(col_names)
-        uo_out = UObject(UObjectPhase.Write)
-        uo_out.from_np(in_table[eval(operation)])
-        return {'out': uo_out}
+        query = self.__get_ast(col_names)
+        mask = eval(compile(query, '<string>', 'eval'))
+        ret = {}
+        if 'out' in outputs_requested:
+            uo_out = UObject(UObjectPhase.Write)
+            uo_out.from_np(in_table[mask])
+            ret['out'] = uo_out
+        if 'complement' in outputs_requested:
+            uo_comp = UObject(UObjectPhase.Write)
+            uo_comp.from_np(in_table[np.logical_not(mask)])
+            ret['complement'] = uo_comp
+        return ret
 

@@ -437,7 +437,7 @@ class UObject(object):
                 to_write = to_write.view(dtype=view_dtype)
                 dt_cols_sa = np.array(
                         dt_cols, 
-                        dtype=[('col_num', int), ('dtype', '|S6')])
+                        dtype=[('col_num', int), ('dtype', '|S7')])
                 hfile.create_table(np_group, 'dt_cols', dt_cols_sa)
 
             hfile.create_table(np_group, 'table', obj=to_write)

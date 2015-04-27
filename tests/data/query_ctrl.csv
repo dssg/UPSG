@@ -1,3 +1,5 @@
 id,name,value,use_this_col
+1,bill,1,yes
 2,sarah,2,yes
 4,rachael,4,yes
+5,fish,4,no
