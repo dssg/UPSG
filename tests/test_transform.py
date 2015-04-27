@@ -123,7 +123,7 @@ class TestTransform(UPSGTestCase):
         result = q.dump_ast(col_names)
         self.assertEqual(result, ctrl)
 
-    def test_query(self):
+    def test_query_ast(self):
         # Make sure we can support simple queries
         ast_tests = [("id < 10", 
                       "in_table['id'] < 10", 
@@ -146,13 +146,17 @@ class TestTransform(UPSGTestCase):
                                    "in_table['terminated'], "
                                    "np.logical_not("
                                         "in_table['salary'] < 10000))))"),
-                      ('id', 'terminated', 'salary', 'demerits'))]
+                      ('id', 'terminated', 'salary', 'demerits')),
+                     ("start_date < DT('2012-04-19')",
+                      "in_table['start_date'] < np.datetime64('2012-04-19')",
+                      ('start_date',))]
         for raw, target, col_names in ast_tests:
             self.__test_ast_trans(raw, target, col_names)
 
+    def test_query_complex(self):
+
         p = Pipeline()
 
-        # NEXT redesign this test so it has an or in it
         csv_in = p.add(CSVRead(path_of_data('query.csv')))
         q1_node = p.add(Query("((id == value) and not (use_this_col == 'no'))"
                               "or name == 'fish'"))
@@ -174,6 +178,31 @@ class TestTransform(UPSGTestCase):
         ctrl = csv_read(path_of_data('query_ctrl_comp.csv'))
 
         self.assertTrue(np.array_equal(result, ctrl))
+
+    def test_query_dates(self):
+
+        p = Pipeline()
+
+        dates = np.array([(np.datetime64('2012-01-01')), 
+                          (np.datetime64('2013-04-05')), 
+                          (np.datetime64('2014-03-11')),
+                          (np.datetime64('2015-01-01'))], dtype=[('dt', 'M8[D]')])
+        
+        np_in = p.add(NumpyRead(dates))
+
+        q2_node = p.add(Query("dt <= DT('2014-01-01')"))
+        np_in['out'] > q2_node['in']
+
+        np_out = p.add(NumpyWrite())
+        q2_node['out'] > np_out['in']
+
+        np_complement = p.add(NumpyWrite())
+        q2_node['complement'] > np_complement['in']
+
+        p.run()
+
+        self.assertTrue(np.array_equal(np_out.get_stage().result, dates[:2]))
+        self.assertTrue(np.array_equal(np_complement.get_stage().result, dates[2:]))
 
     def test_fill_na(self):
 
