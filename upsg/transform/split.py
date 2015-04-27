@@ -325,6 +325,22 @@ class Query(RunnableStage):
         def visit_Num(self, node):
             return node
 
+        def visit_Call(self, node):
+            func = node.func
+            if not isinstance(func, ast.Name) or func.id != 'DT':
+                raise QueryError('The only supported function call is DT()')
+            return ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(
+                            id='np',
+                            ctx=ast.Load()),
+                        attr='datetime64',
+                        ctx=ast.Load()),
+                    args=node.args,
+                    keywords=[],
+                    starargs=None,
+                    kwargs=None)
+
         def generic_visit(self, node):
             raise QueryError('node {} not supported'.format(node))
 
@@ -360,7 +376,12 @@ class Query(RunnableStage):
                 col_name -- for columns of boolean type
             unop : 'not'
             binop: '>' | '>=' | '<' | '<=' | '==' | '!=' | 'and' | 'or'
-            literal: NUMBER | STRING
+            literal: 
+                NUMBER | 
+                STRING |
+                datetime
+            datetime:
+                "DT('" ISO_8601_DATE_OR_DATETIME_STRING "')" 
 
             col_names need to be the name of a column in the table. col_names
             SHOULD NOT be quoted. Literal string SHOULD be quoted
@@ -370,6 +391,7 @@ class Query(RunnableStage):
         >>> q1 = Query("id > 50")
         >>> q2 = Query("(name == 'Sarah') and (salary > 50000)")
         >>> q3 = Query("(start_dt != end_dt) or (not category == 2")
+        >>> q4 = Query("start_dt < DT('2014-06-01')")
 
         """
         self.__query = query

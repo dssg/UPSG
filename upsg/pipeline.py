@@ -593,6 +593,7 @@ class Pipeline(object):
                          name in a.dtype.names]))
             self.__fout.write(header)
             rows = a[:100]
+            import pdb; pdb.set_trace()
             data = '\n'.join(
                 ['<tr>{}</tr>'.format(
                     ''.join(
