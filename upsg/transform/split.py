@@ -219,17 +219,26 @@ class QueryError(Exception):
     pass
 
 class Query(RunnableStage):
-    """Selects rows to put in table 'out' from table 'in' based on a given
-    query
-    """
+    """Selects rows to put in a table based on a given query
 
+    Input Keys
+    ----------
+    in
+
+    Ouptu Keys
+    ----------
+    out: table containing only rows that match the query
+    complement: table containing only rows that do not match the query
+    
+    """
+    __IN_TABLE_NAME = 'in_table'
 
     class __QueryParser(ast.NodeTransformer):
         # TODO enforce the constraint that some object somewhere has to be a
         # column name
 
         BINARY_OPS = {
-            ast.Or: 'np.logical_or'
+            ast.Or: 'np.logical_or',
             ast.And: 'np.logical_and'
         }
 
@@ -247,16 +256,23 @@ class Query(RunnableStage):
 
         def __init__(self, col_names, array_name):
             self.__col_names = col_names
-            self.__array_name = ast.Name(id=array_name)
+            self.__array_name = ast.Name(id=array_name, ctx=ast.Load())
 
-        def __visit_op(self, np_op, **args):
+        def __visit_op(self, np_op, *args):
             module, attr = np_op.split('.')
             func = ast.Attribute(
                     value=ast.Name(
-                        id=module,),
-                    attr=attr)
+                        id=module,
+                        ctx=ast.Load()),
+                    attr=attr,
+                    ctx=ast.Load())
             call_args = [self.visit(arg) for arg in args]
-            return ast.Call(func=func, args=call_args)
+            return ast.Call(
+                    func=func, 
+                    args=call_args,
+                    keywords=[],
+                    starargs=None,
+                    kwargs=None)
 
         def visit_Module(self, node):
             body = [self.visit(body_node) for body_node in node.body]
@@ -270,7 +286,7 @@ class Query(RunnableStage):
                 np_op = self.BINARY_OPS[type(node.op)]
             except KeyError:
                 raise QueryError('BoolOp {} not supported'.format(node.op))
-            return self.__visit_op(np_op, **node.values)
+            return self.__visit_op(np_op, *node.values)
 
         def visit_UnaryOp(self, node):
             try:
@@ -286,11 +302,11 @@ class Query(RunnableStage):
             op = node.ops[0]
             if type(op) not in self.SUPPORTED_CMP:
                 raise QueryError('Compare op {} not supported'.format(op))
-            return Compare(
+            return ast.Compare(
                     left=self.visit(node.left),
-                    ops = node.ops
-                    comparators = [self.visit(comp) for comp in 
-                                   node.comparators])
+                    ops=node.ops,
+                    comparators=[self.visit(comp) for comp in 
+                                 node.comparators])
 
         def visit_Name(self, node):
             col_name = node.id
@@ -298,7 +314,10 @@ class Query(RunnableStage):
                 raise QueryError('\'{}\' is not a valid column name'.format(
                     col_name))
             sub_slice = ast.Index(value=ast.Str(s=col_name)) 
-            return ast.Subscript(value=self.__array_name, slice=sub_slice)
+            return ast.Subscript(
+                    value=self.__array_name, 
+                    slice=sub_slice,
+                    ctx=ast.Load())
 
         def visit_Str(self, node):
             return node
@@ -363,6 +382,17 @@ class Query(RunnableStage):
     def output_keys(self):
         return ['out', 'complement']
 
+    def __get_ast(self, col_names):
+        parser = self.__QueryParser(col_names, self.__IN_TABLE_NAME)
+        query = ast.fix_missing_locations(
+                parser.visit(ast.parse(self.__query)))
+        return query
+
+    def dump_ast(self, col_names):
+        """Dumps the AST of the query transformed into Python. Provided for debugging purposes."""
+        query = self.__get_ast(col_names)
+        return ast.dump(query)
+
     def run(self, outputs_requested, **kwargs):
         # TODO find some interface that doesn't involve string parsing
         # modeled after pandas.Dataframe.query:
@@ -373,9 +403,7 @@ class Query(RunnableStage):
         #     http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#arithmetic-and-comparison-operations
         in_table = kwargs['in'].to_np()
         col_names = in_table.dtype.names
-        parser = self.__QueryParser(col_names, 'in_table')
-        query = ast.fix_missing_locations(
-                parser.visit(ast.parse(self.__query)))
+        query = self.__get_ast(col_names)
         mask = eval(compile(query, '<string>', 'eval'))
         ret = {}
         if 'out' in outputs_requested:
@@ -385,6 +413,6 @@ class Query(RunnableStage):
         if 'complement' in outputs_requested:
             uo_comp = UObject(UObjectPhase.Write)
             uo_comp.from_np(in_table[np.logical_not(mask)])
-            ret['complement'] = uo_ comp
+            ret['complement'] = uo_comp
         return ret
 
