@@ -119,7 +119,7 @@ class TestTransform(UPSGTestCase):
         # http://stackoverflow.com/questions/3312989/elegant-way-to-test-python-asts-for-equality-not-reference-or-object-identity
         # If it gets to be a problem, we'll hand-roll something
         q = Query(raw)
-        ctrl = ast.dump(ast.parse(target))
+        ctrl = ast.dump(ast.parse(target, mode='eval'))
         result = q.dump_ast(col_names)
         self.assertEqual(result, ctrl)
 
@@ -154,18 +154,24 @@ class TestTransform(UPSGTestCase):
 
         # NEXT redesign this test so it has an or in it
         csv_in = p.add(CSVRead(path_of_data('query.csv')))
-        q1_node = p.add(Query("(id == value) and (use_this_col == 'yes'"))
-        q2_node = p.add(Query("not value == 1"))
+        q1_node = p.add(Query("((id == value) and not (use_this_col == 'no'))"
+                              "or name == 'fish'"))
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
+        csv_comp = p.add(CSVWrite(self._tmp_files('out_comp.csv')))
 
         csv_in['out'] > q1_node['in']
-        q1_node['out'] > q2_node['in']
-        q2_node['out'] > csv_out['in']
+        q1_node['out'] > csv_out['in']
+        q1_node['complement'] > csv_comp['in']
 
         p.run()
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('query_ctrl.csv'))
+
+        self.assertTrue(np.array_equal(result, ctrl))
+
+        result = self._tmp_files.csv_read('out_comp.csv')
+        ctrl = csv_read(path_of_data('query_ctrl_comp.csv'))
 
         self.assertTrue(np.array_equal(result, ctrl))
 

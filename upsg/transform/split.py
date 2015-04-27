@@ -2,6 +2,7 @@ import tokenize
 from StringIO import StringIO
 from token import *
 import itertools as it
+import numpy as np
 import ast
 
 from sklearn.cross_validation import train_test_split
@@ -274,9 +275,8 @@ class Query(RunnableStage):
                     starargs=None,
                     kwargs=None)
 
-        def visit_Module(self, node):
-            body = [self.visit(body_node) for body_node in node.body]
-            return ast.Module(body=body)
+        def visit_Expression(self, node):
+            return ast.Expression(self.visit(node.body))
 
         def visit_Expr(self, node):
             return ast.Expr(value=self.visit(node.value))
@@ -357,6 +357,7 @@ class Query(RunnableStage):
                 col_name binop col_name | 
                 col_name binop literal |
                 literal binop col_name |
+                col_name -- for columns of boolean type
             unop : 'not'
             binop: '>' | '>=' | '<' | '<=' | '==' | '!=' | 'and' | 'or'
             literal: NUMBER | STRING
@@ -385,7 +386,7 @@ class Query(RunnableStage):
     def __get_ast(self, col_names):
         parser = self.__QueryParser(col_names, self.__IN_TABLE_NAME)
         query = ast.fix_missing_locations(
-                parser.visit(ast.parse(self.__query)))
+                parser.visit(ast.parse(self.__query, mode='eval')))
         return query
 
     def dump_ast(self, col_names):
