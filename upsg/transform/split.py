@@ -229,7 +229,9 @@ class Query(RunnableStage):
     Ouptu Keys
     ----------
     out: table containing only rows that match the query
+    out_inds: one-column table containing the indices of in that matched the query
     complement: table containing only rows that do not match the query
+    complement_inds: one-column table containing the indices of in that did not match the query
     
     """
     __IN_TABLE_NAME = 'in_table'
@@ -403,7 +405,7 @@ class Query(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out', 'complement']
+        return ['out', 'complement', 'out_inds', 'complement_inds']
 
     def __get_ast(self, col_names):
         parser = self.__QueryParser(col_names, self.__IN_TABLE_NAME)
@@ -437,5 +439,13 @@ class Query(RunnableStage):
             uo_comp = UObject(UObjectPhase.Write)
             uo_comp.from_np(in_table[np.logical_not(mask)])
             ret['complement'] = uo_comp
+        if 'out_inds' in outputs_requested:
+            uo_out_inds = UObject(UObjectPhase.Write)
+            uo_out_inds.from_np(np.where(mask)[0])
+            ret['out_inds'] = uo_out_inds
+        if 'complement_inds' in outputs_requested:
+            uo_comp_inds = UObject(UObjectPhase.Write)
+            uo_comp_inds.from_np(np.where(np.logical_not(mask))[0])
+            ret['complement_inds'] = uo_comp_inds
         return ret
 
