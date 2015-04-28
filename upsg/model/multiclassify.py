@@ -10,6 +10,7 @@ from ..pipeline import Pipeline
 from ..utils import dict_to_np_sa, get_resource_path, utf_to_ascii
 from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..transform.split import SplitColumn
+from ..transform.identity import Identity
 from ..export.plot import Plot
 from .grid_search import GridSearch
 from .multimetric import Multimetric, VisualMetricSpec, NumericMetricSpec
@@ -36,31 +37,6 @@ class Multiclassify(MetaStage):
     report_file
 
     """
-
-    class __MapStage(RunnableStage):
-
-        """Translates metastage input keys to input stage required by the
-        stage
-
-        """
-
-        def __init__(self):
-            self.__input_keys = ['X_train', 'y_train', 'X_test', 'y_test']
-            self.__output_keys = ['{}_out'.format(key) for key
-                                  in self.__input_keys]
-
-        @property
-        def input_keys(self):
-            return self.__input_keys
-
-        @property
-        def output_keys(self):
-            return self.__output_keys
-
-        def run(self, outputs_requested, **kwargs):
-            return {'{}_out'.format(key): kwargs[key] for key in kwargs}
-
-
 
     class __ReduceStage(RunnableStage):
 
@@ -176,7 +152,7 @@ class Multiclassify(MetaStage):
         classifiers = clf_and_params_dict.keys()
         p = Pipeline()
         self.__pipeline = p
-        node_map = p.add(self.__MapStage())
+        node_map = p.add(Identity(('X_train', 'y_train', 'X_test', 'y_test')))
         node_reduce = p.add(self.__ReduceStage(classifiers, report_file_name))
 
         for i, clf in enumerate(clf_and_params_dict):

@@ -19,6 +19,7 @@ from upsg.transform.fill_na import FillNA
 from upsg.transform.label_encode import LabelEncode
 from upsg.transform.lambda_stage import LambdaStage
 from upsg.transform.timify import Timify
+from upsg.transform.identity import Identity
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
 
 from utils import path_of_data, UPSGTestCase, csv_read
@@ -368,6 +369,39 @@ class TestTransform(UPSGTestCase):
 
         self.assertEqual(result.dtype, ctrl_better.dtype)
         self.assertTrue(np.array_equal(result, ctrl_better))
+
+    def test_identity(self):
+        trials = [(('in0', 'in1'), ('out0', 'out1'), 
+                   {'in0': 'out0', 'in1': 'out1'}),
+                  (('in0', 'in1', 'in2'), 
+                   ('in0_out', 'in1_out', 'in2_out'), 
+                   ('in0', 'in1', 'in2'))]
+        
+        for input_keys, output_keys, arg in trials:
+
+            in_data_arrays = []
+            out_nodes = []
+
+            p = Pipeline()
+
+            node_id = p.add(Identity(arg))
+
+            for input_key, output_key, in zip(input_keys, output_keys):
+
+                in_data = np_nd_to_sa(np.random.random((100, 10)))
+                node_in = p.add(NumpyRead(in_data))
+                node_in['out'] > node_id[input_key]
+
+                node_out = p.add(NumpyWrite())
+                node_id[output_key] > node_out['in']
+
+                in_data_arrays.append(in_data)
+                out_nodes.append(node_out)
+
+            p.run()
+
+            for in_data, out_node in zip(in_data_arrays, out_nodes):
+                self.assertTrue(np.array_equal(in_data, out_node.get_stage().result))
 
 if __name__ == '__main__':
     unittest.main()

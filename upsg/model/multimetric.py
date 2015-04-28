@@ -7,6 +7,7 @@ from ..pipeline import Pipeline
 from ..utils import dict_to_np_sa
 from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..export.plot import Plot
+from ..transform.identity import Identity
 
 VisualMetricSpec = namedtuple('VisualMetricSpec', ['metric', 
                                                    'output_key_x',
@@ -21,25 +22,6 @@ NumericMetricSpec = namedtuple('NumericMetricSpec', ['metric',
                                                      'title'])
 
 class Multimetric(MetaStage):
-
-    class __MapStage(RunnableStage):
-
-        def __init__(self):
-            self.__input_keys = ['params', 'pred_proba', 'y_true']
-            self.__output_keys = ['{}_out'.format(key) for key
-                              in self.__input_keys]
-
-        @property
-        def input_keys(self):
-            return self.__input_keys
-
-        @property
-        def output_keys(self):
-            return self.__output_keys
-
-        def run(self, outputs_requested, **kwargs):
-            return {'{}_out'.format(key): kwargs[key] for key in kwargs}
-
 
     class __ReduceStage(RunnableStage):
 
@@ -97,7 +79,7 @@ class Multimetric(MetaStage):
 
         self.__file_name = file_name
 
-        node_map = p.add(self.__MapStage())
+        node_map = p.add(Identity(('params', 'pred_proba', 'y_true')))
         node_reduce = p.add(self.__ReduceStage(metrics, title, file_name))
 
         node_map['params_out'] > node_reduce['params']

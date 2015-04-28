@@ -6,6 +6,7 @@ from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
 from ..transform.split import KFold
+from ..transform.identity import Identity
 
 
 class CrossValidationScore(MetaStage):
@@ -23,30 +24,6 @@ class CrossValidationScore(MetaStage):
     score
 
     """
-
-    class __MapStage(RunnableStage):
-
-        """Translates metastage input keys to input stage required by the
-        stage
-
-        """
-        # Just passes the values on for now. It might need to modify them later
-
-        def __init__(self):
-            self.__input_keys = ['X_train', 'y_train']
-            self.__output_keys = ['{}_out'.format(key) for key
-                                  in self.__input_keys]
-
-        @property
-        def input_keys(self):
-            return self.__input_keys
-
-        @property
-        def output_keys(self):
-            return self.__output_keys
-
-        def run(self, outputs_requested, **kwargs):
-            return {'{}_out'.format(key): kwargs[key] for key in kwargs}
 
     class __ReduceStage(RunnableStage):
 
@@ -98,7 +75,7 @@ class CrossValidationScore(MetaStage):
         p = Pipeline()
         self.__pipeline = p
 
-        node_map = p.add(self.__MapStage())
+        node_map = p.add(Identity(('X_train', 'y_train')))
         node_kfold = p.add(KFold(2, n_folds, **kfold_kwargs))
         node_reduce = p.add(self.__ReduceStage(n_folds))
 

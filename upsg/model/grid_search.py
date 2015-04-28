@@ -7,6 +7,7 @@ from ..pipeline import Pipeline
 from ..utils import dict_to_np_sa, utf_to_ascii
 from .cross_validation import CrossValidationScore
 from ..fetch.np import NumpyRead
+from ..transform.identity import Identity
 
 
 class GridSearch(MetaStage):
@@ -31,37 +32,6 @@ class GridSearch(MetaStage):
     params : the best parameters found
 
     """
-
-    class __MapStage(RunnableStage):
-
-        """Translates metastage input keys to input stage required by the
-        stage
-
-        """
-        # Just passes the values on for now. It might need to modify them later
-
-        def __init__(self, n_children):
-            self.__n_children = n_children
-            self.__input_keys = ['X_train', 'y_train', 'X_test', 'y_test']
-            self.__output_keys = ['{}_out'.format(key) for key
-                                  in self.__input_keys]
-
-        @property
-        def input_keys(self):
-            return self.__input_keys
-
-        @property
-        def output_keys(self):
-            return self.__output_keys
-
-        def run(self, outputs_requested, **kwargs):
-            #            ret_hier = ({out_key : kwargs[in_key] for out_key
-            #                in self.__output_keys_hier[in_key]} for in_key
-            #                in self.__input_keys)
-            #            ret = {}
-            #            map(ret.update, ret_hier)
-            #            return ret
-            return {'{}_out'.format(key): kwargs[key] for key in kwargs}
 
     class __ReduceStage(RunnableStage):
 
@@ -119,7 +89,7 @@ class GridSearch(MetaStage):
         width = len(self.__params_prod)
         p = Pipeline()
         self.__pipeline = p
-        node_map = p.add(self.__MapStage(width))
+        node_map = p.add(Identity(('X_train', 'y_train', 'X_test', 'y_test')))
         node_reduce = p.add(self.__ReduceStage(width))
         node_final = p.add(clf_stage())
 
