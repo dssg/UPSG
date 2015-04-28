@@ -188,6 +188,8 @@ class TestTransform(UPSGTestCase):
                           (np.datetime64('2014-03-11')),
                           (np.datetime64('2015-01-01'))], dtype=[('dt', 'M8[D]')])
         
+        inds = np.array([(i,) for i in xrange(dates.size)], dtype=[('f0', int)])
+
         np_in = p.add(NumpyRead(dates))
 
         q2_node = p.add(Query("dt <= DT('2014-01-01')"))
@@ -199,10 +201,18 @@ class TestTransform(UPSGTestCase):
         np_complement = p.add(NumpyWrite())
         q2_node['complement'] > np_complement['in']
 
+        np_out_inds = p.add(NumpyWrite())
+        q2_node['out_inds'] > np_out_inds['in']
+
+        np_complement_inds = p.add(NumpyWrite())
+        q2_node['complement_inds'] > np_complement_inds['in']
+
         p.run()
 
         self.assertTrue(np.array_equal(np_out.get_stage().result, dates[:2]))
         self.assertTrue(np.array_equal(np_complement.get_stage().result, dates[2:]))
+        self.assertTrue(np.array_equal(np_out_inds.get_stage().result, inds[:2]))
+        self.assertTrue(np.array_equal(np_complement_inds.get_stage().result, inds[2:]))
 
     def test_fill_na(self):
 
