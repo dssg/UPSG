@@ -54,7 +54,7 @@ class TestExport(UPSGTestCase):
         node_select['y'] > node_roc['y_score']
         node_split['test1'] > node_roc['y_true']
 
-        node_roc['fpr'] > node_plot['X']
+        node_roc['fpr'] > node_plot['x']
         node_roc['tpr'] > node_plot['y']
 
         p.run()

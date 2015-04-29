@@ -104,7 +104,7 @@ class Multimetric(MetaStage):
                     out_file,
                     xlabel = metric.graph_x_label,
                     ylabel = metric.graph_y_label))
-                node_metric[metric.output_key_x] > node_plot['X']
+                node_metric[metric.output_key_x] > node_plot['x']
                 node_metric[metric.output_key_y] > node_plot['y']
                 node_plot['plot_file'] > node_reduce[metric_in_key]
             else:
