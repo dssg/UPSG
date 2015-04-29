@@ -228,6 +228,14 @@ class Node(object):
                 (not live_only or self.__connections[key].other is not None)}
 
     @property
+    def output_keys(self):
+        return self.get_outputs(False).keys()
+
+    @property
+    def input_keys(self):
+        return self.get_inputs(False).keys()
+
+    @property
     def uid(self):
         return self.__uid
 
