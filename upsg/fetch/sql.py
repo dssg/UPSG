@@ -5,7 +5,7 @@ from ..uobject import UObject, UObjectPhase
 class SQLRead(RunnableStage):
     """Stage to read in an sql table. Output is offered with the 'out' key"""
 
-    def __init__(self, db_url, table_name, conn_params={})
+    def __init__(self, db_url, table_name, conn_params={}):
         """
 
         Parameters
