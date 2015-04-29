@@ -11,7 +11,7 @@ class Plot(RunnableStage):
 
     Input Keys
     ----------
-    X
+    x
     y
 
     Output Keys
@@ -63,7 +63,7 @@ class Plot(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['X', 'y']
+        return ['x', 'y']
 
     @property
     def output_keys(self):
