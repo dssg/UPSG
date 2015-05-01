@@ -20,6 +20,8 @@ from upsg.transform.label_encode import LabelEncode
 from upsg.transform.lambda_stage import LambdaStage
 from upsg.transform.timify import Timify
 from upsg.transform.identity import Identity
+from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
+from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
 
 from utils import path_of_data, UPSGTestCase, csv_read
@@ -372,19 +374,31 @@ class TestTransform(UPSGTestCase):
 
     def test_identity(self):
         trials = [(('in0', 'in1'), ('out0', 'out1'), 
-                   {'in0': 'out0', 'in1': 'out1'}),
+                   {'in0': 'out0', 'in1': 'out1'},
+                   True),
                   (('in0', 'in1', 'in2'), 
                    ('in0_out', 'in1_out', 'in2_out'), 
-                   ('in0', 'in1', 'in2'))]
+                   ('in0', 'in1', 'in2'),
+                   True),
+                  (('in0', 'in1'), ('out0', 'out1'), 
+                   {'out0': 'in0', 'out1': 'in1'},
+                   False),
+                  (('out0_in', 'out1_in', 'out2_in'),
+                   ('out0', 'out1', 'out2'),
+                   ('out0', 'out1', 'out2'),
+                   False)]
         
-        for input_keys, output_keys, arg in trials:
+        for input_keys, output_keys, arg, specify_input in trials:
 
             in_data_arrays = []
             out_nodes = []
 
             p = Pipeline()
 
-            node_id = p.add(Identity(arg))
+            if specify_input:
+                node_id = p.add(Identity(arg))
+            else:
+                node_id = p.add(Identity(output_keys=arg))
 
             for input_key, output_key, in zip(input_keys, output_keys):
 
@@ -401,7 +415,64 @@ class TestTransform(UPSGTestCase):
             p.run()
 
             for in_data, out_node in zip(in_data_arrays, out_nodes):
-                self.assertTrue(np.array_equal(in_data, out_node.get_stage().result))
+                self.assertTrue(np.array_equal(in_data, 
+                                               out_node.get_stage().result))
+
+    def test_apply_to_selected_cols(self):
+        rows = 100
+        cols = 10
+        random_data = np.random.rand(rows, cols)
+        # enough nans so that there /has/ to be a Nan in 1 of our 3 selected cols
+        nans = 701
+        with_nans = np.copy(random_data)
+        for r, c in zip(np.random.randint(0, rows, nans), 
+                        np.random.randint(0, cols, nans)):
+            with_nans[r,c] = np.NaN
+        trials = ((wrap('sklearn.preprocessing.StandardScaler'), 
+                   (), 
+                   'X_train', 
+                   'X_new',
+                   np_nd_to_sa(random_data)), 
+                  (FillNA, 
+                   (0,), 
+                   'in', 
+                   'out',
+                   np_nd_to_sa(with_nans)))
+        sel_cols = ('f2', 'f3', 'f4')
+        trials = trials[1:]
+
+        for trans_cls, args, in_key, out_key, in_data in trials:
+            p = Pipeline()
+
+            node_in = p.add(NumpyRead(in_data))
+            node_selected = p.add(
+                ApplyToSelectedCols(sel_cols, trans_cls, *args))
+            node_in['out'] > node_selected[in_key]
+
+            node_out = p.add(NumpyWrite())
+            node_selected[out_key] > node_out['in']
+
+            node_ctrl_split = p.add(SplitColumns(sel_cols))
+            node_in['out'] > node_ctrl_split['in']
+
+            node_ctrl_trans = p.add(trans_cls(*args))
+            node_ctrl_split['selected'] > node_ctrl_trans[in_key]
+
+            node_ctrl_out = p.add(NumpyWrite())
+            node_ctrl_trans[out_key] > node_ctrl_out['in']
+
+            p.run()
+
+            result = node_out.get_stage().result
+            ctrl = node_ctrl_out.get_stage().result
+
+            for col in in_data.dtype.names:
+                if col in sel_cols:
+                    self.assertTrue(np.allclose(result[col], ctrl[col]))
+                else:
+                    self.assertTrue(np.allclose(
+                        np.nan_to_num(result[col]), 
+                        np.nan_to_num(in_data[col])))
 
 if __name__ == '__main__':
     unittest.main()
