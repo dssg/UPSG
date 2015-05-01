@@ -601,7 +601,6 @@ class Pipeline(object):
                          name in a.dtype.names]))
             self.__fout.write(header)
             rows = a[:100]
-            import pdb; pdb.set_trace()
             data = '\n'.join(
                 ['<tr>{}</tr>'.format(
                     ''.join(
@@ -784,7 +783,7 @@ class Pipeline(object):
                         k,
                         input_connections[k].other.node,
                         input_connections[k].other.key),
-                    input_connections)}
+                    input_connections) if other_key in state[other]}
             output_args = node.get_stage().run(node.get_outputs().keys(),
                                                **input_args)
             map(lambda k: output_args[k].write_to_read_phase(), output_args)
