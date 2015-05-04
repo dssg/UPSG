@@ -16,7 +16,7 @@ import sqlalchemy.types as sqlt
 
 UPSG_PATH = os.path.dirname(inspect.getfile(upsg))
 REPO_PATH = os.path.join(UPSG_PATH, '..')
-RESOURCES_PATH = os.path.join(REPO_PATH, 'resources')
+RESOURCES_PATH = os.path.join(UPSG_PATH, 'resources')
 
 def get_resource_path(file_name):
     """given the name of a resource, returns the full path"""
