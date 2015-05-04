@@ -14,6 +14,6 @@ setup(
                           'graphviz',
                           'SQLAlchemy',
                           'tables'),
-        include_package_data = True,
+        package_data={'bin': ['*.py'], 'resources': ['*.json']}
         zip_safe=False)
 
