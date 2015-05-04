@@ -9,7 +9,7 @@ from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
 from ..utils import dict_to_np_sa, get_resource_path, utf_to_ascii
 from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
-from ..transform.split import SplitColumn
+from ..transform.split import SplitY
 from ..transform.identity import Identity
 from ..export.plot import Plot
 from .grid_search import GridSearch
@@ -174,7 +174,7 @@ class Multiclassify(MetaStage):
             node_map['X_test_out'] > node_grid_search['X_test']
             node_map['y_test_out'] > node_grid_search['y_test']
 
-            node_proba_cat_1 = p.add(SplitColumn(-1))
+            node_proba_cat_1 = p.add(SplitY(-1))
             node_grid_search['pred_proba'] > node_proba_cat_1['in']
 
             node_metric = p.add(Multimetric(metrics, str(clf)))

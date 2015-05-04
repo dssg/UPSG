@@ -57,7 +57,7 @@ class SplitColumns(RunnableStage):
         return to_return
 
 
-class SplitColumn(RunnableStage):
+class SplitY(RunnableStage):
 
     """Splits a table 'in' into two tables 'X' and 'y' where y is one column of
     A and X is everything else. """

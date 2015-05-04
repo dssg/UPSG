@@ -30,7 +30,7 @@ from upsg.fetch.csv import CSVRead
 from upsg.fetch.np import NumpyRead
 from upsg.export.csv import CSVWrite
 from upsg.export.plot import Plot
-from upsg.transform.split import SplitColumn, SplitTrainTest
+from upsg.transform.split import SplitY, SplitTrainTest
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, get_resource_path
 from upsg.utils import import_object_by_name
 
@@ -267,7 +267,7 @@ class TestWrap(UPSGTestCase):
         ctrl_clf = SVC(random_state=0, probability=True)
         ctrl_clf.fit(ctrl_X_train, ctrl_y_train)
 
-        node_proba_1 = p.add(SplitColumn(1))
+        node_proba_1 = p.add(SplitY(1))
         node_clf['pred_proba'] > node_proba_1['in']
 
         ctrl_y_score = ctrl_clf.predict_proba(ctrl_X_test)[:, 1]
@@ -326,7 +326,7 @@ class TestWrap(UPSGTestCase):
         node_split = p.add(SplitTrainTest(2, random_state=0))
         node_clf = p.add(wrap_and_make_instance(SVC,
                                        random_state=0))
-        node_select = p.add(SplitColumn(1))
+        node_select = p.add(SplitY(1))
         node_roc = p.add(wrap_and_make_instance(roc_curve))
         node_fpr_out = p.add(CSVWrite(self._tmp_files.get('out_fpr.csv')))
         node_tpr_out = p.add(CSVWrite(self._tmp_files.get('out_tpr.csv')))

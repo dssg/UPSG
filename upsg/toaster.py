@@ -4,7 +4,7 @@ from .uobject import UObjectException
 from .stage import RunnableStage, MetaStage
 from .pipeline import Pipeline
 from .transform.identity import Identity
-from .transform.split import SplitColumns, SplitColumn, Query
+from .transform.split import SplitColumns, SplitY, Query
 from .transform.timify import Timify
 from .fetch.csv import CSVRead
 from .fetch.sql import SQLRead
@@ -151,10 +151,10 @@ class DataToaster(MetaStage):
         node_split_rows = self.__pipeline.add(stage)
         self.__latest_out_conn().conn > node_split_rows[node_split_rows.input_keys[0]]
 
-        node_split_train = self.__pipeline.add(SplitColumn(y_col))
+        node_split_train = self.__pipeline.add(SplitY(y_col))
         node_split_rows[train_out_key] > node_split_train['in']
 
-        node_split_test = self.__pipeline.add(SplitColumn(y_col))
+        node_split_test = self.__pipeline.add(SplitY(y_col))
         node_split_rows[test_out_key] > node_split_test['in']
 
         node_id = self.__node_id()
