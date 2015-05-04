@@ -12,8 +12,8 @@ from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
 class SplitColumns(RunnableStage):
-    """Splits a table 'in' into two tables 'selected' and 'rest' where 
-    'selected' consists of the given columns and 'rest' consists of the rest
+    """Splits a table 'in' into two tables 'out' and 'complement' where 
+    'out' consists of the given columns and 'complement' consists of the complement
     of the columns"""
 
     def __init__(self, columns):
@@ -22,7 +22,7 @@ class SplitColumns(RunnableStage):
         parameters
         ----------
         columns: list of str
-            Colums that will appear in the 'selected' table but not the 'rest'
+            Colums that will appear in the 'out' table but not the 'complement'
             table
         """
         self.__columns = columns
@@ -33,7 +33,7 @@ class SplitColumns(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['selected', 'rest']
+        return ['out', 'complement']
 
     def run(self, outputs_requested, **kwargs):
         # TODO different implementation if internally sql?
@@ -42,17 +42,17 @@ class SplitColumns(RunnableStage):
         to_return = {}
         in_array = kwargs['in'].to_np()
 
-        if 'selected' in outputs_requested:
-            uo_selected = UObject(UObjectPhase.Write)
-            uo_selected.from_np(in_array[columns])
-            to_return['selected'] = uo_selected
+        if 'out' in outputs_requested:
+            uo_out = UObject(UObjectPhase.Write)
+            uo_out.from_np(in_array[columns])
+            to_return['out'] = uo_out
 
-        if 'rest' in outputs_requested:
-            uo_rest = UObject(UObjectPhase.Write)
+        if 'complement' in outputs_requested:
+            uo_complement = UObject(UObjectPhase.Write)
             # http://stackoverflow.com/questions/3462143/get-difference-between-two-lists
             remaining_columns = list(set(in_array.dtype.names) - set(columns))
-            uo_rest.from_np(in_array[remaining_columns])
-            to_return['rest'] = uo_rest
+            uo_complement.from_np(in_array[remaining_columns])
+            to_return['complement'] = uo_complement
 
         return to_return
 

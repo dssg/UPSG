@@ -101,8 +101,8 @@ class TestTransform(UPSGTestCase):
         csv_out_rest = p.add(CSVWrite(self._tmp_files('out_rest.csv')))
 
         csv_in['out'] > split['in']
-        split['selected'] > csv_out_sel['in']
-        split['rest'] > csv_out_rest['in']
+        split['out'] > csv_out_sel['in']
+        split['complement'] > csv_out_rest['in']
 
         p.run()
         
@@ -456,7 +456,7 @@ class TestTransform(UPSGTestCase):
             node_in['out'] > node_ctrl_split['in']
 
             node_ctrl_trans = p.add(trans_cls(*args))
-            node_ctrl_split['selected'] > node_ctrl_trans[in_key]
+            node_ctrl_split['out'] > node_ctrl_trans[in_key]
 
             node_ctrl_out = p.add(NumpyWrite())
             node_ctrl_trans[out_key] > node_ctrl_out['in']
