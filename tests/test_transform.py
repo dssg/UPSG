@@ -4,6 +4,7 @@ from os import system
 import unittest
 
 from numpy.lib.recfunctions import append_fields
+from numpy.lib.recfunctions import merge_arrays
 
 from sklearn.cross_validation import KFold as SKKFold
 
@@ -86,8 +87,22 @@ class TestTransform(UPSGTestCase):
 
         p.run()
 
-        result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('test_transform_test_sql_ctrl.csv'))
+        result = self._tmp_files.csv_read('out.csv')
+        # Because Numpy insists on printing times with local offsets, but
+        # not every computer has the same offset, we have to force it back
+        # into UTC
+        for i, dt in enumerate(result['time']):
+            # .item() makes a datetime, which we can format correctly later
+            # http://stackoverflow.com/questions/25134639/how-to-force-python-print-numpy-datetime64-with-specified-timezone
+            result['time'][i] = np.datetime64(dt).item().strftime(
+                    '%Y-%m-%dT%H:%M:%S')
+        # Then we have to make the string field smaller
+        new_cols = []
+        for col in result.dtype.names:
+            new_cols.append(result[col].astype(ctrl.dtype[col]))
+        result = merge_arrays(new_cols, flatten=True) 
+        result.dtype.names = ctrl.dtype.names
 
         self.assertTrue(np.array_equal(result, ctrl))
 
