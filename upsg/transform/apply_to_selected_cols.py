@@ -58,7 +58,7 @@ class ApplyToSelectedCols(MetaStage):
         for in_key in ('in', 'X_train'):
             if in_key in trans_node_in_keys:
                 in_node[correspondence[in_key]] > split_node['in']
-                split_node['selected'] > trans_node[in_key]
+                split_node['out'] > trans_node[in_key]
                 trans_node_in_keys.remove(in_key)
                 break
         for in_key in trans_node_in_keys:
@@ -70,7 +70,7 @@ class ApplyToSelectedCols(MetaStage):
         for out_key in ('out', 'X_new'):
             if out_key in trans_node_out_keys:
                 trans_node[out_key] > merge_node['in0']
-                split_node['rest'] > merge_node['in1']
+                split_node['complement'] > merge_node['in1']
                 merge_node['out'] > out_node[correspondence[out_key]]
                 trans_node_out_keys.remove(out_key)
         for out_key in trans_node_out_keys:
