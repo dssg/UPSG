@@ -14,6 +14,6 @@ setup(
                           'graphviz',
                           'SQLAlchemy',
                           'tables'),
-        package_data={'bin': ['*.py'], 'resources': ['*.json']},
+        package_data={'upsg': ['bin/*.py', 'resources/*.json']},
         zip_safe=False)
 
