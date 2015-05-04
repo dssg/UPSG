@@ -15,7 +15,6 @@ from upsg.utils import np_sa_to_nd
 TESTS_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 DATA_PATH = os.path.join(TESTS_PATH, 'data')
 UPSG_PATH = os.path.dirname(upsg.__file__)
-print UPSG_PATH
 TEMP_PATH = os.path.join(TESTS_PATH, 'tmp')
 BIN_PATH = os.path.join(UPSG_PATH, 'bin')
 
