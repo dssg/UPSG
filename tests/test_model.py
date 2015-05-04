@@ -14,7 +14,7 @@ from sklearn.cross_validation import KFold as SKKFold
 from upsg.fetch.np import NumpyRead
 from upsg.wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from upsg.export.csv import CSVWrite
-from upsg.transform.split import SplitTrainTest, SplitColumn
+from upsg.transform.split import SplitTrainTest, SplitY
 from upsg.pipeline import Pipeline
 from upsg.model.grid_search import GridSearch
 from upsg.model.cross_validation import CrossValidationScore
@@ -160,7 +160,7 @@ class TestModel(UPSGTestCase):
         split_train_test['train1'] > clf['y_train']
         split_train_test['test1'] > clf['y_test']
 
-        node_proba_cat_1 = p.add(SplitColumn(-1))
+        node_proba_cat_1 = p.add(SplitY(-1))
         clf['pred_proba'] > node_proba_cat_1['in']
 
         multi = p.add(Multimetric(

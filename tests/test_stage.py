@@ -39,7 +39,7 @@ class TestStage(UPSGTestCase):
         self.__pickle('upsg.fetch.csv.CSVRead', path_of_data('mixed_csv.csv'))
         self.__pickle('upsg.fetch.np.NumpyRead', np.array([[0]]))
         self.__pickle('upsg.transform.split.SplitTrainTest')
-        self.__pickle('upsg.transform.split.SplitColumn', 0)
+        self.__pickle('upsg.transform.split.SplitY', 0)
         self.__pickle('upsg.transform.rename_cols.RenameCols',
                       {'name': 'rename'})
         self.__pickle(wrap('sklearn.preprocessing.Imputer'), strategy='mean',

@@ -13,7 +13,7 @@ from upsg.pipeline import Pipeline
 from upsg.fetch.np import NumpyRead
 from upsg.export.plot import Plot
 from upsg.export.np import NumpyWrite
-from upsg.transform.split import SplitColumn, SplitTrainTest
+from upsg.transform.split import SplitY, SplitTrainTest
 from upsg.utils import np_nd_to_sa, np_sa_to_nd
 
 from utils import path_of_data, UPSGTestCase
@@ -38,7 +38,7 @@ class TestExport(UPSGTestCase):
         node_split = p.add(SplitTrainTest(2, random_state=0))
         node_clf = p.add(wrap_and_make_instance(SVC,
                                        random_state=0))
-        node_select = p.add(SplitColumn(1))
+        node_select = p.add(SplitY(1))
         node_roc = p.add(wrap_and_make_instance(roc_curve))
         node_plot = p.add(Plot(self._tmp_files('result.png'), 'co-',
                                title='ROC Curve', xlabel='FPR', ylabel='TPR'))
