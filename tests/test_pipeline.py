@@ -171,7 +171,8 @@ class TestPipeline(UPSGTestCase):
         in_nodes[1]['fx'] > in_nodes[3]['x']
         in_nodes[2]['fx'] > in_nodes[3]['y']
 
-        in_node_proxy = p_outer._Pipeline__integrate(p_inner, in_nodes[0],
+        in_node_proxy = p_outer._Pipeline__integrate(None, p_inner, 
+                                                     in_nodes[0],
                                                      in_nodes[3])
 
         out_nodes[0]['fx'] > in_node_proxy['x']

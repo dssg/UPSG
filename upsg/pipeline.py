@@ -343,17 +343,22 @@ class Pipeline(object):
             self.__nodes.append(node)
             return node
         if isinstance(stage, MetaStage):
-            metanode = self.__integrate(stage)
+            metanode = self.__integrate(stage, *stage.pipeline)
             return metanode
         raise TypeError('Not a valid RunnableStage or MetaStage')
 
-    def __integrate(self):
+    def __integrate(self, stage, other, in_node, out_node):
         """Integrates another pipeline into this one and creates a virtual
         uid to access the sub-pipeline.
 
         Parameters
         ----------
+        stage : MetaStage 
         other : Pipeline
+        in_node : Node
+            node responsible for delivering input to the Pipeline
+        out_node : Node
+            node responsible for collection output from the pipline
 
         Returns
         -------
@@ -361,7 +366,6 @@ class Pipeline(object):
             the sub-pipeline were a single node.
 
         """
-        other, in_node, out_node = stage.pipeline
         self.__nodes += other.__nodes
         connections = {}
         connections.update(in_node.get_inputs(False))
