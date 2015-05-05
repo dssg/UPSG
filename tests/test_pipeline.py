@@ -53,8 +53,23 @@ class OneCellLambdaStage(RunnableStage):
             for i, key in enumerate(self.__output_keys)]
         return ret
 
+class MockupStage(RunnableStage):
+    def __init__(self, in_keys, out_keys):
+        self.__in_keys = in_keys
+        self.__out_keys = out_keys
 
-class TestPipleline(UPSGTestCase):
+    @property
+    def input_keys(self):
+        return self.__in_keys
+
+    @property
+    def output_keys(self):
+        return self.__out_keys
+
+    def run(self, outputs_requested, **kwargs):
+        return {}
+
+class TestPipeline(UPSGTestCase):
 
     def test_rw(self):
         infile_name = path_of_data('mixed_csv.csv')
@@ -156,7 +171,8 @@ class TestPipleline(UPSGTestCase):
         in_nodes[1]['fx'] > in_nodes[3]['x']
         in_nodes[2]['fx'] > in_nodes[3]['y']
 
-        in_node_proxy = p_outer._Pipeline__integrate(p_inner, in_nodes[0],
+        in_node_proxy = p_outer._Pipeline__integrate(None, p_inner, 
+                                                     in_nodes[0],
                                                      in_nodes[3])
 
         out_nodes[0]['fx'] > in_node_proxy['x']
@@ -170,5 +186,53 @@ class TestPipleline(UPSGTestCase):
 
         self.assertEqual(sio.getvalue(), control)
 
+    def test_syntax_iss48(self):
+        # https://github.com/dssg/UPSG/issues/48
+        stage_in = MockupStage((), ('out',))
+        stage_trans = MockupStage(('in',), ('out',))
+        stage_filter = MockupStage(('in',), ('out', 'complement'))
+        stage_split_y = MockupStage(('in',), ('X', 'y'))
+        stage_clf = MockupStage(('X_train', 'X_test', 'y_train'), ('y_pred', 'params'))
+        stage_out = MockupStage(('result', 'params'), ())
+
+        p_ctrl = Pipeline()
+        p_ctrl_in = p_ctrl.add(stage_in, 'in')
+        p_ctrl_trans = p_ctrl.add(stage_trans, 'trans')
+        p_ctrl_filter = p_ctrl.add(stage_filter, 'filter')
+        p_ctrl_split_y_test = p_ctrl.add(stage_split_y, 'split_y_test')
+        p_ctrl_split_y_train = p_ctrl.add(stage_split_y, 'split_y_train')
+        p_ctrl_clf = p_ctrl.add(stage_clf, 'clf')
+        p_ctrl_out = p_ctrl.add(stage_out, 'out')
+
+        p_ctrl_in['out'] > p_ctrl_trans['in']
+        p_ctrl_trans['out'] > p_ctrl_filter['in']
+        p_ctrl_filter['out'] > p_ctrl_split_y_train['in']
+        p_ctrl_filter['complement'] > p_ctrl_split_y_test['in']
+        p_ctrl_split_y_train['X'] > p_ctrl_clf['X_train']
+        p_ctrl_split_y_train['y'] > p_ctrl_clf['y_train']
+        p_ctrl_split_y_test['X'] > p_ctrl_clf['X_test']
+        p_ctrl_clf['y_pred'] > p_ctrl_out['result']
+        p_ctrl_clf['params'] > p_ctrl_out['params']
+
+        p_result = Pipeline()
+        p_result_in = p_result.add(stage_in, 'in')
+        p_result_trans = p_result.add(stage_trans, 'trans')
+        p_result_filter = p_result.add(stage_filter, 'filter')
+        p_result_split_y_test = p_result.add(stage_split_y, 'split_y_test')
+        p_result_split_y_train = p_result.add(stage_split_y, 'split_y_train')
+        p_result_clf = p_result.add(stage_clf, 'clf')
+        p_result_out = p_result.add(stage_out, 'out')
+
+        p_result_in > p_result_trans 
+        p_result_filter(p_result_trans)
+        p_result_split_y_train(p_result_filter)
+        p_result_split_y_test(p_result_filter['complement'])
+        p_result_clf(
+                X_train=p_result_split_y_train['X'], 
+                y_train=p_result_split_y_train['y'],
+                X_test=p_result_split_y_test['X'])
+        p_result_out(p_result_clf['y_pred'], p_result_clf['params'])
+
+        self.assertTrue(p_ctrl.is_equal_by_str(p_result))
 if __name__ == '__main__':
     unittest.main()

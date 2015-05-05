@@ -96,14 +96,22 @@ class Connection(object):
         self.__edge = None
 
     def connect_to(self, other):
-        """Create an edge between self.node and other.node using a link
-        between the Connections self and other
+        """
+        
+        If other is a Connection, create an edge between self.node and 
+        other.node using a link between the Connections self and other.
+
+        If other is a Node, create an edge between self and other[key],
+        where key is the first input key of other.
 
         Parameters
         ----------
-        other : Connection
+        other : Connection or Node
 
         """
+        if isinstance(other, Node):
+            other = other[other.input_keys[0]]
+
         if not self.outgoing:
             raise PipelineException("Can't connect from an incoming "
                                     "edge")
@@ -182,6 +190,42 @@ class Node(object):
         """Gets the COnnections specified by key"""
         return self.__connections[key]
 
+    def __call__(self, *args, **kwargs):
+        """Alternative syntax for connecting Stages together
+
+        Parameters
+        ----------
+        args : list of (Node or Connection)
+            The nth output_key of self.output_keys will be connected to the
+            nth node or connection. For example, if self.output_keys == 
+            ['out', 'complement', 'status'], and we invoke 
+            self(clf_node['X_train'], clf_node['X_test'], status_node),
+            it is equivalent to doing:
+
+            self['out'] > clf_node['X_train'] 
+            self['complement'] > clf_node['X_test']
+            self['status'] > status_node
+
+        kwargs : dict of str: (Node or Connection)
+            The output key corresponding to the given keyword will be 
+            connected to the argument assigned to that output key. For
+            example, if we invoke self(complement=clf_node['X_test'], 
+            status=status_node, out=clf_node['X_train']) it is equivalent to
+            doing:
+
+            self['complement'] > clf_node['X_test']
+            self['status'] > status_node
+            self['out'] > clf_node['X_train'] 
+
+        """
+        input_keys = self.input_keys
+        output_keys = self.output_keys
+        for i, arg in enumerate(args):
+            arg > self[input_keys[i]]
+        for key in kwargs:
+             kwargs[key] > self[key]
+        return self
+
     def __repr__(self):
         return 'Node({})'.format(self.__stage)
 
@@ -229,15 +273,30 @@ class Node(object):
 
     @property
     def output_keys(self):
-        return self.get_outputs(False).keys()
+        return self.get_stage().output_keys
 
     @property
     def input_keys(self):
-        return self.get_inputs(False).keys()
+        return self.get_stage().input_keys
 
     @property
     def uid(self):
         return self.__uid
+
+    def connect_to(self, other):
+        """Invokes the connect_to method for the first outgoing connection
+        of this node
+
+        Parameters
+        ----------
+        other : Connection or node
+
+        """
+        self[self.output_keys[0]].connect_to(other)
+
+    def __gt__(self, other):
+        """Synonym for self.connect_to(other)"""
+        self.connect_to(other)
 
 class Pipeline(object):
 
@@ -251,6 +310,17 @@ class Pipeline(object):
     def __init__(self):
         self.__nodes = []
 
+    def __struct_str_rep(self, pipeline):
+        return {str(node) : {key: (str(conn.other.node), conn.other.key) for
+                             key, conn in node.get_outputs().items()}
+                for node in pipeline.__nodes}
+
+    def is_equal_by_str(self, other):
+        """Returns whether or not self has the same nodes and edges as 
+        Pipeline other. Node equality is determined by whether nodes have the
+        same str representation, so it's really only useful in contrived 
+        circumstances like our unit tests"""
+        return self.__struct_str_rep(self) == self.__struct_str_rep(other)
     def add(self, stage, label=None):
         """Add a stage to the pipeline
 
@@ -273,17 +343,22 @@ class Pipeline(object):
             self.__nodes.append(node)
             return node
         if isinstance(stage, MetaStage):
-            metanode = self.__integrate(*stage.pipeline)
+            metanode = self.__integrate(stage, *stage.pipeline)
             return metanode
         raise TypeError('Not a valid RunnableStage or MetaStage')
 
-    def __integrate(self, other, in_node, out_node):
+    def __integrate(self, stage, other, in_node, out_node):
         """Integrates another pipeline into this one and creates a virtual
         uid to access the sub-pipeline.
 
         Parameters
         ----------
+        stage : MetaStage 
         other : Pipeline
+        in_node : Node
+            node responsible for delivering input to the Pipeline
+        out_node : Node
+            node responsible for collection output from the pipline
 
         Returns
         -------
@@ -295,7 +370,7 @@ class Pipeline(object):
         connections = {}
         connections.update(in_node.get_inputs(False))
         connections.update(out_node.get_outputs(False))
-        return Node(None, connections=connections)
+        return Node(stage, connections=connections)
 
     def visualize(self, filename=None, html_map=False):
         """Creates a pdf to vizualize the pipeline.
