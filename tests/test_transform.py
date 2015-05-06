@@ -22,6 +22,7 @@ from upsg.transform.lambda_stage import LambdaStage
 from upsg.transform.timify import Timify
 from upsg.transform.identity import Identity
 from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
+from upsg.transform.merge import Merge
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
 
@@ -488,6 +489,29 @@ class TestTransform(UPSGTestCase):
                     self.assertTrue(np.allclose(
                         np.nan_to_num(result[col]), 
                         np.nan_to_num(in_data[col])))
+
+    def test_merge(self):
+        a1 = np.array([(0, 'Lisa', 2),
+                       (1, 'Bill', 1),
+                       (2, 'Fred', 2),
+                       (3, 'Samantha', 2),
+                       (4, 'Augustine', 1),
+                       (5, 'William', 0)], dtype=[('id', int),
+                                                  ('name', 'S64'),
+                                                  ('dept_id', int)])
+        a2 = np.array([(0, 'accts receivable'),
+                       (1, 'accts payable'),
+                       (2, 'shipping')], dtype=[('id', int),
+                                                ('name', 'S64')])
+        kwargs = {'r1postfix': '_emp', 'r2postfix': '_dept'}
+
+        p = Pipeline()
+        a1_in = p.add(NumpyRead(a1))
+        a2_in = p.add(NumpyRead(a2))
+        merge = p.add(Merge('dept_id', 'id', **kwargs))
+        out = p.add(NumpyWrite())
+
+        out(merge(a1_in, a2_in))
 
 if __name__ == '__main__':
     unittest.main()
