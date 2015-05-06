@@ -4,6 +4,8 @@ from ..stage import RunnableStage
 from numpy.lib.recfunctions import join_by
 
 class Merge(RunnableStage):
+    # TODO we need to support the case where the left table and the right table call the key
+    # different things
     """Does an operation analogous to SQL JOIN (or pandas DataFrame.merge)
 
     Input Keys
