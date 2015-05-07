@@ -513,5 +513,11 @@ class TestTransform(UPSGTestCase):
 
         out(merge(a1_in, a2_in))
 
+        p.run()
+
+        r =  out.get_stage().result
+        print r
+        print r.dtype
+
 if __name__ == '__main__':
     unittest.main()
