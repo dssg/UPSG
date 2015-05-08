@@ -26,9 +26,9 @@ from upsg.transform.identity import Identity
 from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
 from upsg.transform.merge import Merge
 from upsg.wrap.wrap_sklearn import wrap
-from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
+from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
-from utils import path_of_data, UPSGTestCase, csv_read, obj_to_str
+from utils import path_of_data, UPSGTestCase, csv_read
 
 
 class TestTransform(UPSGTestCase):
@@ -522,10 +522,9 @@ class TestTransform(UPSGTestCase):
                 pd.DataFrame(a1).merge(
                     pd.DataFrame(a2),
                     left_on='dept_id',
-                    right_on='id').to_records())
+                    right_on='id').to_records(index=False))
 
-        print result
-        print ctrl
+        assert(np.array_equal(result, ctrl))
 
 if __name__ == '__main__':
     unittest.main()
