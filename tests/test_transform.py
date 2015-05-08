@@ -6,6 +6,8 @@ import unittest
 from numpy.lib.recfunctions import append_fields
 from numpy.lib.recfunctions import merge_arrays
 
+import pandas as pd
+
 from sklearn.cross_validation import KFold as SKKFold
 
 from upsg.pipeline import Pipeline
@@ -26,7 +28,7 @@ from upsg.transform.merge import Merge
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
 
-from utils import path_of_data, UPSGTestCase, csv_read
+from utils import path_of_data, UPSGTestCase, csv_read, obj_to_str
 
 
 class TestTransform(UPSGTestCase):
@@ -515,9 +517,15 @@ class TestTransform(UPSGTestCase):
 
         p.run()
 
-        r =  out.get_stage().result
-        print r
-        print r.dtype
+        result =  out.get_stage().result
+        ctrl = obj_to_str(
+                pd.DataFrame(a1).merge(
+                    pd.DataFrame(a2),
+                    left_on='dept_id',
+                    right_on='id').to_records())
+
+        print result
+        print ctrl
 
 if __name__ == '__main__':
     unittest.main()
