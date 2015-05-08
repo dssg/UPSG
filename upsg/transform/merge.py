@@ -1,7 +1,6 @@
 from ..uobject import UObject, UObjectPhase
 from ..stage import RunnableStage
 
-from numpy.lib.recfunctions import join_by, rename_fields
 
 class Merge(RunnableStage):
     # TODO we need to support the case where the left table and the right table call the key
@@ -23,23 +22,15 @@ class Merge(RunnableStage):
         column on which to join the left table
     right_on : str
         column on which to join the right table
-    joined_col : str or None
-        The name to give the the column on which the tables were joined. If 
-        None or not provided, defaults to left_on
     kwargs
         kwargs corresponding to the optional arguments of 
-        numpy.lib.recfunctions.join_by
-        (http://pyopengl.sourceforge.net/pydoc/numpy.lib.recfunctions.html#-join_by)
+        pandas.DataFrame.merge other than left_on and right_on
 
     """
 
-    def __init__(self, left_on, right_on, joined_col=None, **kwargs):
+    def __init__(self, left_on, right_on, **kwargs):
         self.__left_on = left_on
         self.__right_on = right_on
-        if joined_col:
-            self.__joined_col = joined_col
-        else:
-            self.__joined_col = left_on
         self.__kwargs = kwargs
 
     @property
@@ -51,11 +42,12 @@ class Merge(RunnableStage):
         return ['out']
 
     def run(self, outputs_requested, **kwargs):
-        in_left = kwargs['in_left'].to_np()
-        in_right = kwargs['in_right'].to_np()
+        in_left = kwargs['in_left'].to_dataframe()
+        in_right = kwargs['in_right'].to_dataframe()
         out = UObject(UObjectPhase.Write)
-        joined_col = self.__joined_col
-        in_left = rename_fields(in_left, {self.__left_on: joined_col})
-        in_right = rename_fields(in_right, {self.__right_on: joined_col})
-        out.from_np(join_by(joined_col, in_left, in_right, **self.__kwargs))
+        out.from_dataframe(in_left.merge(
+            in_right, 
+            left_on=self.__left_on, 
+            right_on=self.__right_on,
+            **self.__kwargs))
         return {'out': out}

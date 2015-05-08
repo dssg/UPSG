@@ -8,6 +8,7 @@ import cgi
 import importlib
 from datetime import datetime
 import numpy as np
+from numpy.lib.recfunctions import merge_arrays
 from sqlalchemy.schema import Table, Column
 from sqlalchemy import MetaData
 from sqlalchemy.sql import func
@@ -326,4 +327,19 @@ def import_object_by_name(target):
     module_name = '.'.join(split[:-1])
     skl_module = importlib.import_module(module_name)
     return skl_module.__dict__[object_name]
+
+def obj_to_str(sa):
+    cols = []
+    for col_name, sub_dtype in sa.dtype.descr:
+        col = sa[col_name]
+        if 'O' in sub_dtype:
+            # TODO our assumption that these are strings is not really 
+            # justified
+            field_len = len(max(col, key=len))
+            nsub_dtype = 'S{}'.format(field_len)
+            cols.append(col.astype(nsub_dtype))
+            continue
+        cols.append(col)
+    return merge_arrays(cols)
+
 

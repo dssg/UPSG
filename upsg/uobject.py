@@ -4,7 +4,7 @@ from collections import namedtuple
 import numpy as np
 import sqlalchemy
 from utils import np_nd_to_sa, is_sa, np_type, np_sa_to_dict, dict_to_np_sa
-from utils import sql_to_np, np_to_sql, random_table_name
+from utils import sql_to_np, np_to_sql, random_table_name, obj_to_str
 
 SQLTableInfo_ = namedtuple(
     'SQLTableInfo', [
@@ -270,6 +270,10 @@ class UObject(object):
 
         return self.__to(lambda: self.__convert_to('np'))
 
+    def to_dataframe(self):
+        from pandas import DataFrame
+        return DataFrame(self.to_np())
+
     def to_csv(self, file_name, **kwargs):
         """Makes the universal object available in a csv.
 
@@ -444,6 +448,9 @@ class UObject(object):
             return 'np'
 
         self.__from(converter)
+
+    def from_dataframe(self, df):
+        self.from_np(obj_to_str(df.to_records(index=False)))
 
     def from_sql(self, db_url, conn_params, table_name,
                  pipeline_generated_object):

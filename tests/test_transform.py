@@ -503,7 +503,7 @@ class TestTransform(UPSGTestCase):
                        (1, 'accts payable'),
                        (2, 'shipping')], dtype=[('id', int),
                                                 ('name', 'S64')])
-        kwargs = {'r1postfix': '_emp', 'r2postfix': '_dept'}
+        kwargs = {}
 
         p = Pipeline()
         a1_in = p.add(NumpyRead(a1))
