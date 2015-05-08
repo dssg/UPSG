@@ -330,6 +330,7 @@ def import_object_by_name(target):
 
 def obj_to_str(sa):
     cols = []
+    ndtype = []
     for col_name, sub_dtype in sa.dtype.descr:
         col = sa[col_name]
         if 'O' in sub_dtype:
@@ -338,8 +339,10 @@ def obj_to_str(sa):
             field_len = len(max(col, key=len))
             nsub_dtype = 'S{}'.format(field_len)
             cols.append(col.astype(nsub_dtype))
+            ndtype.append((col_name, nsub_dtype))
             continue
         cols.append(col)
-    return merge_arrays(cols)
+        ndtype.append((col_name, sub_dtype))
+    return merge_arrays(cols).view(dtype=ndtype)
 
 
