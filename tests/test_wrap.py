@@ -105,7 +105,7 @@ class TestWrap(UPSGTestCase):
             y_in_stage['out'] > sk_stage['y_train']
 
         csv_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
-        sk_stage[upsg_out_key] > csv_out['in']
+        sk_stage[upsg_out_key] > csv_out['input']
 
         p.run()
 
@@ -222,7 +222,7 @@ class TestWrap(UPSGTestCase):
 
         node_clf1['params_out'] > node_clf2['params_in']
 
-        node_clf1['params_out'] > node_params_out_1['in']
+        node_clf1['params_out'] > node_params_out_1['input']
         node_clf2['params_out'] > node_params_out_2['input']
 
         node_clf1['y_pred'] > node_pred_out_1['input']

@@ -101,7 +101,7 @@ class TestPipeline(UPSGTestCase):
         impute_node = p.add(wrap_and_make_instance(Imputer))
 
         csv_read_node['out'] > impute_node['X_train']
-        impute_node['X_new'] > csv_write_node['in']
+        impute_node['X_new'] > csv_write_node['input']
 
         p.run()
 
@@ -189,7 +189,7 @@ class TestPipeline(UPSGTestCase):
     def test_syntax_iss48(self):
         # https://github.com/dssg/UPSG/issues/48
         stage_in = MockupStage((), ('out',))
-        stage_trans = MockupStage(('in',), ('out',))
+        stage_trans = MockupStage(('input',), ('out',))
         stage_filter = MockupStage(('input',), ('out', 'complement'))
         stage_split_y = MockupStage(('input',), ('X', 'y'))
         stage_clf = MockupStage(('X_train', 'X_test', 'y_train'), ('y_pred', 'params'))

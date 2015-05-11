@@ -152,7 +152,7 @@ class TestModel(UPSGTestCase):
 
         split_train_test = p.add(SplitTrainTest(2))
         np_in_X['out'] > split_train_test['input0']
-        np_in_y['out'] > split_trainput_test['input1']
+        np_in_y['out'] > split_train_test['input1']
 
         clf = p.add(wrap_and_make_instance(SVC, kernel='linear')) 
         split_train_test['train0'] > clf['X_train']

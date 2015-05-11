@@ -32,7 +32,7 @@ class ApplyToSelectedCols(MetaStage):
     class __Merge(RunnableStage):
         @property
         def input_keys(self): 
-            return ['in0', 'input1']
+            return ['input0', 'input1']
 
         @property
         def output_keys(self):
@@ -69,7 +69,7 @@ class ApplyToSelectedCols(MetaStage):
         correspondence = out_node.get_stage().get_correspondence(False)
         for out_key in ('out', 'X_new'):
             if out_key in trans_node_out_keys:
-                trans_node[out_key] > merge_node['in0']
+                trans_node[out_key] > merge_node['input0']
                 split_node['complement'] > merge_node['input1']
                 merge_node['out'] > out_node[correspondence[out_key]]
                 trans_node_out_keys.remove(out_key)
