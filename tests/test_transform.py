@@ -43,7 +43,7 @@ class TestTransform(UPSGTestCase):
         trans_node = p.add(RenameCols(rename_dict))
         csv_write_node = p.add(CSVWrite(self._tmp_files('out.csv')))
 
-        csv_read_node['out'] > trans_node['input']
+        csv_read_node['output'] > trans_node['input']
         trans_node['output'] > csv_write_node['input']
 
         p.run()
@@ -223,7 +223,7 @@ class TestTransform(UPSGTestCase):
         q2_node['complement'] > np_complement['input']
 
         np_out_inds = p.add(NumpyWrite())
-        q2_node['out_inds'] > np_out_inds['input']
+        q2_node['output_inds'] > np_out_inds['input']
 
         np_complement_inds = p.add(NumpyWrite())
         q2_node['complement_inds'] > np_complement_inds['input']

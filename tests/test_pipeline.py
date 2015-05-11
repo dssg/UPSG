@@ -202,7 +202,7 @@ class TestPipeline(UPSGTestCase):
         p_ctrl_split_y_test = p_ctrl.add(stage_split_y, 'split_y_test')
         p_ctrl_split_y_train = p_ctrl.add(stage_split_y, 'split_y_train')
         p_ctrl_clf = p_ctrl.add(stage_clf, 'clf')
-        p_ctrl_out = p_ctrl.add(stage_out, 'output')
+        p_ctrl_out = p_ctrl.add(stage_out, 'out')
 
         p_ctrl_in['output'] > p_ctrl_trans['input']
         p_ctrl_trans['output'] > p_ctrl_filter['input']
