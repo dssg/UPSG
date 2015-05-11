@@ -198,7 +198,7 @@ class Node(object):
         args : list of (Node or Connection)
             The nth output_key of self.output_keys will be connected to the
             nth node or connection. For example, if self.output_keys == 
-            ['out', 'complement', 'status'], and we invoke 
+            ['output', 'complement', 'status'], and we invoke 
             self(clf_node['X_train'], clf_node['X_test'], status_node),
             it is equivalent to doing:
 

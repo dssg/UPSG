@@ -6,9 +6,12 @@ from ..uobject import UObject, UObjectPhase
 
 class RenameCols(RunnableStage):
 
-    """Renames columns of the table connected to the 'input' input and produces
-    a table on the 'out' output that is identical to the 'input' table except with
-    colums renamed ."""
+    """
+    
+    Renames columns of the table 'input' and produces a table 'output' 
+    that is identical to the 'input' table except with colums renamed .
+    
+    """
 
     def __init__(self, rename_dict):
         """

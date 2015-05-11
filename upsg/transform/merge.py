@@ -14,7 +14,7 @@ class Merge(RunnableStage):
     
     Output Keys
     -----------
-    out
+    output
 
     Parameters
     ----------
