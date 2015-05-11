@@ -449,3 +449,31 @@ class Query(RunnableStage):
             ret['complement_inds'] = uo_comp_inds
         return ret
 
+class SplitByInds(RunnableStage):
+    """
+    Splits the in array according to provided indices
+
+    Input Keys
+    ----------
+    in : the table to split
+    inds : indices to select
+
+    Output Keys
+    -----------
+    out
+    """
+
+    @property
+    def input_keys(self):
+        return ['in', 'inds']
+
+    @property
+    def output_keys(self):
+        return ['out']
+
+    def run(self, outputs_requested, **kwargs):
+        in_table = kwargs['in'].to_np()
+        inds = kwargs['inds'].to_np()
+        ret = {'out': UObject(UObjectPhase.Write)}
+        ret['out'].from_np(in_table[inds[inds.dtype.names[0]]])
+        return ret
