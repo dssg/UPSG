@@ -313,6 +313,19 @@ class TestTransform(UPSGTestCase):
 
     def test_lambda(self):
 
+        # Test output key generation
+
+        l1 = LambdaStage(lambda x, y: 0)
+        self.assertEqual(l1.input_keys, ['x', 'y'])
+        self.assertEqual(l1.output_keys, ['output0',])
+
+        l2 = LambdaStage(lambda: 0, n_outputs=3)
+        self.assertEqual(l2.input_keys, [])
+        self.assertEqual(l2.output_keys, ['output{}'.format(i) for i in
+                                          xrange(3)])
+
+        # Test running in pipeline
+
         in_data = np_nd_to_sa(np.random.random((100, 10)))
         scale = np_nd_to_sa(np.array(3))
         out_keys = ['augmented', 'log_col', 'sqrt_col', 'scale_col'] 

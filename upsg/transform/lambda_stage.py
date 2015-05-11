@@ -37,7 +37,7 @@ class LambdaStage(RunnableStage):
     """
 
 
-    def __init__(self, func, output_keys):
+    def __init__(self, func, output_keys=None, n_outputs=1):
         """
 
         Parameters
@@ -51,20 +51,31 @@ class LambdaStage(RunnableStage):
             a tuple of structured arrays if output_keys has a length of more
             than 1, or None if output_keys has a length of 0
        
-        output_keys: tuple of str:
+        output_keys: tuple of str or None:
             
             The keys to which outputs will be assigned. If func returns a
             structured array, output_keys should be a tuple of length 1. If 
             func returns a tuple of structured arrays, output_keys should have
             length equal to the length of the returned tuple. If func returns
-            None, output_keys should be a tuple of length 0
+            None, output_keys should be a tuple of length 0. If set to None,
+            output keys will be generated according to the pattern: 'output0', 
+            'output1', 'output2', ...
+
+        n_outputs: int
+            If output_keys is unspecified, the number of outputs that will be
+            expected. If n_outputs == 1, output keys will be ('output0',). If
+            n_outputs == 2, output keys will be ('output0', 'output1',) etc.
 
         """
 
         self.__func = func
         self.__input_keys = inspect.getargspec(func).args
-        self.__n_results = len(output_keys)
-        self.__output_keys = output_keys
+        if output_keys is not None:
+            self.__output_keys = output_keys
+        else:
+            self.__output_keys = ['output{}'.format(i) for i in 
+                                  xrange(n_outputs)]
+        self.__n_results = len(self.__output_keys)
 
     @property
     def input_keys(self):
