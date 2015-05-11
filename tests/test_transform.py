@@ -17,7 +17,7 @@ from upsg.fetch.csv import CSVRead
 from upsg.fetch.np import NumpyRead
 from upsg.transform.rename_cols import RenameCols
 from upsg.transform.sql import RunSQL
-from upsg.transform.split import Query, SplitColumns, KFold
+from upsg.transform.split import Query, SplitColumns, KFold, SplitByInds
 from upsg.transform.fill_na import FillNA
 from upsg.transform.label_encode import LabelEncode
 from upsg.transform.lambda_stage import LambdaStage
@@ -525,6 +525,31 @@ class TestTransform(UPSGTestCase):
                     right_on='id').to_records(index=False))
 
         assert(np.array_equal(result, ctrl))
+
+    def test_split_by_inds(self):
+        in_data = np.array(
+            [(0, 0), (1, 1), (2, 0), (3, 1)], 
+            dtype=[('id', int), ('include', int)])
+
+        p = Pipeline()
+
+        np_in = p.add(NumpyRead(in_data))
+
+        query = p.add(Query('include != 0'))
+        query(np_in)
+
+        split_inds = p.add(SplitByInds())
+        split_inds(np_in, query['out_inds'])
+
+        out = p.add(NumpyWrite())
+        out(split_inds)
+        p.run()
+
+        ctrl = np.array(
+            [(1, 1), (3, 1)], 
+            dtype=[('id', int), ('include', int)])
+
+        self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
 
 if __name__ == '__main__':
     unittest.main()
