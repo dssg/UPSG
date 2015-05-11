@@ -6,6 +6,8 @@ import unittest
 from numpy.lib.recfunctions import append_fields
 from numpy.lib.recfunctions import merge_arrays
 
+import pandas as pd
+
 from sklearn.cross_validation import KFold as SKKFold
 
 from upsg.pipeline import Pipeline
@@ -22,8 +24,9 @@ from upsg.transform.lambda_stage import LambdaStage
 from upsg.transform.timify import Timify
 from upsg.transform.identity import Identity
 from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
+from upsg.transform.merge import Merge
 from upsg.wrap.wrap_sklearn import wrap
-from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa
+from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
 from utils import path_of_data, UPSGTestCase, csv_read
 
@@ -488,6 +491,40 @@ class TestTransform(UPSGTestCase):
                     self.assertTrue(np.allclose(
                         np.nan_to_num(result[col]), 
                         np.nan_to_num(in_data[col])))
+
+    def test_merge(self):
+        a1 = np.array([(0, 'Lisa', 2),
+                       (1, 'Bill', 1),
+                       (2, 'Fred', 2),
+                       (3, 'Samantha', 2),
+                       (4, 'Augustine', 1),
+                       (5, 'William', 0)], dtype=[('id', int),
+                                                  ('name', 'S64'),
+                                                  ('dept_id', int)])
+        a2 = np.array([(0, 'accts receivable'),
+                       (1, 'accts payable'),
+                       (2, 'shipping')], dtype=[('id', int),
+                                                ('name', 'S64')])
+        kwargs = {}
+
+        p = Pipeline()
+        a1_in = p.add(NumpyRead(a1))
+        a2_in = p.add(NumpyRead(a2))
+        merge = p.add(Merge('dept_id', 'id', **kwargs))
+        out = p.add(NumpyWrite())
+
+        out(merge(a1_in, a2_in))
+
+        p.run()
+
+        result =  out.get_stage().result
+        ctrl = obj_to_str(
+                pd.DataFrame(a1).merge(
+                    pd.DataFrame(a2),
+                    left_on='dept_id',
+                    right_on='id').to_records(index=False))
+
+        assert(np.array_equal(result, ctrl))
 
 if __name__ == '__main__':
     unittest.main()

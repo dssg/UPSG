@@ -345,7 +345,7 @@ class TestWrap(UPSGTestCase):
         node_roc['fpr'] > node_fpr_out['in']
         node_roc['tpr'] > node_tpr_out['in']
 
-        p.run()
+        p.run(output='html')
 
         result_fpr = self._tmp_files.csv_read('out_fpr.csv', True)
         result_tpr = self._tmp_files.csv_read('out_tpr.csv', True)
