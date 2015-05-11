@@ -15,9 +15,9 @@ class NumpyRead(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         uo = UObject(UObjectPhase.Write)
         uo.from_np(self.__A)
-        return {'out': uo}
+        return {'output': uo}

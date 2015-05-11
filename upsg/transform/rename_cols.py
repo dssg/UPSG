@@ -30,7 +30,7 @@ class RenameCols(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         # TODO maybe we can avoid rewriting all the data (esp in sql) by
@@ -47,4 +47,4 @@ class RenameCols(RunnableStage):
         in_array.dtype.names = map(repl, in_array.dtype.names)
         uo_out.from_np(in_array)
 
-        return {'out': uo_out}
+        return {'output': uo_out}

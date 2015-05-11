@@ -43,8 +43,8 @@ class TestExport(UPSGTestCase):
         node_plot = p.add(Plot(self._tmp_files('result.png'), 'co-',
                                title='ROC Curve', xlabel='FPR', ylabel='TPR'))
 
-        node_data['out'] > node_split['input0']
-        node_target['out'] > node_split['input1']
+        node_data['output'] > node_split['input0']
+        node_target['output'] > node_split['input1']
 
         node_split['train0'] > node_clf['X_train']
         node_split['train1'] > node_clf['y_train']
@@ -65,7 +65,7 @@ class TestExport(UPSGTestCase):
         p = Pipeline()
         np_in = p.add(NumpyRead(in_data))
         np_out = p.add(NumpyWrite())
-        np_in['out'] > np_out['input']
+        np_in['output'] > np_out['input']
         p.run()
         self.assertTrue(np.allclose(
             in_data, 

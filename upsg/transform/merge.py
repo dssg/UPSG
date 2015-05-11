@@ -39,7 +39,7 @@ class Merge(RunnableStage):
     
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         in_left = kwargs['input_left'].to_dataframe()
@@ -50,4 +50,4 @@ class Merge(RunnableStage):
             left_on=self.__left_on, 
             right_on=self.__right_on,
             **self.__kwargs))
-        return {'out': out}
+        return {'output': out}

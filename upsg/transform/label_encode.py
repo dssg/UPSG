@@ -22,7 +22,7 @@ class LabelEncode(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         uo_out = UObject(UObjectPhase.Write)
@@ -39,4 +39,4 @@ class LabelEncode(RunnableStage):
                 new_dtype.append((col_name, fmt))
         out_array = np.array(zip(*result_arrays), dtype=new_dtype)
         uo_out.from_np(out_array)
-        return {'out': uo_out}
+        return {'output': uo_out}

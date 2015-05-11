@@ -12,8 +12,8 @@ from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
 class SplitColumns(RunnableStage):
-    """Splits a table 'input' into two tables 'out' and 'complement' where 
-    'out' consists of the given columns and 'complement' consists of the complement
+    """Splits a table 'input' into two tables 'output' and 'complement' where 
+    'output' consists of the given columns and 'complement' consists of the complement
     of the columns"""
 
     def __init__(self, columns):
@@ -22,7 +22,7 @@ class SplitColumns(RunnableStage):
         parameters
         ----------
         columns: list of str
-            Colums that will appear in the 'out' table but not the 'complement'
+            Colums that will appear in the 'output' table but not the 'complement'
             table
         """
         self.__columns = columns
@@ -33,7 +33,7 @@ class SplitColumns(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out', 'complement']
+        return ['output', 'complement']
 
     def run(self, outputs_requested, **kwargs):
         # TODO different implementation if internally sql?
@@ -42,10 +42,10 @@ class SplitColumns(RunnableStage):
         to_return = {}
         in_array = kwargs['input'].to_np()
 
-        if 'out' in outputs_requested:
+        if 'output' in outputs_requested:
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(in_array[columns])
-            to_return['out'] = uo_out
+            to_return['output'] = uo_out
 
         if 'complement' in outputs_requested:
             uo_complement = UObject(UObjectPhase.Write)
@@ -228,8 +228,8 @@ class Query(RunnableStage):
 
     Ouptu Keys
     ----------
-    out: table containing only rows that match the query
-    out_inds: one-column table containing the indices of in that matched the query
+    output: table containing only rows that match the query
+    output_inds: one-column table containing the indices of in that matched the query
     complement: table containing only rows that do not match the query
     complement_inds: one-column table containing the indices of in that did not match the query
     
@@ -405,7 +405,7 @@ class Query(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out', 'complement', 'out_inds', 'complement_inds']
+        return ['output', 'complement', 'output_inds', 'complement_inds']
 
     def __get_ast(self, col_names):
         parser = self.__QueryParser(col_names, self.__IN_TABLE_NAME)
@@ -431,18 +431,18 @@ class Query(RunnableStage):
         query = self.__get_ast(col_names)
         mask = eval(compile(query, '<string>', 'eval'))
         ret = {}
-        if 'out' in outputs_requested:
+        if 'output' in outputs_requested:
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(in_table[mask])
-            ret['out'] = uo_out
+            ret['output'] = uo_out
         if 'complement' in outputs_requested:
             uo_comp = UObject(UObjectPhase.Write)
             uo_comp.from_np(in_table[np.logical_not(mask)])
             ret['complement'] = uo_comp
-        if 'out_inds' in outputs_requested:
+        if 'output_inds' in outputs_requested:
             uo_out_inds = UObject(UObjectPhase.Write)
             uo_out_inds.from_np(np.where(mask)[0])
-            ret['out_inds'] = uo_out_inds
+            ret['output_inds'] = uo_out_inds
         if 'complement_inds' in outputs_requested:
             uo_comp_inds = UObject(UObjectPhase.Write)
             uo_comp_inds.from_np(np.where(np.logical_not(mask))[0])
@@ -460,7 +460,7 @@ class SplitByInds(RunnableStage):
 
     Output Keys
     -----------
-    out
+    output
     """
 
     @property
@@ -469,11 +469,11 @@ class SplitByInds(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         in_table = kwargs['input'].to_np()
         inds = kwargs['inds'].to_np()
-        ret = {'out': UObject(UObjectPhase.Write)}
-        ret['out'].from_np(in_table[inds[inds.dtype.names[0]]])
+        ret = {'output': UObject(UObjectPhase.Write)}
+        ret['output'].from_np(in_table[inds[inds.dtype.names[0]]])
         return ret

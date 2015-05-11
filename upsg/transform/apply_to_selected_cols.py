@@ -36,7 +36,7 @@ class ApplyToSelectedCols(MetaStage):
 
         @property
         def output_keys(self):
-            return ['out']
+            return ['output']
 
         def run(self, outputs_requested, **kwargs):
             in0 = kwargs['input0'].to_np()
@@ -44,7 +44,7 @@ class ApplyToSelectedCols(MetaStage):
             out = merge_arrays((in0, in1), flatten=True)
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(out)
-            return {'out': uo_out}
+            return {'output': uo_out}
 
     def __init__(self, col_names, stage_cls, *args, **kwargs):
         p = Pipeline()
@@ -58,7 +58,7 @@ class ApplyToSelectedCols(MetaStage):
         for in_key in ('input', 'X_train'):
             if in_key in trans_node_in_keys:
                 in_node[correspondence[in_key]] > split_node['input']
-                split_node['out'] > trans_node[in_key]
+                split_node['output'] > trans_node[in_key]
                 trans_node_in_keys.remove(in_key)
                 break
         for in_key in trans_node_in_keys:
@@ -67,11 +67,11 @@ class ApplyToSelectedCols(MetaStage):
         merge_node = p.add(self.__Merge())
         out_node = p.add(Identity(output_keys=trans_node_out_keys))
         correspondence = out_node.get_stage().get_correspondence(False)
-        for out_key in ('out', 'X_new'):
+        for out_key in ('output', 'X_new'):
             if out_key in trans_node_out_keys:
                 trans_node[out_key] > merge_node['input0']
                 split_node['complement'] > merge_node['input1']
-                merge_node['out'] > out_node[correspondence[out_key]]
+                merge_node['output'] > out_node[correspondence[out_key]]
                 trans_node_out_keys.remove(out_key)
         for out_key in trans_node_out_keys:
             trans_node[out_key] > out_node[correspondence[out_key]]

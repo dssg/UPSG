@@ -25,7 +25,7 @@ class FillNA(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         default_value = self.__default_value
@@ -37,4 +37,4 @@ class FillNA(RunnableStage):
                 in_array[col_name][np.isnan(in_array[col_name])] = default_value 
         uo_out.from_np(in_array)
 
-        return {'out': uo_out}
+        return {'output': uo_out}

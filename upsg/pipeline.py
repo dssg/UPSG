@@ -63,15 +63,15 @@ class Connection(object):
 
     A Connection is not a graph edge. It's more accurate to say that a
     Connection is one side of an edge. For example, say we have Nodes A
-    and B. Node A has an output key 'out' and Node B has an input key 'input'.
-    Then, node A has a Connection A['out'] and Node B has a Connection B['input'].
+    and B. Node A has an output key 'output' and Node B has an input key 'input'.
+    Then, node A has a Connection A['output'] and Node B has a Connection B['input'].
     In order to create an edge between Node A and Node B, we do:
 
-    A['out'].connect_to(B['input'])
+    A['output'].connect_to(B['input'])
 
     or, alternatively,
 
-    A['out'] > B['input']
+    A['output'] > B['input']
 
     """
 
@@ -202,7 +202,7 @@ class Node(object):
             self(clf_node['X_train'], clf_node['X_test'], status_node),
             it is equivalent to doing:
 
-            self['out'] > clf_node['X_train'] 
+            self['output'] > clf_node['X_train'] 
             self['complement'] > clf_node['X_test']
             self['status'] > status_node
 
@@ -210,12 +210,12 @@ class Node(object):
             The output key corresponding to the given keyword will be 
             connected to the argument assigned to that output key. For
             example, if we invoke self(complement=clf_node['X_test'], 
-            status=status_node, out=clf_node['X_train']) it is equivalent to
+            status=status_node, output=clf_node['X_train']) it is equivalent to
             doing:
 
             self['complement'] > clf_node['X_test']
             self['status'] > status_node
-            self['out'] > clf_node['X_train'] 
+            self['output'] > clf_node['X_train'] 
 
         """
         input_keys = self.input_keys
