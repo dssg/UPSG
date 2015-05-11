@@ -11,12 +11,12 @@ class CSVWrite(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
         return []
 
     def run(self, outputs_requested, **kwargs):
-        kwargs['in'].to_csv(self.__filename)
+        kwargs['input'].to_csv(self.__filename)
         return {}

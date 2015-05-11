@@ -18,7 +18,7 @@ class LabelEncode(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
@@ -26,7 +26,7 @@ class LabelEncode(RunnableStage):
 
     def run(self, outputs_requested, **kwargs):
         uo_out = UObject(UObjectPhase.Write)
-        in_array = kwargs['in'].to_np()
+        in_array = kwargs['input'].to_np()
         le = LabelEncoder()
         new_dtype = []
         result_arrays = []

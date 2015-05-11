@@ -63,15 +63,15 @@ class Connection(object):
 
     A Connection is not a graph edge. It's more accurate to say that a
     Connection is one side of an edge. For example, say we have Nodes A
-    and B. Node A has an output key 'out' and Node B has an input key 'in'.
-    Then, node A has a Connection A['out'] and Node B has a Connection B['in'].
+    and B. Node A has an output key 'out' and Node B has an input key 'input'.
+    Then, node A has a Connection A['out'] and Node B has a Connection B['input'].
     In order to create an edge between Node A and Node B, we do:
 
-    A['out'].connect_to(B['in'])
+    A['out'].connect_to(B['input'])
 
     or, alternatively,
 
-    A['out'] > B['in']
+    A['out'] > B['input']
 
     """
 

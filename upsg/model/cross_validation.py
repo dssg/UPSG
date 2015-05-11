@@ -79,8 +79,8 @@ class CrossValidationScore(MetaStage):
         node_kfold = p.add(KFold(2, n_folds, **kfold_kwargs))
         node_reduce = p.add(self.__ReduceStage(n_folds))
 
-        node_map['X_train_out'] > node_kfold['in0']
-        node_map['y_train_out'] > node_kfold['in1']
+        node_map['X_train_out'] > node_kfold['input0']
+        node_map['y_train_out'] > node_kfold['input1']
 
         for fold_i in xrange(n_folds):
             node_clf = p.add(clf_stage(**params))

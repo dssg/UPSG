@@ -32,15 +32,15 @@ class ApplyToSelectedCols(MetaStage):
     class __Merge(RunnableStage):
         @property
         def input_keys(self): 
-            return ['in0', 'in1']
+            return ['in0', 'input1']
 
         @property
         def output_keys(self):
             return ['out']
 
         def run(self, outputs_requested, **kwargs):
-            in0 = kwargs['in0'].to_np()
-            in1 = kwargs['in1'].to_np()
+            in0 = kwargs['input0'].to_np()
+            in1 = kwargs['input1'].to_np()
             out = merge_arrays((in0, in1), flatten=True)
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(out)
@@ -55,9 +55,9 @@ class ApplyToSelectedCols(MetaStage):
         correspondence = in_node.get_stage().get_correspondence()
         split_node = p.add(SplitColumns(col_names))
         # TODO we assume that our Stage has one of these keys, which is bad
-        for in_key in ('in', 'X_train'):
+        for in_key in ('input', 'X_train'):
             if in_key in trans_node_in_keys:
-                in_node[correspondence[in_key]] > split_node['in']
+                in_node[correspondence[in_key]] > split_node['input']
                 split_node['out'] > trans_node[in_key]
                 trans_node_in_keys.remove(in_key)
                 break
@@ -70,7 +70,7 @@ class ApplyToSelectedCols(MetaStage):
         for out_key in ('out', 'X_new'):
             if out_key in trans_node_out_keys:
                 trans_node[out_key] > merge_node['in0']
-                split_node['complement'] > merge_node['in1']
+                split_node['complement'] > merge_node['input1']
                 merge_node['out'] > out_node[correspondence[out_key]]
                 trans_node_out_keys.remove(out_key)
         for out_key in trans_node_out_keys:

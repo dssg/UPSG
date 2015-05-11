@@ -12,7 +12,7 @@ class Timify(RunnableStage):
 
     Input Keys
     ----------
-    in
+    input
 
     Output Keys
     -----------
@@ -22,14 +22,14 @@ class Timify(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
         return ['out']
 
     def run(self, outputs_requested, **kwargs):
-        in_data = kwargs['in'].to_np()
+        in_data = kwargs['input'].to_np()
         cols = []
         dtype = []
         

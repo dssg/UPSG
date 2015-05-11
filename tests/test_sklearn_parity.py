@@ -52,11 +52,11 @@ class TestSKLearnParity(UPSGTestCase):
 
         # connect the pipeline stages together
         node_data['out'] > node_split['in0']
-        node_target['out'] > node_split['in1']
+        node_target['out'] > node_split['input1']
         node_split['train0'] > node_clf['X_train']
         node_split['train1'] > node_clf['y_train']
         node_split['test0'] > node_clf['X_test']
-        node_clf['y_pred'] > node_csv['in']
+        node_clf['y_pred'] > node_csv['input']
 
         p.run(output='graph')
         

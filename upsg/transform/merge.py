@@ -9,8 +9,8 @@ class Merge(RunnableStage):
 
     Input Keys
     ----------
-    in_left : first table to join
-    in_right : second table to join
+    input_left : first table to join
+    input_right : second table to join
     
     Output Keys
     -----------
@@ -35,15 +35,15 @@ class Merge(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in_left', 'in_right']
+        return ['input_left', 'input_right']
     
     @property
     def output_keys(self):
         return ['out']
 
     def run(self, outputs_requested, **kwargs):
-        in_left = kwargs['in_left'].to_dataframe()
-        in_right = kwargs['in_right'].to_dataframe()
+        in_left = kwargs['input_left'].to_dataframe()
+        in_right = kwargs['input_right'].to_dataframe()
         out = UObject(UObjectPhase.Write)
         out.from_dataframe(in_left.merge(
             in_right, 

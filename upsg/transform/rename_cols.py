@@ -6,8 +6,8 @@ from ..uobject import UObject, UObjectPhase
 
 class RenameCols(RunnableStage):
 
-    """Renames columns of the table connected to the 'in' input and produces
-    a table on the 'out' output that is identical to the 'in' table except with
+    """Renames columns of the table connected to the 'input' input and produces
+    a table on the 'out' output that is identical to the 'input' table except with
     colums renamed ."""
 
     def __init__(self, rename_dict):
@@ -17,7 +17,7 @@ class RenameCols(RunnableStage):
         ----------
         rename_dict: dict of str : str
             A dictionary mapping old column names to new column names. If the
-            table connected to the 'in' input has columns corresponding to the
+            table connected to the 'input' input has columns corresponding to the
             keys of this dictionary, the resulting table will have columns
             names with the corresponding values.
 
@@ -26,7 +26,7 @@ class RenameCols(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
@@ -36,7 +36,7 @@ class RenameCols(RunnableStage):
         # TODO maybe we can avoid rewriting all the data (esp in sql) by
         # creating some sort of a "view" object
         uo_out = UObject(UObjectPhase.Write)
-        in_array = kwargs['in'].to_np()
+        in_array = kwargs['input'].to_np()
         rename_dict = self.__rename_dict
 
         def repl(col):

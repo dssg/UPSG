@@ -21,7 +21,7 @@ class FillNA(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
@@ -30,7 +30,7 @@ class FillNA(RunnableStage):
     def run(self, outputs_requested, **kwargs):
         default_value = self.__default_value
         uo_out = UObject(UObjectPhase.Write)
-        in_array = kwargs['in'].to_np()
+        in_array = kwargs['input'].to_np()
         # http://stackoverflow.com/questions/5124376/convert-nan-value-to-zero
         for (col_name, fmt) in in_array.dtype.descr:
             if 'f' in fmt:

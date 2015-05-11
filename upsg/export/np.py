@@ -11,7 +11,7 @@ class NumpyWrite(RunnableStage):
 
     Input Keys
     ----------
-    in
+    input
 
     """
 
@@ -21,7 +21,7 @@ class NumpyWrite(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
@@ -34,6 +34,6 @@ class NumpyWrite(RunnableStage):
         return self.__array
 
     def run(self, outputs_requested, **kwargs):
-        self.__array = kwargs['in'].to_np()
+        self.__array = kwargs['input'].to_np()
         self.__run = True
         return {}
