@@ -96,7 +96,7 @@ class DataToaster(MetaStage):
 
     def __get_out_conn(self, node):
         out_keys = node.output_keys
-        possibilities = ('out', 'X_new', 'selected')
+        possibilities = ('output', 'X_new', 'selected')
         for possibility in possibilities:
             if possibility in out_keys:
                 return self.FetchedConn(node[possibility], possibility)
@@ -104,7 +104,7 @@ class DataToaster(MetaStage):
 
     def __get_in_conn(self, node):
         in_keys = node.input_keys
-        possibilities = ('in', 'X_train')
+        possibilities = ('input', 'X_train')
         for possibility in possibilities:
             if possibility in in_keys:
                 return self.FetchedConn(node[possibility], possibility)
@@ -152,10 +152,10 @@ class DataToaster(MetaStage):
         self.__latest_out_conn().conn > node_split_rows[node_split_rows.input_keys[0]]
 
         node_split_train = self.__pipeline.add(SplitY(y_col))
-        node_split_rows[train_out_key] > node_split_train['in']
+        node_split_rows[train_out_key] > node_split_train['input']
 
         node_split_test = self.__pipeline.add(SplitY(y_col))
-        node_split_rows[test_out_key] > node_split_test['in']
+        node_split_rows[test_out_key] > node_split_test['input']
 
         node_id = self.__node_id()
         node_split_train['X'] > node_id['X_train_in']
@@ -172,7 +172,7 @@ class DataToaster(MetaStage):
 
     def split_by_query(self, y_col, query):
         # The query selects which data is /training/
-        return self.__split(Query(query), y_col, 'out', 'complement')
+        return self.__split(Query(query), y_col, 'output', 'complement')
 
     def __model(self, stage_cls, *args, **kwargs):
         # TODO what about metrics phase?

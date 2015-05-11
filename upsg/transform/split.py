@@ -12,8 +12,8 @@ from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
 class SplitColumns(RunnableStage):
-    """Splits a table 'in' into two tables 'out' and 'complement' where 
-    'out' consists of the given columns and 'complement' consists of the complement
+    """Splits a table 'input' into two tables 'output' and 'complement' where 
+    'output' consists of the given columns and 'complement' consists of the complement
     of the columns"""
 
     def __init__(self, columns):
@@ -22,30 +22,30 @@ class SplitColumns(RunnableStage):
         parameters
         ----------
         columns: list of str
-            Colums that will appear in the 'out' table but not the 'complement'
+            Colums that will appear in the 'output' table but not the 'complement'
             table
         """
         self.__columns = columns
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
-        return ['out', 'complement']
+        return ['output', 'complement']
 
     def run(self, outputs_requested, **kwargs):
         # TODO different implementation if internally sql?
         columns = list(self.__columns)
 
         to_return = {}
-        in_array = kwargs['in'].to_np()
+        in_array = kwargs['input'].to_np()
 
-        if 'out' in outputs_requested:
+        if 'output' in outputs_requested:
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(in_array[columns])
-            to_return['out'] = uo_out
+            to_return['output'] = uo_out
 
         if 'complement' in outputs_requested:
             uo_complement = UObject(UObjectPhase.Write)
@@ -59,7 +59,7 @@ class SplitColumns(RunnableStage):
 
 class SplitY(RunnableStage):
 
-    """Splits a table 'in' into two tables 'X' and 'y' where y is one column of
+    """Splits a table 'input' into two tables 'X' and 'y' where y is one column of
     A and X is everything else. """
 
     def __init__(self, column):
@@ -75,7 +75,7 @@ class SplitY(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
@@ -84,7 +84,7 @@ class SplitY(RunnableStage):
     def run(self, outputs_requested, **kwargs):
         uo_X = UObject(UObjectPhase.Write)
         uo_y = UObject(UObjectPhase.Write)
-        in_array = kwargs['in'].to_np()
+        in_array = kwargs['input'].to_np()
         names = list(in_array.dtype.names)
         if isinstance(self.__column, int):
             col_name = names[self.__column]
@@ -100,7 +100,7 @@ class SplitTrainTest(RunnableStage):
 
     """
     
-    Splits tables 'in0', 'in1', 'in2', ... into training and testing
+    Splits tables 'input0', 'input1', 'input2', ... into training and testing
     data 'train0', 'test0', 'train1', 'test1', 'train2', 'test2', ...
 
     All input tables should have the same number of rows
@@ -124,7 +124,7 @@ class SplitTrainTest(RunnableStage):
         self.__kwargs = kwargs
         self.__n_arrays = n_arrays
 
-        self.__input_keys = map('in{}'.format, xrange(n_arrays))
+        self.__input_keys = map('input{}'.format, xrange(n_arrays))
         self.__output_keys = (map('train{}'.format, xrange(n_arrays)) +
                               map('test{}'.format, xrange(n_arrays)))
 
@@ -142,7 +142,7 @@ class SplitTrainTest(RunnableStage):
         results = {key: UObject(UObjectPhase.Write) for key
                    in self.__output_keys}
         for index, in_key in enumerate(self.__input_keys):
-            key_number = int(in_key.replace('in', ''))
+            key_number = int(in_key.replace('input', ''))
             results['train{}'.format(key_number)].from_np(splits[2 * index])
             results['test{}'.format(key_number)].from_np(splits[2 * index + 1])
         return results
@@ -151,14 +151,14 @@ class SplitTrainTest(RunnableStage):
 class KFold(RunnableStage):
     """
     
-    Splits tables 'in0', 'in1', 'in2', ... into n_folds train and test sets 
+    Splits tables 'input0', 'input1', 'input2', ... into n_folds train and test sets 
     called:
         'train0_0', 'test0_0', 'train0_1', 'test0_1',... (corresponding to
-        different folds of 'in0')
+        different folds of 'input0')
         'train1_0', 'test1_0', 'train1_1', 'test1_1',... (corresponding to
-        different folds of 'in1')
+        different folds of 'input1')
         'train2_0', 'test2_0', 'train2_1', 'test2_1',... (corresponding to
-        different folds of 'in2')
+        different folds of 'input2')
         ...
 
     All input tables should have the same number of rows
@@ -184,7 +184,7 @@ class KFold(RunnableStage):
         self.__n_arrays = n_arrays
         self.__n_folds = n_folds
 
-        self.__input_keys = ['in{}'.format(array) for array in 
+        self.__input_keys = ['input{}'.format(array) for array in 
                              xrange(n_arrays)]
         self.__output_keys = list(it.chain.from_iterable(
                 (('train{}_{}'.format(array, fold), 
@@ -209,7 +209,7 @@ class KFold(RunnableStage):
                    in self.__output_keys}
         for fold_index, (train_inds, test_inds) in enumerate(kf):
             for array_index, in_key in enumerate(self.__input_keys):
-                key_number = int(in_key.replace('in', ''))
+                key_number = int(in_key.replace('input', ''))
                 results['train{}_{}'.format(key_number, fold_index)].from_np(
                     in_arrays[array_index][train_inds])
                 results['test{}_{}'.format(key_number, fold_index)].from_np(
@@ -224,12 +224,12 @@ class Query(RunnableStage):
 
     Input Keys
     ----------
-    in
+    input
 
     Ouptu Keys
     ----------
-    out: table containing only rows that match the query
-    out_inds: one-column table containing the indices of in that matched the query
+    output: table containing only rows that match the query
+    output_inds: one-column table containing the indices of in that matched the query
     complement: table containing only rows that do not match the query
     complement_inds: one-column table containing the indices of in that did not match the query
     
@@ -401,11 +401,11 @@ class Query(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
-        return ['out', 'complement', 'out_inds', 'complement_inds']
+        return ['output', 'complement', 'output_inds', 'complement_inds']
 
     def __get_ast(self, col_names):
         parser = self.__QueryParser(col_names, self.__IN_TABLE_NAME)
@@ -426,23 +426,23 @@ class Query(RunnableStage):
         #     http://pandas.pydata.org/pandas-docs/dev/generated/pandas.eval.html
         # supports numpy arithmetic comparison operators:
         #     http://docs.scipy.org/doc/numpy/reference/arrays.ndarray.html#arithmetic-and-comparison-operations
-        in_table = kwargs['in'].to_np()
+        in_table = kwargs['input'].to_np()
         col_names = in_table.dtype.names
         query = self.__get_ast(col_names)
         mask = eval(compile(query, '<string>', 'eval'))
         ret = {}
-        if 'out' in outputs_requested:
+        if 'output' in outputs_requested:
             uo_out = UObject(UObjectPhase.Write)
             uo_out.from_np(in_table[mask])
-            ret['out'] = uo_out
+            ret['output'] = uo_out
         if 'complement' in outputs_requested:
             uo_comp = UObject(UObjectPhase.Write)
             uo_comp.from_np(in_table[np.logical_not(mask)])
             ret['complement'] = uo_comp
-        if 'out_inds' in outputs_requested:
+        if 'output_inds' in outputs_requested:
             uo_out_inds = UObject(UObjectPhase.Write)
             uo_out_inds.from_np(np.where(mask)[0])
-            ret['out_inds'] = uo_out_inds
+            ret['output_inds'] = uo_out_inds
         if 'complement_inds' in outputs_requested:
             uo_comp_inds = UObject(UObjectPhase.Write)
             uo_comp_inds.from_np(np.where(np.logical_not(mask))[0])
@@ -455,25 +455,25 @@ class SplitByInds(RunnableStage):
 
     Input Keys
     ----------
-    in : the table to split
+    input : the table to split
     inds : indices to select
 
     Output Keys
     -----------
-    out
+    output
     """
 
     @property
     def input_keys(self):
-        return ['in', 'inds']
+        return ['input', 'inds']
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
-        in_table = kwargs['in'].to_np()
+        in_table = kwargs['input'].to_np()
         inds = kwargs['inds'].to_np()
-        ret = {'out': UObject(UObjectPhase.Write)}
-        ret['out'].from_np(in_table[inds[inds.dtype.names[0]]])
+        ret = {'output': UObject(UObjectPhase.Write)}
+        ret['output'].from_np(in_table[inds[inds.dtype.names[0]]])
         return ret

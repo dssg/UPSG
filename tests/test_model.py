@@ -64,13 +64,13 @@ class TestModel(UPSGTestCase):
         node_search = p.add(GridSearch(wrap(SVC), 'score', parameters, folds))
         node_params_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
-        node_data['out'] > node_split['in0']
-        node_target['out'] > node_split['in1']
+        node_data['output'] > node_split['input0']
+        node_target['output'] > node_split['input1']
         node_split['train0'] > node_search['X_train']
         node_split['train1'] > node_search['y_train']
         node_split['test0'] > node_search['X_test']
         node_split['test1'] > node_search['y_test']
-        node_search['params_out'] > node_params_out['in']
+        node_search['params_out'] > node_params_out['input']
 
         p.run()
 
@@ -105,11 +105,11 @@ class TestModel(UPSGTestCase):
 
         cv_score = p.add(CrossValidationScore(wrap(SVC), 'score', {}, folds,
                                               random_state=0))               
-        np_in_X['out'] > cv_score['X_train']
-        np_in_y['out'] > cv_score['y_train']
+        np_in_X['output'] > cv_score['X_train']
+        np_in_y['output'] > cv_score['y_train']
 
         score_out = p.add(CSVWrite(self._tmp_files('out.csv')))
-        cv_score['score'] > score_out['in']
+        cv_score['score'] > score_out['input']
 
         p.run()
 
@@ -151,8 +151,8 @@ class TestModel(UPSGTestCase):
         np_in_y = p.add(NumpyRead(y))
 
         split_train_test = p.add(SplitTrainTest(2))
-        np_in_X['out'] > split_train_test['in0']
-        np_in_y['out'] > split_train_test['in1']
+        np_in_X['output'] > split_train_test['input0']
+        np_in_y['output'] > split_train_test['input1']
 
         clf = p.add(wrap_and_make_instance(SVC, kernel='linear')) 
         split_train_test['train0'] > clf['X_train']
@@ -161,7 +161,7 @@ class TestModel(UPSGTestCase):
         split_train_test['test1'] > clf['y_test']
 
         node_proba_cat_1 = p.add(SplitY(-1))
-        clf['pred_proba'] > node_proba_cat_1['in']
+        clf['pred_proba'] > node_proba_cat_1['input']
 
         multi = p.add(Multimetric(
             metrics, 'SVC', 
@@ -188,8 +188,8 @@ class TestModel(UPSGTestCase):
         np_in_y = p.add(NumpyRead(y))
 
         split_train_test = p.add(SplitTrainTest(2))
-        np_in_X['out'] > split_train_test['in0']
-        np_in_y['out'] > split_train_test['in1']
+        np_in_X['output'] > split_train_test['input0']
+        np_in_y['output'] > split_train_test['input1']
 
         multi = p.add(Multiclassify(
             'score', 

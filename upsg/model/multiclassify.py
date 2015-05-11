@@ -175,7 +175,8 @@ class Multiclassify(MetaStage):
             node_map['y_test_out'] > node_grid_search['y_test']
 
             node_proba_cat_1 = p.add(SplitY(-1))
-            node_grid_search['pred_proba'] > node_proba_cat_1['in']
+            (node_grid_search['pred_proba'] > 
+             node_proba_cat_1['input'])
 
             node_metric = p.add(Multimetric(metrics, str(clf)))
             node_proba_cat_1['y'] > node_metric['pred_proba']

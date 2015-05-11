@@ -18,15 +18,15 @@ class LabelEncode(RunnableStage):
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         uo_out = UObject(UObjectPhase.Write)
-        in_array = kwargs['in'].to_np()
+        in_array = kwargs['input'].to_np()
         le = LabelEncoder()
         new_dtype = []
         result_arrays = []
@@ -39,4 +39,4 @@ class LabelEncode(RunnableStage):
                 new_dtype.append((col_name, fmt))
         out_array = np.array(zip(*result_arrays), dtype=new_dtype)
         uo_out.from_np(out_array)
-        return {'out': uo_out}
+        return {'output': uo_out}

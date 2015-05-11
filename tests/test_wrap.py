@@ -90,8 +90,8 @@ class TestWrap(UPSGTestCase):
 
         if sk_method_name == 'predict':
             train_test = p.add(SplitTrainTest(2, random_state=0))
-            X_in_stage['out'] > train_test['in0']
-            y_in_stage['out'] > train_test['in1']
+            X_in_stage['output'] > train_test['input0']
+            y_in_stage['output'] > train_test['input1']
 
             input_keys = sk_stage.get_stage().input_keys
             if 'X_train' in input_keys:
@@ -101,11 +101,11 @@ class TestWrap(UPSGTestCase):
             if 'y_train' in input_keys:
                 train_test['train1'] > sk_stage['y_train']
         else:
-            X_in_stage['out'] > sk_stage['X_train']
-            y_in_stage['out'] > sk_stage['y_train']
+            X_in_stage['output'] > sk_stage['X_train']
+            y_in_stage['output'] > sk_stage['y_train']
 
         csv_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
-        sk_stage[upsg_out_key] > csv_out['in']
+        sk_stage[upsg_out_key] > csv_out['input']
 
         p.run()
 
@@ -209,8 +209,8 @@ class TestWrap(UPSGTestCase):
         node_pred_out_2 = p.add(CSVWrite(self._tmp_files.get(
             'out_pred_2.csv')))
 
-        node_data['out'] > node_split['in0']
-        node_target['out'] > node_split['in1']
+        node_data['output'] > node_split['input0']
+        node_target['output'] > node_split['input1']
 
         node_split['train0'] > node_clf1['X_train']
         node_split['train1'] > node_clf1['y_train']
@@ -222,11 +222,11 @@ class TestWrap(UPSGTestCase):
 
         node_clf1['params_out'] > node_clf2['params_in']
 
-        node_clf1['params_out'] > node_params_out_1['in']
-        node_clf2['params_out'] > node_params_out_2['in']
+        node_clf1['params_out'] > node_params_out_1['input']
+        node_clf2['params_out'] > node_params_out_2['input']
 
-        node_clf1['y_pred'] > node_pred_out_1['in']
-        node_clf2['y_pred'] > node_pred_out_2['in']
+        node_clf1['y_pred'] > node_pred_out_1['input']
+        node_clf2['y_pred'] > node_pred_out_2['input']
 
         p.run()
 
@@ -252,8 +252,8 @@ class TestWrap(UPSGTestCase):
         node_y_in = p.add(NumpyRead(y_in))
 
         node_split = p.add(SplitTrainTest(2, random_state=0))
-        node_X_in['out'] > node_split['in0']
-        node_y_in['out'] > node_split['in1']
+        node_X_in['output'] > node_split['input0']
+        node_y_in['output'] > node_split['input1']
 
         ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
             train_test_split(X_in, y_in, random_state=0))
@@ -268,7 +268,7 @@ class TestWrap(UPSGTestCase):
         ctrl_clf.fit(ctrl_X_train, ctrl_y_train)
 
         node_proba_1 = p.add(SplitY(1))
-        node_clf['pred_proba'] > node_proba_1['in']
+        node_clf['pred_proba'] > node_proba_1['input']
 
         ctrl_y_score = ctrl_clf.predict_proba(ctrl_X_test)[:, 1]
 
@@ -287,7 +287,7 @@ class TestWrap(UPSGTestCase):
 
         out_nodes = [p.add(CSVWrite(self._tmp_files('out_{}.csv'.format(
             out_key)))) for out_key in out_keys]
-        [node_metric[out_key] > out_nodes[i]['in'] for i, out_key in
+        [node_metric[out_key] > out_nodes[i]['input'] for i, out_key in
          enumerate(out_keys)]
 
         p.run()
@@ -331,8 +331,8 @@ class TestWrap(UPSGTestCase):
         node_fpr_out = p.add(CSVWrite(self._tmp_files.get('out_fpr.csv')))
         node_tpr_out = p.add(CSVWrite(self._tmp_files.get('out_tpr.csv')))
 
-        node_data['out'] > node_split['in0']
-        node_target['out'] > node_split['in1']
+        node_data['output'] > node_split['input0']
+        node_target['output'] > node_split['input1']
 
         node_split['train0'] > node_clf['X_train']
         node_split['train1'] > node_clf['y_train']
@@ -342,8 +342,8 @@ class TestWrap(UPSGTestCase):
         node_select['y'] > node_roc['y_score']
         node_split['test1'] > node_roc['y_true']
 
-        node_roc['fpr'] > node_fpr_out['in']
-        node_roc['tpr'] > node_tpr_out['in']
+        node_roc['fpr'] > node_fpr_out['input']
+        node_roc['tpr'] > node_tpr_out['input']
 
         p.run(output='html')
 

@@ -3,7 +3,7 @@ from ..uobject import UObject, UObjectPhase
 
 
 class CSVRead(RunnableStage):
-    """Stage to read in a csv. Output is offered with the 'out' key"""
+    """Stage to read in a csv. Output is offered with the 'output' key"""
 
     def __init__(self, filename, **kwargs):
         """
@@ -29,9 +29,9 @@ class CSVRead(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         uo = UObject(UObjectPhase.Write)
         uo.from_csv(self.__filename, **self.__kwargs)
-        return {'out': uo}
+        return {'output': uo}

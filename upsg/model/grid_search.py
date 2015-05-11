@@ -106,7 +106,7 @@ class GridSearch(MetaStage):
             node_params = p.add(NumpyRead(dict_to_np_sa(params)))
 
             node_cv_score['score'] > node_reduce['score_in{}'.format(i)]
-            node_params['out'] > node_reduce['params_in{}'.format(i)]
+            node_params['output'] > node_reduce['params_in{}'.format(i)]
 
         [node_map['{}_out'.format(key)] > node_final[key] for key in
             ['X_train', 'X_test', 'y_train', 'y_test']]

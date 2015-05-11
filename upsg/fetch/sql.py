@@ -3,7 +3,7 @@ from ..uobject import UObject, UObjectPhase
 
 
 class SQLRead(RunnableStage):
-    """Stage to read in an sql table. Output is offered with the 'out' key"""
+    """Stage to read in an sql table. Output is offered with the 'output' key"""
 
     def __init__(self, db_url, table_name, conn_params={}):
         """
@@ -36,7 +36,7 @@ class SQLRead(RunnableStage):
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
         uo = UObject(UObjectPhase.Write)
@@ -45,4 +45,4 @@ class SQLRead(RunnableStage):
                 self.__conn_params, 
                 self.__table_name, 
                 False)
-        return {'out': uo}
+        return {'output': uo}

@@ -12,24 +12,24 @@ class Timify(RunnableStage):
 
     Input Keys
     ----------
-    in
+    input
 
     Output Keys
     -----------
-    out
+    output
 
     """
 
     @property
     def input_keys(self):
-        return ['in']
+        return ['input']
 
     @property
     def output_keys(self):
-        return ['out']
+        return ['output']
 
     def run(self, outputs_requested, **kwargs):
-        in_data = kwargs['in'].to_np()
+        in_data = kwargs['input'].to_np()
         cols = []
         dtype = []
         
@@ -46,7 +46,7 @@ class Timify(RunnableStage):
 
         uo_out = UObject(UObjectPhase.Write)
         uo_out.from_np(np.fromiter(it.izip(*cols), dtype=dtype))
-        return {'out': uo_out}
+        return {'output': uo_out}
 
         
         

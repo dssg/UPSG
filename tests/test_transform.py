@@ -43,8 +43,8 @@ class TestTransform(UPSGTestCase):
         trans_node = p.add(RenameCols(rename_dict))
         csv_write_node = p.add(CSVWrite(self._tmp_files('out.csv')))
 
-        csv_read_node['out'] > trans_node['in']
-        trans_node['out'] > csv_write_node['in']
+        csv_read_node['output'] > trans_node['input']
+        trans_node['output'] > csv_write_node['input']
 
         p.run()
 
@@ -86,7 +86,7 @@ class TestTransform(UPSGTestCase):
 
         get_emp['tmp_emp'] > join['tmp_emp']
         get_hrs['tmp_hrs'] > join['tmp_hrs']
-        join['joined'] > csv_out['in']
+        join['joined'] > csv_out['input']
 
         p.run()
 
@@ -118,9 +118,9 @@ class TestTransform(UPSGTestCase):
         csv_out_sel = p.add(CSVWrite(self._tmp_files('out_sel.csv')))
         csv_out_rest = p.add(CSVWrite(self._tmp_files('out_rest.csv')))
 
-        csv_in['out'] > split['in']
-        split['out'] > csv_out_sel['in']
-        split['complement'] > csv_out_rest['in']
+        csv_in['output'] > split['input']
+        split['output'] > csv_out_sel['input']
+        split['complement'] > csv_out_rest['input']
 
         p.run()
         
@@ -184,9 +184,9 @@ class TestTransform(UPSGTestCase):
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
         csv_comp = p.add(CSVWrite(self._tmp_files('out_comp.csv')))
 
-        csv_in['out'] > q1_node['in']
-        q1_node['out'] > csv_out['in']
-        q1_node['complement'] > csv_comp['in']
+        csv_in['output'] > q1_node['input']
+        q1_node['output'] > csv_out['input']
+        q1_node['complement'] > csv_comp['input']
 
         p.run()
 
@@ -214,19 +214,19 @@ class TestTransform(UPSGTestCase):
         np_in = p.add(NumpyRead(dates))
 
         q2_node = p.add(Query("dt <= DT('2014-01-01')"))
-        np_in['out'] > q2_node['in']
+        np_in['output'] > q2_node['input']
 
         np_out = p.add(NumpyWrite())
-        q2_node['out'] > np_out['in']
+        q2_node['output'] > np_out['input']
 
         np_complement = p.add(NumpyWrite())
-        q2_node['complement'] > np_complement['in']
+        q2_node['complement'] > np_complement['input']
 
         np_out_inds = p.add(NumpyWrite())
-        q2_node['out_inds'] > np_out_inds['in']
+        q2_node['output_inds'] > np_out_inds['input']
 
         np_complement_inds = p.add(NumpyWrite())
-        q2_node['complement_inds'] > np_complement_inds['in']
+        q2_node['complement_inds'] > np_complement_inds['input']
 
         p.run()
 
@@ -243,8 +243,8 @@ class TestTransform(UPSGTestCase):
         fill_na = p.add(FillNA(-1))
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
 
-        csv_in['out'] > fill_na['in']
-        fill_na['out'] > csv_out['in']
+        csv_in['output'] > fill_na['input']
+        fill_na['output'] > csv_out['input']
 
         p.run()
 
@@ -261,8 +261,8 @@ class TestTransform(UPSGTestCase):
         le = p.add(LabelEncode())
         csv_out = p.add(CSVWrite(self._tmp_files('out.csv')))
 
-        csv_in['out'] > le['in']
-        le['out'] > csv_out['in']
+        csv_in['output'] > le['input']
+        le['output'] > csv_out['input']
 
         p.run()
 
@@ -285,8 +285,8 @@ class TestTransform(UPSGTestCase):
         np_in_y = p.add(NumpyRead(y))
 
         kfold = p.add(KFold(2, folds, random_state=0))
-        np_in_X['out'] > kfold['in0']
-        np_in_y['out'] > kfold['in1']
+        np_in_X['output'] > kfold['input0']
+        np_in_y['output'] > kfold['input1']
 
         ctrl_kf = SKKFold(rows, n_folds = folds, random_state=0)
         out_files = []
@@ -299,7 +299,7 @@ class TestTransform(UPSGTestCase):
                     out_file = out_key + '.csv'
                     out_files.append(out_file)
                     stage = p.add(CSVWrite(self._tmp_files(out_file)))
-                    kfold[out_key] > stage['in']
+                    kfold[out_key] > stage['input']
                     slice_inds = train_test_inds[select_i]
                     expected_folds.append(
                             np_nd_to_sa(arrays[array_i][slice_inds]))
@@ -340,8 +340,8 @@ class TestTransform(UPSGTestCase):
             LambdaStage(
                 log1_sqrt2_scale3, 
                 out_keys))
-        np_in['out'] > lambda_stage['A']
-        scale_in['out'] > lambda_stage['scale']
+        np_in['output'] > lambda_stage['A']
+        scale_in['output'] > lambda_stage['scale']
 
         csv_out_stages = []
         for key in out_keys:
@@ -350,7 +350,7 @@ class TestTransform(UPSGTestCase):
                         self._tmp_files(
                             'out_{}.csv'.format(key))))
             csv_out_stages.append(stage)
-            lambda_stage[key] > stage['in']
+            lambda_stage[key] > stage['input']
 
         p.run()
 
@@ -373,10 +373,10 @@ class TestTransform(UPSGTestCase):
         csv_in = p.add(CSVRead(in_file))
 
         timify = p.add(Timify())
-        csv_in['out'] > timify['in']
+        csv_in['output'] > timify['input']
 
         np_out = p.add(NumpyWrite())
-        timify['out'] > np_out['in']
+        timify['output'] > np_out['input']
 
         p.run()
         result = np_out.get_stage().result
@@ -391,19 +391,19 @@ class TestTransform(UPSGTestCase):
         self.assertTrue(np.array_equal(result, ctrl_better))
 
     def test_identity(self):
-        trials = [(('in0', 'in1'), ('out0', 'out1'), 
-                   {'in0': 'out0', 'in1': 'out1'},
+        trials = [(('input0', 'input1'), ('output0', 'output1'), 
+                   {'input0': 'output0', 'input1': 'output1'},
                    True),
-                  (('in0', 'in1', 'in2'), 
-                   ('in0_out', 'in1_out', 'in2_out'), 
-                   ('in0', 'in1', 'in2'),
+                  (('input0', 'input1', 'input2'), 
+                   ('input0_out', 'input1_out', 'input2_out'), 
+                   ('input0', 'input1', 'input2'),
                    True),
-                  (('in0', 'in1'), ('out0', 'out1'), 
-                   {'out0': 'in0', 'out1': 'in1'},
+                  (('input0', 'input1'), ('output0', 'output1'), 
+                   {'output0': 'input0', 'output1': 'input1'},
                    False),
-                  (('out0_in', 'out1_in', 'out2_in'),
-                   ('out0', 'out1', 'out2'),
-                   ('out0', 'out1', 'out2'),
+                  (('output0_in', 'output1_in', 'output2_in'),
+                   ('output0', 'output1', 'output2'),
+                   ('output0', 'output1', 'output2'),
                    False)]
         
         for input_keys, output_keys, arg, specify_input in trials:
@@ -422,10 +422,10 @@ class TestTransform(UPSGTestCase):
 
                 in_data = np_nd_to_sa(np.random.random((100, 10)))
                 node_in = p.add(NumpyRead(in_data))
-                node_in['out'] > node_id[input_key]
+                node_in['output'] > node_id[input_key]
 
                 node_out = p.add(NumpyWrite())
-                node_id[output_key] > node_out['in']
+                node_id[output_key] > node_out['input']
 
                 in_data_arrays.append(in_data)
                 out_nodes.append(node_out)
@@ -453,8 +453,8 @@ class TestTransform(UPSGTestCase):
                    np_nd_to_sa(random_data)), 
                   (FillNA, 
                    (0,), 
-                   'in', 
-                   'out',
+                   'input', 
+                   'output',
                    np_nd_to_sa(with_nans)))
         sel_cols = ('f2', 'f3', 'f4')
         trials = trials[1:]
@@ -465,19 +465,19 @@ class TestTransform(UPSGTestCase):
             node_in = p.add(NumpyRead(in_data))
             node_selected = p.add(
                 ApplyToSelectedCols(sel_cols, trans_cls, *args))
-            node_in['out'] > node_selected[in_key]
+            node_in['output'] > node_selected[in_key]
 
             node_out = p.add(NumpyWrite())
-            node_selected[out_key] > node_out['in']
+            node_selected[out_key] > node_out['input']
 
             node_ctrl_split = p.add(SplitColumns(sel_cols))
-            node_in['out'] > node_ctrl_split['in']
+            node_in['output'] > node_ctrl_split['input']
 
             node_ctrl_trans = p.add(trans_cls(*args))
-            node_ctrl_split['out'] > node_ctrl_trans[in_key]
+            node_ctrl_split['output'] > node_ctrl_trans[in_key]
 
             node_ctrl_out = p.add(NumpyWrite())
-            node_ctrl_trans[out_key] > node_ctrl_out['in']
+            node_ctrl_trans[out_key] > node_ctrl_out['input']
 
             p.run()
 
@@ -539,7 +539,7 @@ class TestTransform(UPSGTestCase):
         query(np_in)
 
         split_inds = p.add(SplitByInds())
-        split_inds(np_in, query['out_inds'])
+        split_inds(np_in, query['output_inds'])
 
         out = p.add(NumpyWrite())
         out(split_inds)

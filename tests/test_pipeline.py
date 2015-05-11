@@ -79,7 +79,7 @@ class TestPipeline(UPSGTestCase):
         csv_read_node = p.add(CSVRead(infile_name))
         csv_write_node = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
-        csv_read_node['out'] > csv_write_node['in']
+        csv_read_node['output'] > csv_write_node['input']
 
         p.run()
 
@@ -100,8 +100,8 @@ class TestPipeline(UPSGTestCase):
         csv_write_node = p.add(CSVWrite(self._tmp_files.get('out.csv')))
         impute_node = p.add(wrap_and_make_instance(Imputer))
 
-        csv_read_node['out'] > impute_node['X_train']
-        impute_node['X_new'] > csv_write_node['in']
+        csv_read_node['output'] > impute_node['X_train']
+        impute_node['X_new'] > csv_write_node['input']
 
         p.run()
 
@@ -188,10 +188,10 @@ class TestPipeline(UPSGTestCase):
 
     def test_syntax_iss48(self):
         # https://github.com/dssg/UPSG/issues/48
-        stage_in = MockupStage((), ('out',))
-        stage_trans = MockupStage(('in',), ('out',))
-        stage_filter = MockupStage(('in',), ('out', 'complement'))
-        stage_split_y = MockupStage(('in',), ('X', 'y'))
+        stage_in = MockupStage((), ('output',))
+        stage_trans = MockupStage(('input',), ('output',))
+        stage_filter = MockupStage(('input',), ('output', 'complement'))
+        stage_split_y = MockupStage(('input',), ('X', 'y'))
         stage_clf = MockupStage(('X_train', 'X_test', 'y_train'), ('y_pred', 'params'))
         stage_out = MockupStage(('result', 'params'), ())
 
@@ -204,10 +204,10 @@ class TestPipeline(UPSGTestCase):
         p_ctrl_clf = p_ctrl.add(stage_clf, 'clf')
         p_ctrl_out = p_ctrl.add(stage_out, 'out')
 
-        p_ctrl_in['out'] > p_ctrl_trans['in']
-        p_ctrl_trans['out'] > p_ctrl_filter['in']
-        p_ctrl_filter['out'] > p_ctrl_split_y_train['in']
-        p_ctrl_filter['complement'] > p_ctrl_split_y_test['in']
+        p_ctrl_in['output'] > p_ctrl_trans['input']
+        p_ctrl_trans['output'] > p_ctrl_filter['input']
+        p_ctrl_filter['output'] > p_ctrl_split_y_train['input']
+        p_ctrl_filter['complement'] > p_ctrl_split_y_test['input']
         p_ctrl_split_y_train['X'] > p_ctrl_clf['X_train']
         p_ctrl_split_y_train['y'] > p_ctrl_clf['y_train']
         p_ctrl_split_y_test['X'] > p_ctrl_clf['X_test']
