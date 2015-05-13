@@ -13,7 +13,15 @@ class LabelEncode(RunnableStage):
     
     Encodes all strings to a value with behavior similar to 
     sklearn.preprocessing.LabelEncoder
-    
+
+    **Input Keys**
+
+    input
+
+    **Output Keys**
+
+    output
+
     """
 
     @property

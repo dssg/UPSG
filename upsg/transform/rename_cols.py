@@ -10,21 +10,19 @@ class RenameCols(RunnableStage):
     
     Renames columns of the table 'input' and produces a table 'output' 
     that is identical to the 'input' table except with colums renamed .
+
+
+    Parameters
+    ----------
+    rename_dict : dict of str : str
+        A dictionary mapping old column names to new column names. If the
+        table connected to the 'input' input has columns corresponding to the
+        keys of this dictionary, the resulting table will have columns
+        names with the corresponding values.
     
     """
 
     def __init__(self, rename_dict):
-        """
-
-        parameters
-        ----------
-        rename_dict: dict of str : str
-            A dictionary mapping old column names to new column names. If the
-            table connected to the 'input' input has columns corresponding to the
-            keys of this dictionary, the resulting table will have columns
-            names with the corresponding values.
-
-        """
         self.__rename_dict = rename_dict
 
     @property

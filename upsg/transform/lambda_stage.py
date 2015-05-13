@@ -13,8 +13,8 @@ class LambdaStage(RunnableStage):
     returns either a Numpy structured array or a tuple of structured
     arrays or None.
 
-    Input Keys
-    ----------
+    **Input Keys**
+
     Input keys will correspond to the function used to initialize
     LambdaStage. For example, if you initialize a LambdaStage with: 
 
@@ -24,8 +24,8 @@ class LambdaStage(RunnableStage):
 
     Then the input keys will be 'employees' and 'hours'
 
-    Output Keys
-    -----------
+    **Output Keys**
+
     Output keys will correspond to the output_keys argument passed to 
     initialize LambdaStage. For example, if you initialize LambdaStage with:
 
@@ -33,41 +33,35 @@ class LambdaStage(RunnableStage):
     >>> stage = LambdaStage(my_func, ['first_fifty', 'rest'])
 
     Then the output keys will be 'first_fifty' and 'rest'
+    
+    Parameters
+    ----------
+    func : (0 or more structured arrays) -> (structured array or tuple of structured arrays or None)
+        Function to apply at this Stage. Numpy structured arrays will
+        be passed to the function and the function is expected to output
+        either one structured array if output_keys has length 1,
+        a tuple of structured arrays if output_keys has a length of more
+        than 1, or None if output_keys has a length of 0
+   
+    output_keys : tuple of str or None:
+        The keys to which outputs will be assigned. If func returns a
+        structured array, output_keys should be a tuple of length 1. If 
+        func returns a tuple of structured arrays, output_keys should have
+        length equal to the length of the returned tuple. If func returns
+        None, output_keys should be a tuple of length 0. If set to None,
+        output keys will be generated according to the pattern: 'output0', 
+        'output1', 'output2', ...
+
+    n_outputs : int
+        If output_keys is unspecified, the number of outputs that will be
+        expected. If n_outputs == 1, output keys will be ('output0',). If
+        n_outputs == 2, output keys will be ('output0', 'output1',) etc.
+
 
     """
 
 
     def __init__(self, func, output_keys=None, n_outputs=1):
-        """
-
-        Parameters
-        ----------
-        func: (0 or more structured arrays) -> 
-            (structured array or tuple of structured arrays or None)
-        
-            Function to apply at this Stage. Numpy structured arrays will
-            be passed to the function and the function is expected to output
-            either one structured array if output_keys has length 1,
-            a tuple of structured arrays if output_keys has a length of more
-            than 1, or None if output_keys has a length of 0
-       
-        output_keys: tuple of str or None:
-            
-            The keys to which outputs will be assigned. If func returns a
-            structured array, output_keys should be a tuple of length 1. If 
-            func returns a tuple of structured arrays, output_keys should have
-            length equal to the length of the returned tuple. If func returns
-            None, output_keys should be a tuple of length 0. If set to None,
-            output keys will be generated according to the pattern: 'output0', 
-            'output1', 'output2', ...
-
-        n_outputs: int
-            If output_keys is unspecified, the number of outputs that will be
-            expected. If n_outputs == 1, output keys will be ('output0',). If
-            n_outputs == 2, output keys will be ('output0', 'output1',) etc.
-
-        """
-
         self.__func = func
         self.__input_keys = inspect.getargspec(func).args
         if output_keys is not None:

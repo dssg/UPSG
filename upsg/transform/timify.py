@@ -10,12 +10,12 @@ class Timify(RunnableStage):
     Strings must follow ISO 8601 time or datetime format in accordance with:
     (http://docs.scipy.org/doc/numpy/reference/arrays.datetime.html)
 
-    Input Keys
-    ----------
+    **Input Keys**
+
     input
 
-    Output Keys
-    -----------
+    **Output Keys**
+    
     output
 
     """

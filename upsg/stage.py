@@ -43,18 +43,20 @@ class RunnableStage(__Stage):
 
         Parameters
         ----------
-        outputs_requested:
+        outputs_requested : list of str
             A list of the output keys that are connected to another Stage of
             the pipeline. A Stage may choose to do less work if some of the
             outputs that it offers will not be used
-        kwargs: A collection of keyword arguments corresponding to
+        kwargs : dict of (str : UObject)
+            A collection of keyword arguments corresponding to
             those specified in input_keys. Each argument will provide a
             readable UObject.
 
         Returns
         -------
-        A dictionary of UObjects that have been written to. The dictionary
-        should provide a value of each key specified in output_keys.
+        dict of (str : UObject)
+            A dictionary of UObjects that have been written to. The dictionary
+            should provide a value of each key specified in output_keys.
 
         """
         return {}
@@ -74,6 +76,10 @@ class MetaStage(__Stage):
 
         Returns
         -------
-        A tuple: (Pipeline, in_node, out_node)
+        tuple 
+            (pipeline, in_node, out_node) where pipeline is the subgraph
+            represented by this metastage, in_node is the node to which input
+            will be directed, and out_node is the node from which output will
+            be directed
         """
         return (Pipeline(), None, None)

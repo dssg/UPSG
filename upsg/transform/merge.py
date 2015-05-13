@@ -7,13 +7,15 @@ class Merge(RunnableStage):
     # different things
     """Does an operation analogous to SQL JOIN (or pandas DataFrame.merge)
 
-    Input Keys
-    ----------
-    input_left : first table to join
-    input_right : second table to join
+    **Input Keys**
+
+    input_left
+        first table to join
+    input_right
+        second table to join
     
-    Output Keys
-    -----------
+    **Output Keys**
+
     output
 
     Parameters
@@ -22,7 +24,7 @@ class Merge(RunnableStage):
         column on which to join the left table
     right_on : str
         column on which to join the right table
-    kwargs
+    kwargs : dict
         kwargs corresponding to the optional arguments of 
         pandas.DataFrame.merge other than left_on and right_on
 

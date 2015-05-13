@@ -5,6 +5,11 @@ from ..uobject import UObject, UObjectPhase
 class CSVRead(RunnableStage):
     """Stage to read in a csv
 
+    **Output Keys**
+        
+    Output
+        table read from csv
+
     Parameters
     ----------
     filename : str
@@ -28,10 +33,6 @@ class CSVRead(RunnableStage):
 
     @property
     def output_keys(self):
-        """
-        out
-            table read from csv
-        """
         return ['output']
 
     def run(self, outputs_requested, **kwargs):
