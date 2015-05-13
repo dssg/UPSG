@@ -332,7 +332,8 @@ class Pipeline(object):
     """Internal representation of a UPSG pipeline.
 
     Our structure is merely a graph of pipeline elements. Execution will
-    be relegated to either Drake or some simplified, internal replacement.
+    be relegated to either an external graph processing framework 
+    or some simplified, internal replacement.
 
     """
 

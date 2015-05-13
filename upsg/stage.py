@@ -54,7 +54,7 @@ class RunnableStage(__Stage):
 
         Returns
         -------
-        dict of (str : UObject)
+        : dict of (str : UObject)
             A dictionary of UObjects that have been written to. The dictionary
             should provide a value of each key specified in output_keys.
 

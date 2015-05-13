@@ -176,13 +176,17 @@ class KFold(RunnableStage):
     
     Splits tables 'input0', 'input1', 'input2', ... into n_folds train and test sets 
     called:
+
         'train0_0', 'test0_0', 'train0_1', 'test0_1',... (corresponding to
         different folds of 'input0')
+
         'train1_0', 'test1_0', 'train1_1', 'test1_1',... (corresponding to
         different folds of 'input1')
+
         'train2_0', 'test2_0', 'train2_1', 'test2_1',... (corresponding to
         different folds of 'input2')
-        ...
+
+        etc. 
 
     All input tables should have the same number of rows
 
@@ -261,9 +265,8 @@ class Query(RunnableStage):
     ----------
     query : str
         A query used to select rows conforming to a small, Python-like
-        langauge defined as follows:
+        langauge defined as follows::
 
-        ..code-block::
             primary_expr: 
                 '(' expr ')' | 
                 expr
@@ -297,12 +300,12 @@ class Query(RunnableStage):
         col_names need to be the name of a column in the table. col_names
         SHOULD NOT be quoted. Literal string SHOULD be quoted
 
-        Examples
-        --------
-        >>> q1 = Query("id > 50")
-        >>> q2 = Query("(name == 'Sarah') and (salary > 50000)")
-        >>> q3 = Query("(start_dt != end_dt) or (not category == 2")
-        >>> q4 = Query("start_dt < DT('2014-06-01')")
+    Examples
+    --------
+    >>> q1 = Query("id > 50")
+    >>> q2 = Query("(name == 'Sarah') and (salary > 50000)")
+    >>> q3 = Query("(start_dt != end_dt) or (not category == 2")
+    >>> q4 = Query("start_dt < DT('2014-06-01')")
 
     
     """
