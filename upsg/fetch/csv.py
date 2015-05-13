@@ -3,22 +3,21 @@ from ..uobject import UObject, UObjectPhase
 
 
 class CSVRead(RunnableStage):
-    """Stage to read in a csv. Output is offered with the 'output' key"""
+    """Stage to read in a csv
+
+    Parameters
+    ----------
+    filename : str
+        filename of the csv
+    kwargs : dict
+        keyword arguments to pass to numpy.genfromtxt
+        (http://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html)
+        If no kwargs are provided, we use: dtype=None, delimiter=',', 
+        names=True.
+
+    """
 
     def __init__(self, filename, **kwargs):
-        """
-
-        parameters
-        ----------
-        filename: str
-            filename of the csv
-        kwargs: 
-            keyword arguments to pass to numpy.genfromtxt
-            (http://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html)
-            If no kwargs are provided, we use: dtype=None, delimiter=',', 
-            names=True.
-
-        """
             
         self.__filename = filename
         self.__kwargs = kwargs
@@ -29,6 +28,10 @@ class CSVRead(RunnableStage):
 
     @property
     def output_keys(self):
+        """
+        out
+            table read from csv
+        """
         return ['output']
 
     def run(self, outputs_requested, **kwargs):

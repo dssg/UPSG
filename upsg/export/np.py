@@ -9,9 +9,15 @@ class NumpyWriteError(Exception):
 class NumpyWrite(RunnableStage):
     """Makes a UObject available as a Numpy array
 
-    Input Keys
-    ----------
+    **Input Keys**
+
     input
+        table to write to array
+
+    Attributes
+    ----------
+    Result : numpy.ndarray
+        Table that was passed to this Stage
 
     """
 
