@@ -53,16 +53,9 @@ Other packages
 --------------
 - `Graphviz <http://www.graphviz.org/>`_
 
-
----------
-Framework
----------
-
-ML programs are broken down into a number of Stages. Each Stage reads zero or
-more files encoded with the standard UPSG format (.upsg files), and then 
-writes
-
 -------
 Example
 -------
 
+This is how to implement the 
+`sklearn "Getting started" pipeline <http://scikit-learn.org/0.10/tutorial.html>`_
