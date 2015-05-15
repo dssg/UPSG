@@ -58,4 +58,42 @@ Example
 -------
 
 This is how to implement the 
-`sklearn "Getting started" pipeline <http://scikit-learn.org/0.10/tutorial.html>`_
+`sklearn "Getting started" pipeline <http://scikit-learn.org/0.10/tutorial.html>`_::
+
+    digits = datasets.load_digits()
+    digits_data = digits.data
+    # for now, we need a column vector rather than an array
+    digits_target = digits.target
+
+    p = Pipeline()
+
+    # load data from a numpy dataset
+    stage_data = NumpyRead(digits_data)
+    stage_target = NumpyRead(digits_target)
+
+    # train/test split
+    stage_split_data = SplitTrainTest(2, test_size=1, random_state=0)
+
+    # build a classifier
+    stage_clf = wrap_and_make_instance(SVC, gamma=0.001, C=100.)
+
+    # output to a csv
+    stage_csv = CSVWrite(self._tmp_files('out.csv'))
+
+    node_data, node_target, node_split, node_clf, node_csv = map(
+        p.add, [
+            stage_data, stage_target, stage_split_data, stage_clf,
+            stage_csv])
+
+    # connect the pipeline stages together
+    node_data['output'] > node_split['input0']
+    node_target['output'] > node_split['input1']
+    node_split['train0'] > node_clf['X_train']
+    node_split['train1'] > node_clf['y_train']
+    node_split['test0'] > node_clf['X_test']
+    node_clf['y_pred'] > node_csv['input']
+
+    p.run()
+    
+    result = self._tmp_files.csv_read('out.csv', True)
+
