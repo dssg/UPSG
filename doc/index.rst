@@ -13,7 +13,8 @@ Contents:
 
    getting_started.rst
    user_guide.rst
-
+   implementing_stage.rst
+   file_format.rst
 
 Indices and tables
 ==================
