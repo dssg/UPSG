@@ -105,21 +105,41 @@ interface or the :class:`upsg.stage.MetaStage` interface.
 
 Users can add functionality to their pipelines by either:
 
-1. Selecting a :ref:`pre-existing Stage <_stages_by_module>`. This is a good
+1. Selecting a :ref:`pre-existing Stage <stages_by_module>`. This is a good
    option, provided your venerable devs have anticipated your needs.
-2. Implement your own :class:`upsg.stage.Stage`. This option is the most 
+2. :ref:`Wrapping <wrapping_sklearn>` an sklearn estimator or metric
+3. Implement your own Stage. This option is the most 
    flexible, but also the most involved. See :doc:`implementing_stage`.
-3. Wrap arbitrary code inside the :class:`upsg.lambda_stage.LambdaStage`, which
+4. Wrap arbitrary code inside the 
+   :class:`upsg.transform.lambda_stage.LambdaStage`, which
    takes care of some of the boilerplate for you so you don't have to implement
-   a full Stage. (see :ref:`here <_lambda_stage>`)
+   a full Stage. (see :ref:`here <lambda_stage>`)
 
 .. _lambda_stage:
-The Lambda Stage
+
+The LambdaStage
 ================
 
+The :class:`LambdaStage <upsg.transform.lambda_stage.LambdaStage>` class
+provides a way to wrap arbitrary code in the UPSG framework with minimal 
+boilerplate. In order to initialize a LambdaStage, the user must provide:
+
+1. A Function that takes zero or more numpy structured arrays and returns 
+   either:
+    1. A numpy array, or,
+    2. A tuple of numpy arrays.
+2. Either a list of output keys or the number of outputs to expect
+
+Using LambdaStage, any function that takes and returns Numpy arrays can be
+seamlessly incorporated into UPSG. See the API for more details.
+
 .. _stages_by_module:
+
 Stages by module
 ================
+
+A number of other stages that perform common tasks have already been
+implemented. They are listed below.
 
 :mod:`.export`
 --------------
@@ -170,12 +190,25 @@ Stages by module
     upsg.transform.sql.RunSQL
     upsg.transform.timify.Timify
 
+.. _wrapping_sklearn:
+
 Wrapping sklearn
 ================
+
+By using the :func:`upsg.wrap.wrap_sklearn.wrap` function or the 
+func:`upsg.wrap.wrap_sklearn.wrap_and_make_instance` function we can make
+Stages from sklearn estimators or metrics with only a few lines of code. See
+API for more details
 
 ---------
 Pipelines
 ---------
+
+:class:`Pipelines <upsg.pipeline.Pipeline>` are the way that stages are
+organized into workflow. UPSG programs usually have three phases:
+
+1. create all the Stages
+2. Add Stages to a Pipeline, creating :class:`Nodes <upsg.pipeline.Node>`
 
 Connecting stages together
 ==========================
