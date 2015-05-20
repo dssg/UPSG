@@ -45,7 +45,8 @@ In UPSG, we would express that as follows::
     # connect the output of the fill stage to the input of the csv writer
     node_fill_na > node_write_csv
 
-.. TODO picture of 3-stage
+.. image:: images/three_stage.png
+   :align: center
     
 After the pipeline is constructed, we run our program and then we can see
 our results in filled_data.csv::
@@ -57,8 +58,9 @@ arbitrary directed acyclic graphs. That means that a pipeline can have
 and number of input stages and any number of output stages, and the stages
 can be connected in any way as long as there are no loops (cycles).
 
-.. TODO picture of something more complicated
-
+.. image:: images/complicated.png
+   :height: 500px
+   :align: center
 
 The stage interface
 ===================
@@ -169,10 +171,10 @@ implemented. They are listed below.
 
 .. autosummary::
     
-    upsg.model.cross_validation
-    upsg.model.grid_search
-    upsg.model.multiclassify
-    upsg.model.multimetric
+    upsg.model.cross_validation.CrossValidationScore
+    upsg.model.grid_search.GridSearch
+    upsg.model.multiclassify.Multiclassify
+    upsg.model.multimetric.Multimetric
 
 :mod:`.transform`
 -----------------
@@ -267,6 +269,9 @@ an output named "out_a" and :code:`stage_b` has an input named "in_b_1", and
 >>> node_b = p.add(stage_b)
 >>> node_a['out_a'] > node_b['in_b_1']
 
+.. image:: images/connecting1.png
+   :align: center
+
 Further, if :code:`stage_b` also takes an input called "in_b_2", which is
 supposed to be provided by the "out_c" argument of :code:`stage_c`, we can
 connect it like this:
@@ -274,7 +279,8 @@ connect it like this:
 >>> node_c = p.add(stage_c)
 >>> node_c['out_c'] > node_b['in_b_2']
 
-.. TODO picture
+.. image:: images/connecting2.png
+   :align: center
 
 For convenience, there are a few alternative syntaxes to express the same thing
 expressed above.
@@ -361,7 +367,8 @@ the edge are in the format::
     ::
     name of the input stage's input key
 
-.. TODO picture
+.. image:: images/visualize.png
+   :align: center
 
 In the above example, there is a Stage called "read_in" and a stage called 
 "write_out". "read_in" has an output argument called "output" which is 

@@ -140,6 +140,7 @@ elementwise multiplication and the elementwise addition are performed in
 separate, parallel Stages, allowing for the two operations to be performed in
 parallel if the schedular chooses to do so::
 
+    from upsg.pipeline import Pipeline
     from upsg.stage import MetaStage
     from upsg.uobject import UObject, UObjectPhase
     from upsg.transform.identity import Identity
@@ -172,12 +173,39 @@ parallel if the schedular chooses to do so::
             sum_node = self.__pipeline.add(sum_stage)
             prod_node = self.__pipeline.add(prod_stage)
             self.__exit_node = self.__pipeline.add(exit_stage)
-            self.__entry_node['input0_out'] > sum_stage['input0']
-            self.__entry_node['input1_out'] > sum_stage['input1']
-            self.__entry_node['input0_out'] > prod_stage['input0']
-            self.__entry_node['input1_out'] > prod_stage['input1']
-            sum_stage['sum'] > self.__exit_node['sum_in']
-            prod_stage['product'] > self.__exit_node['product_in']
+            self.__entry_node['input0_out'] > sum_node['input0']
+            self.__entry_node['input1_out'] > sum_node['input1']
+            self.__entry_node['input0_out'] > prod_node['input0']
+            self.__entry_node['input1_out'] > prod_node['input1']
+            sum_node['sum'] > self.__exit_node['sum_in']
+            prod_node['product'] > self.__exit_node['product_in']
 
+We can then connect our MetaStage to an outer pipeline as if it were a single 
+node::
 
-.. TODO picture
+    from upsg.fetch.csv import CSVRead
+    from upsg.export.csv import CSVWrite
+    
+    p = Pipeline()
+    read_input0_from_csv = p.add(CSVRead('input0.csv'))
+    read_input1_from_csv = p.add(CSVRead('input1.csv'))
+    sum_and_mult = p.add(SumAndMult())
+    write_sum_to_csv = p.add(CSVWrite('sum.csv'))
+    write_prod_to_csv = p.add(CSVWrite('prod.csv'))
+    read_input0_from_csv > sum_and_mult['input0']
+    read_input1_from_csv > sum_and_mult['input1']
+    sum_and_mult['sum'] > write_sum_to_csv
+    sum_and_mult['product'] > write_prod_to_csv
+
+We end up with a pipeline that looks like this:
+
+.. figure:: images/metastage.png
+   :align: center
+
+   The flattened outer pipeline after adding our MetaStage. Nodes that come
+   from the MetaStage are highlighted in yellow.
+
+The Pipeline that we constructed in our MetaStage has been transparently 
+embedded in our outer pipeline. Using MetaStages, it is possible to 
+automatically populate a Pipeline with thousands of stages without explicit
+user intervention.
