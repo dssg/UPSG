@@ -97,3 +97,8 @@ This is how to implement the
     
     result = self._tmp_files.csv_read('out.csv', True)
 
+----------
+Next Steps
+----------
+
+Check out the :doc:`user_guide`

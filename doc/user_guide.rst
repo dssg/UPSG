@@ -423,4 +423,24 @@ These are in the :mod:`upsg.utils` module.
 The Data Toaster
 ----------------
 
+The :class:`upsg.toaster.DataToaster` is an interface designed to build 
+pipelines without doing the process explicitly. Rather than interacting with
+Stages, Nodes, and Connections, the user interacts with a DataToaster, which
+resembles a 
+`Pandas DataFrame <http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html>`_
+As of release 0.0.1, functionality is limited, but it can be used for some
+simple tasks::
 
+        dt = DataToaster()
+        # Read in a csv
+        dt.from_csv('test_toaster.csv')
+        # Training is data before 2006-06-15; testing is after. The column
+        # giving us classification is 'cat'
+        dt.split_by_query('cat', "date < DT('2006-06-15')")
+        # Select features (manually, in this case)
+        dt.transform_select_cols(('factor_1', 'factor_2'))
+        # Do some last-minute cleanup
+        dt.transform_with_sklearn('sklearn.preprocessing.StandardScaler')
+        # Try a bunch of classifiers and parameters. Output to report.html
+        dt.classify_and_report(report_file_name='report.html')
+        dt.run()

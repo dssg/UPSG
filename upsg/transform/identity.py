@@ -21,7 +21,7 @@ class Identity(RunnableStage):
     ----------
     input_keys : list or dict of (str : str) or None
         The names of the input keys that this stage takes. If a list, the 
-        output keys will be the same as the input keys but with '_output' 
+        output keys will be the same as the input keys but with '_out' 
         appended. If a dictionary, the keys should be the input keys and the 
         values should be the output keys they map to.
     output_keys : list or dict of (str : str) or None
