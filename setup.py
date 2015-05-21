@@ -13,7 +13,8 @@ setup(
                           'matplotlib', 
                           'graphviz',
                           'SQLAlchemy',
-                          'tables'),
+                          'tables',
+                          'pandas'),
         package_data={'upsg': ['bin/*.py', 'resources/*.json']},
         zip_safe=False)
 

@@ -8,13 +8,13 @@ User Guide
 Stages
 ------
 
-UPSG programs are a number of pipeline stages that are connected in the
-context of a pipeline. Each stage performs one task (for example, reading
-data from a csv, imputing data, selecting features, or running an estimator
-on data). Pipelines specify which stages should be run in order and with
-which data. For example, a simple pipeline might read data from a csv,
-impute that data by replacing NaNs with a constant value, and then write 
-the imputed data to another csv. 
+UPSG programs are a number of pipeline stages that are connected in the context
+of a pipeline. Each stage performs one task (for example, reading data from a
+csv, imputing data, selecting features, or running an estimator on data).
+Pipelines specify which stages should be run, in order they should be run, and
+with which data they should be run. For example, a simple pipeline might read
+data from a csv, impute that data by replacing NaNs with a constant value, and
+then write the imputed data to another csv. 
 
 In UPSG, we would express that as follows::
     
@@ -45,9 +45,12 @@ In UPSG, we would express that as follows::
     # connect the output of the fill stage to the input of the csv writer
     node_fill_na > node_write_csv
 
-.. image:: images/three_stage.png
+.. figure:: images/three_stage.png
    :align: center
     
+   A simple pipeline which reads from a csv, fills NaN entries, and then
+   writes to a different csv.
+
 After the pipeline is constructed, we run our program and then we can see
 our results in filled_data.csv::
 
@@ -55,12 +58,14 @@ our results in filled_data.csv::
 
 Pipelines do not have to be linear, as in the above example. UPSG supports
 arbitrary directed acyclic graphs. That means that a pipeline can have
-and number of input stages and any number of output stages, and the stages
+any number of input stages and any number of output stages, and the stages
 can be connected in any way as long as there are no loops (cycles).
 
-.. image:: images/complicated.png
+.. figure:: images/complicated.png
    :height: 500px
    :align: center
+
+   A more complicated pipeline
 
 The stage interface
 ===================
@@ -68,7 +73,7 @@ The stage interface
 A stage is a program that:
 
 1. Reads zero or more :doc:`.upsg files <file_format>`
-2. Writes zero or more :doc:`.upsg files <file_format>`
+2. Writes zero or more .upsg files
 
 Each input and each output should have a human-readable lable, or key.
 For example, the CSVWrite stage has an output file with the key "output"
@@ -101,11 +106,11 @@ Programs can be written in bash, R, Python, C, or whatever you like.
 
 As of release 0.0.1, however, stages must be written in Python (or at least
 Python wrappers around other :class:`languages <upsg.transform.sql.RunSQL>`). 
-The Python class implementing the stage model is the 
-:class:`upsg.stage.Stage`.
+The Python classes implementing the stage model are
+:class:`upsg.stage.MetaStage` and :class:`uspg.stage.RunnableStage`.
 
-Python stages should implement either the :class:`upsg.stage.RunnableStage`
-interface or the :class:`upsg.stage.MetaStage` interface.
+Python stages should be subclasses of either :class:`upsg.stage.RunnableStage`
+or :class:`upsg.stage.MetaStage`.
 
 Users can add functionality to their pipelines by either:
 
@@ -203,7 +208,7 @@ Wrapping sklearn
 ================
 
 By using the :func:`upsg.wrap.wrap_sklearn.wrap` function or the 
-func:`upsg.wrap.wrap_sklearn.wrap_and_make_instance` function we can make
+:func:`upsg.wrap.wrap_sklearn.wrap_and_make_instance` function we can make
 Stages from sklearn estimators or metrics with only a few lines of code. See
 API for more details
 

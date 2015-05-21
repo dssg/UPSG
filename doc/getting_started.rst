@@ -11,7 +11,7 @@ interchange format, and a Python library for writing machine learning
 pipelines. 
 
 It is designed primarily to provide different teams working on different
-machine learning problems to share code across different languages
+machine learning problems a way to share code across different languages
 and environments.
 
 ------------
