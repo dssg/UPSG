@@ -106,11 +106,18 @@ somewhere else) would be::
         def run(self, outputs_requested, **kwargs):
             array_1 = kwargs['input0'].to_np()
             array_2 = kwargs['input1'].to_np()
-            uo_sum = UObject(UObjectPhase.Write)
-            uo_prod = UObject(UObjectPhase.Write)
-            uo_sum.from_np(elmtwise_sum(array_1, array_2))
-            uo_prod.from_np(elmtwise_prod(array_1, array_2))
-            return {'sum': uo_sum, 'product': uo_prod}
+            to_return = {}
+            # only calculate the sum if somebody requests it
+            if 'sum' in outputs_requested:
+                uo_sum = UObject(UObjectPhase.Write)
+                uo_sum.from_np(elmtwise_sum(array_1, array_2))
+                to_return['sum'] = uo_sum
+            # only calculate the product if somebody requests it
+            if 'product' in outputs_requested:
+                uo_prod = UObject(UObjectPhase.Write)
+                uo_prod.from_np(elmtwise_prod(array_1, array_2))
+                to_return['product'] = uo_prod
+            return to_return
 
 ------------------------
 Implementing a MetaStage
@@ -119,11 +126,12 @@ Implementing a MetaStage
 MetaStages do not implement the run method. Rather, they build their own,
 inner Pipelines, which will be transparently embedded in a larger, outer
 Pipeline when the MetaStage is added to the outer Pipeline. MetaStages must 
-implement the Pipeline property, which returns a tuple::
+implement the pipeline property, which returns a tuple::
     
-    (Pipeline, entry_node, exit_node)
+    (inner_pipeline, entry_node, exit_node)
 
-The Pipeline is the inner Pipeline that will be embedded in the outer Pipeline.
+The inner Pipeline will be embedded in some outer Pipeline when the outer 
+Pipeline's .add method is called.
 
 To the outer Pipeline, the MetaStage will look like a single Stage rather than
 being the collection of Stages that it actually is. Consequently, the MetaStage
@@ -160,23 +168,40 @@ parallel if the schedular chooses to do so::
             return (self.__pipeline, self.__entry_node, self.__exit_node) 
 
         def __init__(self):
+            # Our entry stage passes input arguments to the rest of the
+            # pipeline without altering them
             entry_stage = Identity(input_keys=['input0', 'input1'])
+
+            # Our LambdaStages take input from the entry stage and then
+            # do the actual work
             sum_stage = LambdaStage(
                 lambda input0, input1: elmtwise_sum(input0, input1),
                 ['sum'])
             prod_stage = LambdaStage(
                 lambda input0, input1: elmtwise_prod(input0, input1),
                 ['product'])
+
+            # Our exit stage collects output arguments from our Lambda
+            # stages and then passes them to the outer pipeline with the
+            # correct name
             exit_stage = Identity(output_keys=['sum', 'product'])
+
+            # Initialize the inner pipeline
             self.__pipeline = Pipeline()
+
+            # Add all our stages
             self.__entry_node = self.__pipeline.add(entry_stage)
             sum_node = self.__pipeline.add(sum_stage)
             prod_node = self.__pipeline.add(prod_stage)
             self.__exit_node = self.__pipeline.add(exit_stage)
+
+            # connect our entry node to our LambdaStage nodes
             self.__entry_node['input0_out'] > sum_node['input0']
             self.__entry_node['input1_out'] > sum_node['input1']
             self.__entry_node['input0_out'] > prod_node['input0']
             self.__entry_node['input1_out'] > prod_node['input1']
+
+            # connect our LambdaStage nodes to our exit node
             sum_node['sum'] > self.__exit_node['sum_in']
             prod_node['product'] > self.__exit_node['product_in']
 
@@ -186,12 +211,22 @@ node::
     from upsg.fetch.csv import CSVRead
     from upsg.export.csv import CSVWrite
     
+    # Initialize the outer pipeline
     p = Pipeline()
+
+    # Read our inputs from csv
     read_input0_from_csv = p.add(CSVRead('input0.csv'))
     read_input1_from_csv = p.add(CSVRead('input1.csv'))
+
+    # Initialize and add our SumAndMult Stage
     sum_and_mult = p.add(SumAndMult())
+
+    # Write our results to csvs
     write_sum_to_csv = p.add(CSVWrite('sum.csv'))
     write_prod_to_csv = p.add(CSVWrite('prod.csv'))
+
+    # Connect everything up. Notice that sum_and_mult looks like a 
+    # single node, even though it is actually an entire Pipeline
     read_input0_from_csv > sum_and_mult['input0']
     read_input1_from_csv > sum_and_mult['input1']
     sum_and_mult['sum'] > write_sum_to_csv
@@ -207,5 +242,5 @@ We end up with a pipeline that looks like this:
 
 The Pipeline that we constructed in our MetaStage has been transparently 
 embedded in our outer pipeline. Using MetaStages, it is possible to 
-automatically populate a Pipeline with thousands of stages without explicit
+automatically populate a Pipeline with thousands of Stages without explicit
 user intervention.

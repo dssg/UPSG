@@ -34,7 +34,7 @@ in a UPSG pipeline. The format specification follows.
         _UPSG_EMPTY_DICT
 
     *sql*
-        If the storage method is "sql", there will be a gropu called "/sql".
+        If the storage method is "sql", there will be a group called "/sql".
         That group will have the following attributes:
 
         db_url
@@ -47,5 +47,5 @@ in a UPSG pipeline. The format specification follows.
             A table that encodes a dictionary as in the "np" storage 
             specification. The dictionary encodes connection parameters used
             in the `DB API 2 <https://www.python.org/dev/peps/pep-0249/>`_
-            connect method.
+            .connect method.
 

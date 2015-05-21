@@ -263,7 +263,7 @@ Connecting stages together
 
 Once we have added our Stages to the pipeline and collected a number of 
 :class:`Nodes <upsg.pipeline.Node>`, we can connect our Nodes together in
-order to specify the dependencies between Stages. In general, if we have 
+order to specify the dependencies between Stages. For example, if we have 
 a Stage :code:`stage_a` and a Stage :code:`stage_b`, where :code:`stage_a` has 
 an output named "out_a" and :code:`stage_b` has an input named "in_b_1", and 
 :code:`stage_b` expects that it's input "in_b_1" will be provided by 
@@ -274,8 +274,10 @@ an output named "out_a" and :code:`stage_b` has an input named "in_b_1", and
 >>> node_b = p.add(stage_b)
 >>> node_a['out_a'] > node_b['in_b_1']
 
-.. image:: images/connecting1.png
+.. figure:: images/connecting1.png
    :align: center
+
+   stage_a's output "out_a" is connected to stage_b's input "in_b_1"
 
 Further, if :code:`stage_b` also takes an input called "in_b_2", which is
 supposed to be provided by the "out_c" argument of :code:`stage_c`, we can
@@ -284,8 +286,11 @@ connect it like this:
 >>> node_c = p.add(stage_c)
 >>> node_c['out_c'] > node_b['in_b_2']
 
-.. image:: images/connecting2.png
+.. figure:: images/connecting2.png
    :align: center
+
+   In addition, stage_c's output "out_c" is connected to stage_b's input
+   "in_b_2"
 
 For convenience, there are a few alternative syntaxes to express the same thing
 expressed above.
@@ -372,12 +377,12 @@ the edge are in the format::
     ::
     name of the input stage's input key
 
-.. image:: images/visualize.png
+.. figure:: images/visualize.png
    :align: center
 
-In the above example, there is a Stage called "read_in" and a stage called 
-"write_out". "read_in" has an output argument called "output" which is 
-connected to the input argument "input" of "write_out".
+   In the above example, there is a Stage called "read_in" and a stage called 
+   "write_out". "read_in" has an output argument called "output" which is 
+   connected to the input argument "input" of "write_out".
 
 One thing that might be useful to make graphs is to utilize the optional second
 argument of :func:`upsg.pipeline.Pipeline.add`. The second argument of 
@@ -397,7 +402,7 @@ Universal Objects
 
 The primary way that the UPSG Python library interfaces with .upsg files is
 through the :class:`Universal Object <uspg.uobject.UObject>` or UObject.
-Conceptually, the UObject is a write_once variable that is backed by a .upsg
+Conceptually, the UObject is a write-once variable that is backed by a .upsg
 file. The UObject can be written to using one of its "from\_" methods, and then
 read from using one of its "to\_" methods. You will generally not have to deal
 with UObjects unless you :doc:`implement your own Stage <implementing_stage>`.
@@ -439,7 +444,7 @@ The :class:`upsg.toaster.DataToaster` is an interface designed to build
 pipelines without doing the process explicitly. Rather than interacting with
 Stages, Nodes, and Connections, the user interacts with a DataToaster, which
 resembles a 
-`Pandas DataFrame <http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html>`_
+`Pandas DataFrame <http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html>`_.
 As of release 0.0.1, functionality is limited, but it can be used for some
 simple tasks::
 
