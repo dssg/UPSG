@@ -100,4 +100,4 @@ This is how to implement the
 Next Steps
 ----------
 
-Check out the `documentation <dssg.io/UPSG>`_
+Check out the `documentation <http://dssg.io/UPSG>`_
