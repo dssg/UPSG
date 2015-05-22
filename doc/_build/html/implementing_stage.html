@@ -1,0 +1,358 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Implementing a Stage &mdash; UPSG 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="UPSG 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="The .upsg Format" href="file_format.html" />
+    <link rel="prev" title="User Guide" href="user_guide.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="file_format.html" title="The .upsg Format"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="implementing-a-stage">
+<h1>Implementing a Stage<a class="headerlink" href="#implementing-a-stage" title="Permalink to this headline">¶</a></h1>
+<p>In order to implement a Stage, you should subclass either:</p>
+<ol class="arabic simple">
+<li><a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a>, or</li>
+<li><a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a>.</li>
+</ol>
+<p>In either class, a sublass must implement two properties:</p>
+<ol class="arabic simple">
+<li>.input_keys, and</li>
+<li>.output_keys</li>
+</ol>
+<p>The former returns a list of the names of the input arguments that the class
+will take; the latter returns a list of the output arguments that the class
+will provide. An important note is that all of the input arguments requested
+here will not necessarily be provided by the pipeline, and all output arguments
+will not necessarily be sent elsewhere.</p>
+<p>All input keys and output keys must be unique. There cannot be two input keys
+with the same name, two output keys with the same name, or an input key
+with the same name as an output key.</p>
+<p>For example, say we want to write a Stage that takes two structured arrays,
+performs an element-wise sum of the two arrays, and an element-wise multiply of
+the two arrays. We have two input arguments named &#8220;input0&#8221; and &#8220;input1&#8221;, and
+two output arguments named &#8220;sum&#8221; and &#8220;product&#8221;. A partial implementation would
+be:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.stage</span> <span class="kn">import</span> <span class="n">RunnableStage</span>
+
+<span class="k">class</span> <span class="nc">SumAndMult</span><span class="p">(</span><span class="n">RunnableStage</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">,</span> <span class="s">&#39;input1&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">,</span> <span class="s">&#39;product&#39;</span><span class="p">]</span>
+
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>The rest of implementation depends on whether we are implementing a
+RunnableStage or a MetaStage</p>
+<div class="section" id="implementing-a-runnablestage">
+<h2>Implementing a RunnableStage<a class="headerlink" href="#implementing-a-runnablestage" title="Permalink to this headline">¶</a></h2>
+<p>To implement a RunnableStage, the class must, in addition to input_keys and
+output_keys, implement the <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage.run" title="upsg.stage.RunnableStage.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.stage.RunnableStage.run()</span></code></a> method, which
+takes:</p>
+<ol class="arabic simple">
+<li>outputs_requested, A list of requested output keys, and</li>
+<li>a dict of (input keys: <a class="reference internal" href="upsg.html#upsg.uobject.UObject" title="upsg.uobject.UObject"><code class="xref py py-class docutils literal"><span class="pre">UObjects</span></code></a>) passed as
+keyword arguments.</li>
+</ol>
+<p>The method is expected to return a dict of (output keys: UObjects).</p>
+<p>The outputs_requested argument informs the Stage which of its output keys are
+connected elsewhere in the pipeline. If it takes a significant amount of
+computation to calculate one of the outputs and it is not present in
+outputs_requested, then the computation can be omitted and the output argument
+need not be returned.</p>
+<p>For each of the input keys, if it has been provided by the pipeline,
+<code class="code docutils literal"><span class="pre">kwargs[input_key]</span></code> should return a UObject corresponding to that input
+key. That UObject can then be interpreted using one of the UObject&#8217;s to_
+methods. For example, in order to interpret the input argument corresponding
+to input0 as a numpy array, we could do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">array_0</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_np</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In order to interpret input1 as an sql table, we could do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sql_1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;input1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_sql</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For each output argument, the run method is expected to initialize a UObject
+(in the <a class="reference internal" href="upsg.html#upsg.uobject.UObjectPhase" title="upsg.uobject.UObjectPhase"><code class="xref py py-class docutils literal"><span class="pre">UObjectPhase.Write</span></code></a> phase), store
+some data in the UObject with one of its from_ methods, and then put that
+UObject in the returned dictionary with its output key as a key. For example,
+if we wanted to return the variable <code class="code docutils literal"><span class="pre">calc_sum</span></code>, which was encoded as a
+Numpy array, using the output key &#8220;sum&#8221; we would do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">uo_sum</span> <span class="o">=</span> <span class="n">UObject</span><span class="p">(</span><span class="n">UObjectPhase</span><span class="o">.</span><span class="n">Write</span><span class="p">)</span>
+<span class="n">uo_sum</span><span class="o">.</span><span class="n">from_np</span><span class="p">(</span><span class="n">calc_sum</span><span class="p">)</span>
+<span class="k">return</span> <span class="p">{</span><span class="s">&#39;sum&#39;</span><span class="p">:</span> <span class="n">uo_sum</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>A full implementation of the example we started in the previous section
+(assuming we have defined <code class="code docutils literal"><span class="pre">elmtwise_sum</span></code> and <code class="code docutils literal"><span class="pre">elmtwise_prod</span></code>
+somewhere else) would be:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.stage</span> <span class="kn">import</span> <span class="n">RunnableStage</span>
+<span class="kn">from</span> <span class="nn">upsg.uobject</span> <span class="kn">import</span> <span class="n">UObject</span><span class="p">,</span> <span class="n">UObjectPhase</span>
+
+<span class="k">class</span> <span class="nc">SumAndMult</span><span class="p">(</span><span class="n">RunnableStage</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">,</span> <span class="s">&#39;input1&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">,</span> <span class="s">&#39;product&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs_requested</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">array_1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_np</span><span class="p">()</span>
+        <span class="n">array_2</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;input1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_np</span><span class="p">()</span>
+        <span class="n">to_return</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># only calculate the sum if somebody requests it</span>
+        <span class="k">if</span> <span class="s">&#39;sum&#39;</span> <span class="ow">in</span> <span class="n">outputs_requested</span><span class="p">:</span>
+            <span class="n">uo_sum</span> <span class="o">=</span> <span class="n">UObject</span><span class="p">(</span><span class="n">UObjectPhase</span><span class="o">.</span><span class="n">Write</span><span class="p">)</span>
+            <span class="n">uo_sum</span><span class="o">.</span><span class="n">from_np</span><span class="p">(</span><span class="n">elmtwise_sum</span><span class="p">(</span><span class="n">array_1</span><span class="p">,</span> <span class="n">array_2</span><span class="p">))</span>
+            <span class="n">to_return</span><span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">uo_sum</span>
+        <span class="c"># only calculate the product if somebody requests it</span>
+        <span class="k">if</span> <span class="s">&#39;product&#39;</span> <span class="ow">in</span> <span class="n">outputs_requested</span><span class="p">:</span>
+            <span class="n">uo_prod</span> <span class="o">=</span> <span class="n">UObject</span><span class="p">(</span><span class="n">UObjectPhase</span><span class="o">.</span><span class="n">Write</span><span class="p">)</span>
+            <span class="n">uo_prod</span><span class="o">.</span><span class="n">from_np</span><span class="p">(</span><span class="n">elmtwise_prod</span><span class="p">(</span><span class="n">array_1</span><span class="p">,</span> <span class="n">array_2</span><span class="p">))</span>
+            <span class="n">to_return</span><span class="p">[</span><span class="s">&#39;product&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">uo_prod</span>
+        <span class="k">return</span> <span class="n">to_return</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="implementing-a-metastage">
+<h2>Implementing a MetaStage<a class="headerlink" href="#implementing-a-metastage" title="Permalink to this headline">¶</a></h2>
+<p>MetaStages do not implement the run method. Rather, they build their own,
+inner Pipelines, which will be transparently embedded in a larger, outer
+Pipeline when the MetaStage is added to the outer Pipeline. MetaStages must
+implement the pipeline property, which returns a tuple:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">inner_pipeline</span><span class="p">,</span> <span class="n">entry_node</span><span class="p">,</span> <span class="n">exit_node</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The inner Pipeline will be embedded in some outer Pipeline when the outer
+Pipeline&#8217;s .add method is called.</p>
+<p>To the outer Pipeline, the MetaStage will look like a single Stage rather than
+being the collection of Stages that it actually is. Consequently, the MetaStage
+must select an entry_node and an exit_node that will collectively appear to the
+outer Pipeline as a single node. All the input sent by the outer Pipeline to
+the MetaStage will be delivered to the entry_node as input arguments. All the
+output generated by the MetaStage will come from the exit_node as output
+arguments.</p>
+<p>For example, we will implement the previous example as a MetaStage rather than
+a RunnableStage using <a class="reference internal" href="upsg.transform.html#upsg.transform.identity.Identity" title="upsg.transform.identity.Identity"><code class="xref py py-class docutils literal"><span class="pre">upsg.transform.identity.Identity</span></code></a> and
+<a class="reference internal" href="upsg.transform.html#upsg.transform.lambda_stage.LambdaStage" title="upsg.transform.lambda_stage.LambdaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.transform.lambda_stage.LambdaStage</span></code></a>. In this example, the
+element-wise multiplication and the element-wise addition are performed in
+separate, parallel Stages, allowing for the two operations to be performed in
+parallel if the scheduler chooses to do so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="kn">from</span> <span class="nn">upsg.stage</span> <span class="kn">import</span> <span class="n">MetaStage</span>
+<span class="kn">from</span> <span class="nn">upsg.uobject</span> <span class="kn">import</span> <span class="n">UObject</span><span class="p">,</span> <span class="n">UObjectPhase</span>
+<span class="kn">from</span> <span class="nn">upsg.transform.identity</span> <span class="kn">import</span> <span class="n">Identity</span>
+<span class="kn">from</span> <span class="nn">upsg.transform.lambda_stage</span> <span class="kn">import</span> <span class="n">LambdaStage</span>
+
+<span class="k">class</span> <span class="nc">SumAndMult</span><span class="p">(</span><span class="n">MetaStage</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">,</span> <span class="s">&#39;input1&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">,</span> <span class="s">&#39;product&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pipeline</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__entry_node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__exit_node</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Our entry stage passes input arguments to the rest of the</span>
+        <span class="c"># pipeline without altering them</span>
+        <span class="n">entry_stage</span> <span class="o">=</span> <span class="n">Identity</span><span class="p">(</span><span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">,</span> <span class="s">&#39;input1&#39;</span><span class="p">])</span>
+
+        <span class="c"># Our LambdaStages take input from the entry stage and then</span>
+        <span class="c"># do the actual work</span>
+        <span class="n">sum_stage</span> <span class="o">=</span> <span class="n">LambdaStage</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">input0</span><span class="p">,</span> <span class="n">input1</span><span class="p">:</span> <span class="n">elmtwise_sum</span><span class="p">(</span><span class="n">input0</span><span class="p">,</span> <span class="n">input1</span><span class="p">),</span>
+            <span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">])</span>
+        <span class="n">prod_stage</span> <span class="o">=</span> <span class="n">LambdaStage</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">input0</span><span class="p">,</span> <span class="n">input1</span><span class="p">:</span> <span class="n">elmtwise_prod</span><span class="p">(</span><span class="n">input0</span><span class="p">,</span> <span class="n">input1</span><span class="p">),</span>
+            <span class="p">[</span><span class="s">&#39;product&#39;</span><span class="p">])</span>
+
+        <span class="c"># Our exit stage collects output arguments from our Lambda</span>
+        <span class="c"># stages and then passes them to the outer pipeline with the</span>
+        <span class="c"># correct name</span>
+        <span class="n">exit_stage</span> <span class="o">=</span> <span class="n">Identity</span><span class="p">(</span><span class="n">output_keys</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">,</span> <span class="s">&#39;product&#39;</span><span class="p">])</span>
+
+        <span class="c"># Initialize the inner pipeline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
+
+        <span class="c"># Add all our stages</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__entry_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entry_stage</span><span class="p">)</span>
+        <span class="n">sum_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sum_stage</span><span class="p">)</span>
+        <span class="n">prod_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">prod_stage</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__exit_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">exit_stage</span><span class="p">)</span>
+
+        <span class="c"># connect our entry node to our LambdaStage nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__entry_node</span><span class="p">[</span><span class="s">&#39;input0_out&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sum_node</span><span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__entry_node</span><span class="p">[</span><span class="s">&#39;input1_out&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">sum_node</span><span class="p">[</span><span class="s">&#39;input1&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__entry_node</span><span class="p">[</span><span class="s">&#39;input0_out&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">prod_node</span><span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__entry_node</span><span class="p">[</span><span class="s">&#39;input1_out&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">prod_node</span><span class="p">[</span><span class="s">&#39;input1&#39;</span><span class="p">]</span>
+
+        <span class="c"># connect our LambdaStage nodes to our exit node</span>
+        <span class="n">sum_node</span><span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__exit_node</span><span class="p">[</span><span class="s">&#39;sum_in&#39;</span><span class="p">]</span>
+        <span class="n">prod_node</span><span class="p">[</span><span class="s">&#39;product&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__exit_node</span><span class="p">[</span><span class="s">&#39;product_in&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>We can then connect our MetaStage to an outer pipeline as if it were a single
+node:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.fetch.csv</span> <span class="kn">import</span> <span class="n">CSVRead</span>
+<span class="kn">from</span> <span class="nn">upsg.export.csv</span> <span class="kn">import</span> <span class="n">CSVWrite</span>
+
+<span class="c"># Initialize the outer pipeline</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
+
+<span class="c"># Read our inputs from csv</span>
+<span class="n">read_input0_from_csv</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">CSVRead</span><span class="p">(</span><span class="s">&#39;input0.csv&#39;</span><span class="p">))</span>
+<span class="n">read_input1_from_csv</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">CSVRead</span><span class="p">(</span><span class="s">&#39;input1.csv&#39;</span><span class="p">))</span>
+
+<span class="c"># Initialize and add our SumAndMult Stage</span>
+<span class="n">sum_and_mult</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">SumAndMult</span><span class="p">())</span>
+
+<span class="c"># Write our results to csvs</span>
+<span class="n">write_sum_to_csv</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">CSVWrite</span><span class="p">(</span><span class="s">&#39;sum.csv&#39;</span><span class="p">))</span>
+<span class="n">write_prod_to_csv</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">CSVWrite</span><span class="p">(</span><span class="s">&#39;prod.csv&#39;</span><span class="p">))</span>
+
+<span class="c"># Connect everything up. Notice that sum_and_mult looks like a</span>
+<span class="c"># single node, even though it is actually an entire Pipeline</span>
+<span class="n">read_input0_from_csv</span> <span class="o">&gt;</span> <span class="n">sum_and_mult</span><span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">]</span>
+<span class="n">read_input1_from_csv</span> <span class="o">&gt;</span> <span class="n">sum_and_mult</span><span class="p">[</span><span class="s">&#39;input1&#39;</span><span class="p">]</span>
+<span class="n">sum_and_mult</span><span class="p">[</span><span class="s">&#39;sum&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">write_sum_to_csv</span>
+<span class="n">sum_and_mult</span><span class="p">[</span><span class="s">&#39;product&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">write_prod_to_csv</span>
+</pre></div>
+</div>
+<p>We end up with a pipeline that looks like this:</p>
+<div class="figure align-center" id="id1">
+<img alt="_images/metastage.png" src="_images/metastage.png" />
+<p class="caption"><span class="caption-text">The flattened outer pipeline after adding our MetaStage. Nodes that come
+from the MetaStage are highlighted in yellow.</span></p>
+</div>
+<p>The Pipeline that we constructed in our MetaStage has been transparently
+embedded in our outer pipeline. Using MetaStages, it is possible to
+automatically populate a Pipeline with thousands of Stages without explicit
+user intervention.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Implementing a Stage</a><ul>
+<li><a class="reference internal" href="#implementing-a-runnablestage">Implementing a RunnableStage</a></li>
+<li><a class="reference internal" href="#implementing-a-metastage">Implementing a MetaStage</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="user_guide.html"
+                        title="previous chapter">User Guide</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="file_format.html"
+                        title="next chapter">The .upsg Format</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/implementing_stage.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="file_format.html" title="The .upsg Format"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Data Science for Social Good.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
