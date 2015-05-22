@@ -9,39 +9,38 @@ from ..uobject import UObject, UObjectPhase
 class Plot(RunnableStage):
     """Stage to make a plot
 
-    Input Keys
-    ----------
-    x
-    y
+    **Input Keys**
 
-    Output Keys
-    -----------
+    x
+        table of x coords
+    y
+        table of y coords
+
+    **Output Keys**
+
     plot_file
         the name of the file to which the plot was saved
+
+    Parameters
+    ----------
+    file_name: str
+        The name of the file to which the plot will be saved
+    title: str
+        Title of the plot
+    xlabel: str
+        Label of the x-axis
+    ylabel: str
+        Label of the y-axis
+    args: list
+        additional args to pass to matplotlib.pyplot.plot
+    kwargs: dict
+        additional kwargs to pass to matplotlib.pyplot.plot
+
 
     """
 
     def __init__(self, file_name, *args,
                  **kwargs):
-        """
-
-        Parameters
-        ----------
-        file_name: str
-            The name of the file to which the plot will be saved
-        title: str
-            Title of the plot
-        xlabel: str
-            Label of the x-axis
-        ylabel: str
-            Label of the y-axis
-        args: list
-            additional args to pass to matplotlib.pyplot.plot
-        kwargs: dict
-            additional kwargs to pass to matplotlib.pyplot.plot
-
-        """
-
         self.__file_name = file_name
         try:
             self.__title = kwargs['title']

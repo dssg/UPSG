@@ -25,16 +25,59 @@ class Multiclassify(MetaStage):
     best of the given set of parameters. Finally, a report is constructed 
     giving some metrics for each classifier.
 
-    Input Keys
-    ----------
+    **Input Keys**
+
     X_train
+
     y_train
+
     X_test
+
     y_test
 
-    Output Keys
-    -----------
+    **Output Keys**
+
     report_file
+
+    Parameters
+    ----------
+    clf_and_params_dict : dict of (
+            (upsg.stage.Stage class or 
+             sklearn.base.BaseEstimator class or 
+             str) : 
+            (dict of str : list)
+        )
+
+        A dictionary signifying the classifiers and parameters to run.
+        
+        The keys of this dictionary should be either:
+            1. classes that are subclasses of upsg.stage.Stage, or,
+            2. classes that are sklearn classifiers, or
+            3. strings that are the fully qualified package names 
+                sklearn classifiers.
+         
+         The values in the dictionary should be a set of parameters to try
+         as in the params_dict argument of 
+         upsg.model.grid_search.GridSearch
+
+         If not provided, a default set of classifiers and parameters
+         will be used. 
+
+    score_key : str
+        Key output from clf_stage that should be used for scoring. 
+            The table that the key stores should be of size 1x1
+
+    report_file_name : str
+        Base name of file in which to write the report.
+
+    cv : int (default 2)
+        Number of cross-validation folds used to test a configuration.
+    
+    metrics : list of (upsg.model.multimetric.VisualMetricSpec or 
+                       upsg.model.multimetric.NumericMetricSpec or
+                       None)              
+        Metrics to report for each classifier. If None, reports a 
+        precision-recall, an ROC, and auc for the ROC
 
     """
 
@@ -82,45 +125,6 @@ class Multiclassify(MetaStage):
 
         """
 
-        Parameters
-        ----------
-        clf_and_params_dict: dict of (
-                (upsg.stage.Stage class or 
-                 sklearn.base.BaseEstimator class or 
-                 str): 
-                (dict of str: list)
-            )
-
-            A dictionary signifying the classifiers and parameters to run.
-            
-            The keys of this dictionary should be either:
-                1) classes that are subclasses of upsg.stage.Stage, or,
-                2) classes that are sklearn classifiers, or
-                3) strings that are the fully qualified package names 
-                    sklearn classifiers.
-             
-             The values in the dictionary should be a set of parameters to try
-             as in the params_dict argument of 
-             upsg.model.grid_search.GridSearch
-
-             If not provided, a default set of classifiers and parameters
-             will be used. 
-
-        score_key: str
-            Key output from clf_stage that should be used for scoring. 
-                The table that the key stores should be of size 1x1
-
-        report_file_name: str
-            Base name of file in which to write the report.
-
-        cv: int (default 2)
-            Number of cross-validation folds used to test a configuration.
-        
-        metrics: list of (upsg.model.multimetric.VisualMetricSpec or 
-                          upsg.model.multimetric.NumericMetricSpec) or
-                            None              
-            Metrics to report for each classifier. If None, reports a 
-            precision-recall, an ROC, and auc for the ROC
 
         """
         if metrics is None:

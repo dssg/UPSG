@@ -12,19 +12,32 @@ from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
 
 class SplitColumns(RunnableStage):
-    """Splits a table 'input' into two tables 'output' and 'complement' where 
+    """
+    
+    Splits a table 'input' into two tables 'output' and 'complement' where 
     'output' consists of the given columns and 'complement' consists of the complement
-    of the columns"""
+    of the columns
+    
+    **Input Keys**
+
+    input
+
+    **Output Keys**
+
+    output
+        table with selected columns
+    complement
+        table with complement of selected columns
+
+    Parameters
+    ----------
+    columns : list of str
+        Colums that will appear in the 'output' table but not the 'complement'
+        table
+    
+    """
 
     def __init__(self, columns):
-        """
-
-        parameters
-        ----------
-        columns: list of str
-            Colums that will appear in the 'output' table but not the 'complement'
-            table
-        """
         self.__columns = columns
 
     @property
@@ -59,18 +72,31 @@ class SplitColumns(RunnableStage):
 
 class SplitY(RunnableStage):
 
-    """Splits a table 'input' into two tables 'X' and 'y' where y is one column of
-    A and X is everything else. """
+    """
+    
+    Splits a table 'input' into two tables 'X' and 'y' where y is one column of
+    A and X is everything else. 
+    
+    **Input Keys**
+
+    input
+
+    **Output Keys**
+    
+    X
+
+    y
+
+    Parameters
+    ----------
+    column : int or str
+        index or name of the column from which 'y' will be extracted
+
+
+    """
 
     def __init__(self, column):
-        """
 
-        parameters
-        ----------
-        column: int or str
-            index or name of the column from which 'y' will be extracted
-
-        """
         self.__column = column
 
     @property
@@ -104,23 +130,20 @@ class SplitTrainTest(RunnableStage):
     data 'train0', 'test0', 'train1', 'test1', 'train2', 'test2', ...
 
     All input tables should have the same number of rows
+
+    Parameters
+    ----------
+    n_arrays : int (default 1)
+        the number of arrays that will be split
+    kwargs : dict
+        arguments corresponding to the keyword arguments of
+        sklearn.cross_validation.train_test_split
     
     """
     # TODO wrap.wrap_sklearn in a more general way, like in wrap.wrap_sklearn
     # TODO split more than one array at a time
 
     def __init__(self, n_arrays=1, **kwargs):
-        """
-
-        parameters
-        ----------
-        n_arrays: int (default 1)
-            the number of arrays that will be split
-        kwargs:
-            arguments corresponding to the keyword arguments of
-            sklearn.cross_validation.train_test_split
-
-        """
         self.__kwargs = kwargs
         self.__n_arrays = n_arrays
 
@@ -153,33 +176,34 @@ class KFold(RunnableStage):
     
     Splits tables 'input0', 'input1', 'input2', ... into n_folds train and test sets 
     called:
+
         'train0_0', 'test0_0', 'train0_1', 'test0_1',... (corresponding to
         different folds of 'input0')
+
         'train1_0', 'test1_0', 'train1_1', 'test1_1',... (corresponding to
         different folds of 'input1')
+
         'train2_0', 'test2_0', 'train2_1', 'test2_1',... (corresponding to
         different folds of 'input2')
-        ...
+
+        etc. 
 
     All input tables should have the same number of rows
+
+    Parameters
+    ----------
+    n_arrays : int (default 1)
+        The number of arrays that will be split
+    n_folds : int (default 2)
+        The number of folds. Must be at least 2.
+    kwargs : dict
+        Arguments corresponding to the keyword arguments of
+        sklearn.cross_validation.KFold other than n and
+        n_folds
 
     """
 
     def __init__(self, n_arrays=1, n_folds=2, **kwargs):
-        """
-
-        parameters
-        ----------
-        n_arrays: int (default 1)
-            The number of arrays that will be split
-        n_folds: int (default 2)
-            The number of folds. Must be at least 2.
-        kwargs:
-            Arguments corresponding to the keyword arguments of
-            sklearn.cross_validation.KFold other than n and
-            n_folds
-
-        """
         self.__kwargs = kwargs
         self.__n_arrays = n_arrays
         self.__n_folds = n_folds
@@ -222,16 +246,67 @@ class QueryError(Exception):
 class Query(RunnableStage):
     """Selects rows to put in a table based on a given query
 
-    Input Keys
-    ----------
+    **Input Keys**
+
     input
 
-    Ouptu Keys
+    **Output Keys**
+
+    output 
+        table containing only rows that match the query
+    output_inds
+        one-column table containing the indices of in that matched the query
+    complement
+        table containing only rows that do not match the query
+    complement_inds
+        one-column table containing the indices of in that did not match the query
+
+    Parameters
     ----------
-    output: table containing only rows that match the query
-    output_inds: one-column table containing the indices of in that matched the query
-    complement: table containing only rows that do not match the query
-    complement_inds: one-column table containing the indices of in that did not match the query
+    query : str
+        A query used to select rows conforming to a small, Python-like
+        langauge defined as follows::
+
+            primary_expr: 
+                '(' expr ')' | 
+                expr
+            expr: 
+                mask | 
+                unop primary_expr | 
+                binop_expr
+            binop_expr:
+                '(' expr ')' binop '(' expr ')' |
+                '(' expr ')' binop variable |
+                variable binop '(' expr ')' 
+            variable: 
+                literal | 
+                col_name | 
+                '(' literal ')' | 
+                '(' col_name ')'
+            mask: 
+                col_name binop col_name | 
+                col_name binop literal |
+                literal binop col_name |
+                col_name -- for columns of boolean type
+            unop : 'not'
+            binop: '>' | '>=' | '<' | '<=' | '==' | '!=' | 'and' | 'or'
+            literal: 
+                NUMBER | 
+                STRING |
+                datetime
+            datetime:
+                "DT('" ISO_8601_DATE_OR_DATETIME_STRING "')" 
+
+        col_names need to be the name of a column in the table. col_names
+        SHOULD NOT be quoted. Literal string SHOULD be quoted
+
+    Examples
+    --------
+    >>> q1 = Query("id > 50")
+    >>> q2 = Query("(name == 'Sarah') and (salary > 50000)")
+    >>> q3 = Query("(start_dt != end_dt) or (not category == 2")
+    >>> q4 = Query("start_dt < DT('2014-06-01')")
+
     
     """
     __IN_TABLE_NAME = 'in_table'
@@ -347,55 +422,6 @@ class Query(RunnableStage):
             raise QueryError('node {} not supported'.format(node))
 
     def __init__(self, query):
-        """
-
-        Parameters
-        ----------
-        query : str
-            A query used to select rows conforming to a small, Python-like
-            langauge defined as follows:
-
-            primary_expr: 
-                '(' expr ')' | 
-                expr
-            expr: 
-                mask | 
-                unop primary_expr | 
-                binop_expr
-            binop_expr:
-                '(' expr ')' binop '(' expr ')' |
-                '(' expr ')' binop variable |
-                variable binop '(' expr ')' 
-            variable: 
-                literal | 
-                col_name | 
-                '(' literal ')' | 
-                '(' col_name ')'
-            mask: 
-                col_name binop col_name | 
-                col_name binop literal |
-                literal binop col_name |
-                col_name -- for columns of boolean type
-            unop : 'not'
-            binop: '>' | '>=' | '<' | '<=' | '==' | '!=' | 'and' | 'or'
-            literal: 
-                NUMBER | 
-                STRING |
-                datetime
-            datetime:
-                "DT('" ISO_8601_DATE_OR_DATETIME_STRING "')" 
-
-            col_names need to be the name of a column in the table. col_names
-            SHOULD NOT be quoted. Literal string SHOULD be quoted
-
-        examples
-        --------
-        >>> q1 = Query("id > 50")
-        >>> q2 = Query("(name == 'Sarah') and (salary > 50000)")
-        >>> q3 = Query("(start_dt != end_dt) or (not category == 2")
-        >>> q4 = Query("start_dt < DT('2014-06-01')")
-
-        """
         self.__query = query
 
 
@@ -453,13 +479,15 @@ class SplitByInds(RunnableStage):
     """
     Splits the in array according to provided indices
 
-    Input Keys
-    ----------
-    input : the table to split
-    inds : indices to select
+    **Input Keys**
 
-    Output Keys
-    -----------
+    input 
+        the table to split
+    inds 
+        indices to select
+
+    **Output Keys**
+
     output
     """
 

@@ -15,8 +15,12 @@ class WrapSKLearnException(Exception):
 
 
 def unpickle_estimator(sk_cls, params):
-    """ method used by pickle to unpickle wrapped estimators. Do not call
-    directly """
+    """ 
+    
+    method used by pickle to unpickle wrapped estimators. Do not call
+    directly 
+    
+    """
     cls = __wrap_estimator(sk_cls)
     return cls(**params)
 
@@ -224,8 +228,12 @@ def __wrap_estimator(sk_cls):
 
 
 def unpickle_metric(fun, args, kwargs):
-    """ method used by pickle to unpickle wrapped metrics. Do not call
-    directly """
+    """ 
+    
+    method used by pickle to unpickle wrapped metrics. Do not call
+    directly 
+    
+    """
     cls = __wrap_metric(fun)
     return cls(*args, **kwargs)
 
@@ -287,7 +295,7 @@ def __wrap_metric(fun):
 
 
 def wrap(target):
-    """returns a Stage class that wraps an sklearn object.
+    """Returns a Stage class that wraps an sklearn object.
 
     Parameters
     ----------
@@ -329,7 +337,7 @@ def wrap(target):
 
 
 def wrap_and_make_instance(target, **kwargs):
-    """returns an instance of a Stage class that wraps an sklearn object.
+    """Returns an instance of a Stage class that wraps an sklearn object.
 
     Parameters
     ----------

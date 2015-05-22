@@ -14,14 +14,32 @@ class CrossValidationScore(MetaStage):
     """Performs KFold cross-validation on a given classifier Stage and 
     outputs the average score
 
-    Input Keys
-    ----------
+    **Input Keys**
+
     X_train
+
     y_train
 
-    Output Keys
-    -----------
+    **Output Keys**
+
     score
+
+    Parameters
+    ----------
+    clf_stage : Stage class
+        class of a Stage to cross-validate
+    score_key : str
+        key output from clf_stage that should be used for scoring. 
+            The table that the key stores should be of size 1x1
+    params : dict of str: ? (default {})
+        The parameters pass to the classifier
+    n_folds: int (default 2)
+        The number of folds. Must be at least 2.
+    kfold_kwargs:
+        Arguments corresponding to the keyword arguments of
+        sklearn.cross_validation.KFold other than n and
+        n_folds
+
 
     """
 
@@ -51,26 +69,6 @@ class CrossValidationScore(MetaStage):
 
     def __init__(self, clf_stage, score_key, params={}, n_folds=2, 
                  **kfold_kwargs):
-        """
-
-        Parameters
-        ----------
-        clf_stage : Stage class
-            class of a Stage to cross-validate
-        score_key : str
-            key output from clf_stage that should be used for scoring. 
-                The table that the key stores should be of size 1x1
-        params : dict of str: ? (default {})
-            The parameters pass to the classifier
-        n_folds: int (default 2)
-            The number of folds. Must be at least 2.
-        kfold_kwargs:
-            Arguments corresponding to the keyword arguments of
-            sklearn.cross_validation.KFold other than n and
-            n_folds
-
-
-        """
 
         p = Pipeline()
         self.__pipeline = p

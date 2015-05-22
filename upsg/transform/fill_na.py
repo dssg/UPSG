@@ -12,9 +12,17 @@ class FillNA(RunnableStage):
     def __init__(self, default_value):
         """
 
-        parameters
+        **Input Keys**
+
+        input
+
+        **Output Keys**
+
+        output
+
+        Parameters
         ----------
-        default_value: number
+        default_value : number
 
         """
         self.__default_value = default_value

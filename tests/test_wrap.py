@@ -317,48 +317,6 @@ class TestWrap(UPSGTestCase):
         for metric in [roc_curve, roc_auc_score, precision_recall_curve]:
             self.__metric_pipeline(metric, in_data=in_data)
 
-        return
-
-        p = Pipeline()
-
-        node_data = p.add(NumpyRead(iris_data))
-        node_target = p.add(NumpyRead(iris_target))
-        node_split = p.add(SplitTrainTest(2, random_state=0))
-        node_clf = p.add(wrap_and_make_instance(SVC,
-                                       random_state=0))
-        node_select = p.add(SplitY(1))
-        node_roc = p.add(wrap_and_make_instance(roc_curve))
-        node_fpr_out = p.add(CSVWrite(self._tmp_files.get('out_fpr.csv')))
-        node_tpr_out = p.add(CSVWrite(self._tmp_files.get('out_tpr.csv')))
-
-        node_data['output'] > node_split['input0']
-        node_target['output'] > node_split['input1']
-
-        node_split['train0'] > node_clf['X_train']
-        node_split['train1'] > node_clf['y_train']
-        node_split['test0'] > node_clf['X_test']
-
-        node_clf['pred_proba'] > node_select['in']
-        node_select['y'] > node_roc['y_score']
-        node_split['test1'] > node_roc['y_true']
-
-        node_roc['fpr'] > node_fpr_out['input']
-        node_roc['tpr'] > node_tpr_out['input']
-
-        p.run(output='html')
-
-        result_fpr = self._tmp_files.csv_read('out_fpr.csv', True)
-        result_tpr = self._tmp_files.csv_read('out_tpr.csv', True)
-
-        ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
-            train_test_split(iris_data, iris_target, random_state=0))
-        ctrl_clf = SVC(random_state=0, probability=True)
-        ctrl_clf.fit(ctrl_X_train, ctrl_y_train)
-        ctrl_y_score = ctrl_clf.predict_proba(ctrl_X_test)[:, 1]
-        ctrl_fpr, ctrl_tpr, thresholds = roc_curve(ctrl_y_test, ctrl_y_score)
-
-        self.assertTrue(np.allclose(ctrl_fpr, result_fpr))
-        self.assertTrue(np.allclose(ctrl_tpr, result_tpr))
 
 if __name__ == '__main__':
     unittest.main()

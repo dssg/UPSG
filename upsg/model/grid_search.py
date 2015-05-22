@@ -18,18 +18,42 @@ class GridSearch(MetaStage):
     Then, the classifier with the best parameters can be used to make a
     predicition
 
-    Input Keys
-    ----------
+    **Input Keys**
+
     X_train
+
     y_train
+
     X_test
+
     y_test
 
-    Output Keys
-    -----------
-    y_pred : predicted y data corresponding to X_test for the best parameters
-    pred_proba : class probabilities for the best parameters
-    params : the best parameters found
+    **Output Keys**
+
+    y_pred 
+        predicted y data corresponding to X_test for the best parameters
+    pred_proba 
+        class probabilities for the best parameters
+    params 
+        the best parameters found
+
+    Parameters
+    ----------
+    clf_stage : Stage class
+        class of a Stage for which parameters will be tested
+    score_key : str
+        key output from clf_stage that should be used for scoring. 
+            The table that the key stores should be of size 1x1
+    params_dict : dict of (string : list)
+        A dictionary where the keys are parameters and their values are a
+        list of values to try for that paramter. For example, if given
+        {'param1' : [1, 10], 'param2' : ['a', 'b']}, GridSearch will
+        search for the highest-scoring among clf_stage(param1 = 1,
+        param2 = 'a'), clf_stage(param1 = 1, param2 = 'b'),
+        clf_stage(param1 = 10, param2 = 'b'), clf_stage(param1 = 10,
+        param2 = 'b')
+    cv : int (default 2)
+        Number of cross-validation folds used to test a configuration.
 
     """
 
@@ -58,27 +82,6 @@ class GridSearch(MetaStage):
             return {'params_out': best}
 
     def __init__(self, clf_stage, score_key, params_dict, cv=2):
-        """
-
-        Parameters
-        ----------
-        clf_stage : Stage class
-            class of a Stage for which parameters will be tested
-        score_key : str
-            key output from clf_stage that should be used for scoring. 
-                The table that the key stores should be of size 1x1
-        params_dict : dict of (string : list)
-            A dictionary where the keys are parameters and their values are a
-            list of values to try for that paramter. For example, if given
-            {'param1' : [1, 10], 'param2' : ['a', 'b']}, GridSearch will
-            search for the highest-scoring among clf_stage(param1 = 1,
-            param2 = 'a'), clf_stage(param1 = 1, param2 = 'b'),
-            clf_stage(param1 = 10, param2 = 'b'), clf_stage(param1 = 10,
-            param2 = 'b')
-        cv : int (default 2)
-            Number of cross-validation folds used to test a configuration.
-
-        """
 
         self.__clf_stage = clf_stage
         # produces dictionaries of the cartesian product of our parameters.

@@ -22,9 +22,9 @@ class ApplyToSelectedCols(MetaStage):
         Names of the columns to which the transform Stage will be supplied
     stage_cls : upsg.stage.Stage class
         the class of the transform Stage 
-    *args 
+    args : list
         init args for the Stage
-    **kwargs 
+    kwargs : dict
         init kwargs for the stage
 
     """

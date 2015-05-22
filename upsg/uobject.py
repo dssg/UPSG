@@ -64,39 +64,37 @@ class UObject(object):
     The interface to use will be chosen once when the UObject is being
     written and at least once when the UObject is being read. In order to
     choose an interface, first create a UObject instance, and then invoke one
-    of its methods prefixed with "to_" to read or "from_" to write.  For
+    of its methods prefixed with "to\\_" to read or "from\\_" to write.  For
     example, to_postgres or from_dataframe.
 
     If an object is invoked in write mode, it must be finalized
     before it can be read by another phase in the pipeline using one of
-    the "to_" methods.
+    the "to\\_" methods.
+
+    After a uobject instance is created, then the interface can be chosen and 
+    it can be read or written to in the rest of the program. Each instance of 
+    UObject must be either read-only or write-only.
+
+    Parameters
+    ----------
+    phase : {UObjectPhase.Write, UObjectPhase.Read}
+        A member of UObjectPhase specifying whether the U_object
+        is being written or read. 
+    file_name : str
+        The name of the .upsg file representing this universal
+        intermediary object.
+
+        If the file is being written, this argument is optional. If not
+        specified, an arbitrary, unique filename will be chosen. This
+        filename can be found by invoking the get_file_name function.
+
+        If the file is being read, this argument is mandatory. Failure
+        to specify the argument will result in an exception.
 
     """
 
     def __init__(self, phase, file_name=None):
-        """initializer
 
-        Prepares a UObject to be further used in a program. After a UObject
-        instance is created, then the interface can be chosen and it can be
-        read or written to in the rest of the program. Each instance of
-        UObject must be either read-only or write-only.
-
-        Parameters
-        ----------
-        phase: A member of UObjectPhase specifying whether the U_object
-            is being written or read. Should be either UObjectPhase.Write
-            or UObjectPhase.Read, respectively.
-        file_name: The name of the .upsg file representing this universal
-            intermediary object.
-
-            If the file is being written, this argument is optional. If not
-            specified, an arbitrary, unique filename will be chosen. This
-            filename can be found by invoking the get_file_name function.
-
-            If the file is being read, this argument is mandatory. Failure
-            to specify the argument will result in an exception.
-
-        """
         self.__phase = phase
         self.__finalized = False
         self.__file_name = file_name
@@ -126,8 +124,12 @@ class UObject(object):
         self.__file.close()
 
     def get_phase(self):
-        """returns a member of UObjectPhase signifying whether the UObject
-        is being read or written."""
+        """
+        
+        returns a member of UObjectPhase signifying whether the UObject
+        is being read or written.
+        
+        """
         return self.__phase
 
     def get_file_name(self):
@@ -138,16 +140,18 @@ class UObject(object):
         """
 
         If the UObject is being written, returns a boolean signifying
-        whether or not one of the "from_" methods has been called yet.
+        whether or not one of the "from\\_" methods has been called yet.
 
         If the UObject is being read, returns a boolean specifying
-        whether or not one of the "to_" methods has been called yet.
+        whether or not one of the "to\\_" methods has been called yet.
 
         """
         return self.__finalized
 
     def write_to_read_phase(self):
-        """Converts a finalized UObject in its write phase into a UObject
+        """
+        
+        Converts a finalized UObject in its write phase into a UObject
         in its read phase.
 
         Use this function to pass the Python representation of a UObject
@@ -248,7 +252,8 @@ class UObject(object):
 
         Returns
         -------
-        The return value of converter
+        ?
+            The return value of converter
 
         """
 
@@ -264,7 +269,8 @@ class UObject(object):
 
         Returns
         -------
-        A numpy array encoding the data in this UObject
+        numpy.ndarray
+            A numpy array encoding the data in this UObject
 
         """
 
@@ -279,9 +285,9 @@ class UObject(object):
 
         Parameters
         ----------
-        file_name: str
+        file_name : str
             name of csv file to write
-        kwargs:
+        kwargs : dict
             arguments to pass to numpy.savetxt
             (http://docs.scipy.org/doc/numpy/reference/generated/numpy.savetxt.html)
             If not provided, will use by default delimiter=',', fmt='%s'. 
@@ -289,7 +295,8 @@ class UObject(object):
 
         Returns
         -------
-        The path of the csv file
+        str
+            The path of the csv file
 
         """
         if not kwargs:
@@ -320,7 +327,8 @@ class UObject(object):
 
         Returns
         -------
-        An SQLTableInfo with information for the created table
+        SQLTableInfo 
+            SQLTableInfo with information for the created table
 
         """
         sql_table_info = self.__to(
@@ -335,13 +343,14 @@ class UObject(object):
     def to_dict(self):
         """Makes the universal object available in a dictionary.
 
-        Returns
-        -------
-        A dictionary containing a representation of the
-        object.
-
         This is probably the choice to use when a universal object encodes
         parameters for a model.
+
+        Returns
+        -------
+        dict
+            A dictionary containing a representation of the
+            object.
 
         """
 
@@ -454,7 +463,9 @@ class UObject(object):
 
     def from_sql(self, db_url, conn_params, table_name,
                  pipeline_generated_object):
-        """Encodes a sql table in the universal object and prepares
+        """
+        
+        Encodes a sql table in the universal object and prepares
         the .upsg file.
 
         Parameters
@@ -495,11 +506,14 @@ class UObject(object):
         self.__from(converter)
 
     def from_dict(self, d):
-        """Writes contents dictionary to the universal object
+        """
+        
+        Writes contents dictionary to the universal object
         and prepares the .upsg file.
 
         This is probably the choice to use when a universal object encodes
         parameters for a model.
+
         """
 
         def converter(hfile):

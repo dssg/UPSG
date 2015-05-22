@@ -1,4 +1,4 @@
-import os
+import os 
 import inspect
 import itertools as it
 import re
@@ -38,7 +38,9 @@ def np_dtype_is_homogeneous(A):
     return all(dtype[i] == first_dtype for i in xrange(len(dtype)))
 
 def np_sa_to_nd(sa):
-    """Returns a view of a numpy structured array as a single-type 1 or
+    """
+    
+    Returns a view of a numpy structured array as a single-type 1 or
     2-dimensional array. If the resulting nd array would be a column vector,
     returns a 1-d array instead. If the resulting array would have a single
     entry, returns a 0-d array instead
@@ -57,12 +59,12 @@ def np_sa_to_nd(sa):
 
     Parameters
     ----------
-    sa: numpy.ndarray
+    sa : numpy.ndarray
         The structured array to view
 
     Returns
     -------
-    A tuple (nd, dtype)
+    tuple (nd, dtype)
         where nd is numpy.ndarray array view and dtype is the numpy.dtype of
         the structured array that was passed in.
     """
@@ -82,14 +84,16 @@ def np_sa_to_nd(sa):
     return (nd, dtype)
 
 def np_nd_to_sa(nd, dtype=None):
-    """Returns a view of a numpy, single-type, 0, 1 or 2-dimensional array as a
+    """
+    
+    Returns a view of a numpy, single-type, 0, 1 or 2-dimensional array as a
     structured array
 
     Parameters
     ----------
-    nd: numpy.ndarray
+    nd : numpy.ndarray
         The array to view
-    dtype: numpy.dtype or None (optional)
+    dtype : numpy.dtype or None (optional)
         The type of the structured array. If not provided, or None, nd.dtype is
         used for all columns.
 
@@ -121,14 +125,22 @@ def np_nd_to_sa(nd, dtype=None):
 
 
 def is_sa(A):
-    """Returns true if the numpy.ndarray A is a structured array, false
-    otherwise."""
+    """
+    
+    Returns true if the numpy.ndarray A is a structured array, false
+    otherwise.
+    
+    """
     return A.dtype.isbuiltin == 0
 
 
 def np_type(val):
-    """Returns a string or type that can be passed to numpy.dtype() to
-    generate the type of val"""
+    """
+    
+    Returns a string or type that can be passed to numpy.dtype() to
+    generate the type of val
+    
+    """
     if isinstance(val, basestring):
         return 'S{}'.format(len(val))
     return type(val)
@@ -285,7 +297,8 @@ def np_to_sql(A, tbl_name, conn):
 
     Returns
     -------
-    sqlalchemy.schema.table corresponding to the uploaded structured array
+    sqlalchemy.schema.table 
+        sqlalchemy table corresponding to the uploaded structured array
 
     """
     dtype = A.dtype
@@ -312,8 +325,12 @@ def np_to_sql(A, tbl_name, conn):
 
 
 def random_table_name():
-    """Returns a random table name prefixed with _UPSG_ that is unlikely
-    to collide with another random table name"""
+    """
+    
+    Returns a random table name prefixed with _UPSG_ that is unlikely
+    to collide with another random table name
+    
+    """
     return ('_UPSG_' + str(uuid.uuid4())).replace('-', '_')
 
 
@@ -322,6 +339,15 @@ def html_escape(s):
     return cgi.escape(s).encode('ascii', 'xmlcharrefreplace')
 
 def import_object_by_name(target):
+    """Imports an object given its fully qualified package name
+
+    Examples
+    --------
+
+    >>> SVC = import_by_name('sklearn.svm.svc')
+
+    """
+
     split = target.split('.')
     object_name = split[-1]
     module_name = '.'.join(split[:-1])
@@ -329,6 +355,13 @@ def import_object_by_name(target):
     return skl_module.__dict__[object_name]
 
 def obj_to_str(sa):
+    """
+    
+    Takes a structured array with columns of "O" (object) dtype and converts 
+    them to columns of "S" (string) type. The length of the string columns are
+    the length of the longest string in the column
+
+    """
     cols = []
     ndtype = []
     for col_name, sub_dtype in sa.dtype.descr:

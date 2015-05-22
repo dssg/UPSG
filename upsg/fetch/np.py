@@ -5,6 +5,19 @@ from upsg.utils import is_sa, np_nd_to_sa
 
 
 class NumpyRead(RunnableStage):
+    """Read into pipeline from numpy array
+
+    **Output Keys**
+
+    output
+        table read from Numpy array
+
+    Parameters
+    ----------
+    A : numpy.ndarray
+        Numpy array to read in
+
+    """
 
     def __init__(self, A):
         self.__A = A

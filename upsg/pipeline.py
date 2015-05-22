@@ -21,23 +21,29 @@ class PipelineException(Exception):
 
 
 class Edge(object):
-    """A directed graph edge"""
+    """A directed graph edge
+    
+    Parameters
+    ----------
+    conn_from : Connection
+        The Connection which the edge is directed from
+    conn_to : Connection
+        The Connection which the edge is directed to
+    uid : str or None
+        The unique uid of edge. If not provided, a uid will be generated
+
+    Attributes
+    ----------
+    conn_from : Connection
+        The Connection which the edge is directed from
+    conn_to : Connection
+        The Connection which the edge is directed to
+    uid : str or None
+        The unique uid of edge. If not provided, a uid will be generated
+        
+    """
 
     def __init__(self, conn_from, conn_to, uid=None):
-        """
-
-        Parameters
-        ----------
-        conn_from: Connection
-            The Connection which the edge is directed from
-
-        conn_to: Connection
-            The Connection which the edge is directed to
-
-        uid: str or None
-            The unique uid of edge. If not provided, a uid will be generated
-
-        """
         self.__conn_from = weakref.ref(conn_from)
         self.__conn_to = weakref.ref(conn_to)
         if uid is None:
@@ -63,32 +69,43 @@ class Connection(object):
 
     A Connection is not a graph edge. It's more accurate to say that a
     Connection is one side of an edge. For example, say we have Nodes A
-    and B. Node A has an output key 'output' and Node B has an input key 'input'.
-    Then, node A has a Connection A['output'] and Node B has a Connection B['input'].
-    In order to create an edge between Node A and Node B, we do:
+    and B. Node A has an output key 'output' and Node B has an input key 
+    'input'. Then, node A has a Connection A['output'] and Node B has a 
+    Connection B['input'].  In order to create an edge between Node A and 
+    Node B, we do:
 
-    A['output'].connect_to(B['input'])
+    >>> A['output'].connect_to(B['input'])
 
     or, alternatively,
 
-    A['output'] > B['input']
+    >>> A['output'] > B['input']
+    
+    Parameters
+    ----------
+    key : str
+        The name of the input key or output key that that this Connection
+        signifies
+    outgoing : bool
+        True if the edge is outgoing, False if the edge is incoming
+    node : Node
+        The Node that owns this connection
+
+    Attributes
+    ----------
+    outgoing : bool
+        True if the edge is outgoing, False if the edge is incoming
+    other : Connection or None
+        The connection to which this Connection connects
+    key : str
+        This connection's key
+    node : Node
+        The Node that owns this connection
+    edge : Edge
+        The Edge between this connection and other
 
     """
 
     def __init__(self, key, outgoing, node):
-        """
-
-        Parameters
-        ----------
-        key: str
-            The name of the input key or output key that that this Connection
-            signifies
-        outgoing: bool
-            True if the edge is outgoing, False if the edge is incoming
-        node: Node
-            The Node that owns this connection
-
-        """
         self.__key = key
         self.__other = None
         self.__outgoing = outgoing
@@ -151,27 +168,27 @@ class Connection(object):
 
 class Node(object):
 
-    """A real or virtual Node the Pipeline graph"""
+    """A real or virtual Node the Pipeline graph
+
+    Parameters
+    ----------
+    stage : Stage
+        The Stage to be run when this Node is executed
+    connections : dict of (str : Connection) or None
+        If provided, the Node will use the provided connections rather than
+        making its own. This is useful for virtual nodes which manage
+        Connections for a subgraph of the Pipeline rather than for an
+        individual stage.
+    label : str or None
+        If provided, will be returned by this node's __str__ method. 
+        Otherwise, will default to using __repr__
+    uid : str or None
+        The unique uid of edge. If not provided, a uid will be generated
+
+    """
+
 
     def __init__(self, stage, connections=None, label=None, uid=None):
-        """
-
-        Parameters
-        ----------
-        stage: Stage
-            The Stage to be run when this Node is executed
-        connections: dict of {str : Connection} or None
-            If provided, the Node will use the provided connections rather than
-            making its own. This is useful for virtual nodes which manage
-            Connections for a subgraph of the Pipeline rather than for an
-            individual stage.
-        label: str or None
-            If provided, will be returned by this node's __str__ method. 
-            Otherwise, will default to using __repr__
-        uid: str or None
-            The unique uid of edge. If not provided, a uid will be generated
-
-        """
         self.__stage = stage
         self.__connections = {}
         if connections is None:
@@ -187,7 +204,7 @@ class Node(object):
         self.__uid = uid    
 
     def __getitem__(self, key):
-        """Gets the COnnections specified by key"""
+        """Gets the Connections specified by key"""
         return self.__connections[key]
 
     def __call__(self, *args, **kwargs):
@@ -197,25 +214,33 @@ class Node(object):
         ----------
         args : list of (Node or Connection)
             The nth output_key of self.output_keys will be connected to the
-            nth node or connection. For example, if self.output_keys == 
-            ['output', 'complement', 'status'], and we invoke 
-            self(clf_node['X_train'], clf_node['X_test'], status_node),
+            nth node or connection. For example, if 
+            
+            >>> self.output_keys == ['output', 'complement', 'status']
+            
+            and we invoke 
+
+            >>> self(clf_node['X_train'], clf_node['X_test'], status_node),
+
             it is equivalent to doing:
 
-            self['output'] > clf_node['X_train'] 
-            self['complement'] > clf_node['X_test']
-            self['status'] > status_node
+            >>> self['output'] > clf_node['X_train'] 
+            >>> self['complement'] > clf_node['X_test']
+            >>> self['status'] > status_node
 
         kwargs : dict of str: (Node or Connection)
             The output key corresponding to the given keyword will be 
             connected to the argument assigned to that output key. For
-            example, if we invoke self(complement=clf_node['X_test'], 
-            status=status_node, output=clf_node['X_train']) it is equivalent to
-            doing:
+            example, if we invoke 
+            
+            >>> self(complement=clf_node['X_test'], 
+            ...     status=status_node, output=clf_node['X_train']) 
 
-            self['complement'] > clf_node['X_test']
-            self['status'] > status_node
-            self['output'] > clf_node['X_train'] 
+            it is equivalent to doing:
+
+            >>> self['complement'] > clf_node['X_test']
+            >>> self['status'] > status_node
+            >>> self['output'] > clf_node['X_train'] 
 
         """
         input_keys = self.input_keys
@@ -238,7 +263,7 @@ class Node(object):
         return self.__stage
 
     def get_inputs(self, live_only=True):
-        """Returns a dictionary of {key : Connection} for all Connections
+        """Returns a dict of (key : Connection) for all Connections
         that are incoming.
 
         Parameters
@@ -257,14 +282,18 @@ class Node(object):
                     self.__connections[key].other is not None))}
 
     def get_outputs(self, live_only=True):
-        """Returns a dictionary of {key : Connection} for all Connections
-        that are outgoing.
+        """
 
         Parameters
         ----------
         live_only: bool
             if True, will only return Connections that are actually connected
                 to another node.
+
+        Returns
+        -------
+        dict of (key: Connection)
+            represents outgoing connections
 
         """
         return {key: self.__connections[key] for key in self.__connections
@@ -303,7 +332,8 @@ class Pipeline(object):
     """Internal representation of a UPSG pipeline.
 
     Our structure is merely a graph of pipeline elements. Execution will
-    be relegated to either Drake or some simplified, internal replacement.
+    be relegated to either an external graph processing framework 
+    or some simplified, internal replacement.
 
     """
 
@@ -316,24 +346,30 @@ class Pipeline(object):
                 for node in pipeline.__nodes}
 
     def is_equal_by_str(self, other):
-        """Returns whether or not self has the same nodes and edges as 
+        """
+        
+        Returns whether or not self has the same nodes and edges as 
         Pipeline other. Node equality is determined by whether nodes have the
         same str representation, so it's really only useful in contrived 
-        circumstances like our unit tests"""
+        circumstances like our unit tests
+        
+        """
         return self.__struct_str_rep(self) == self.__struct_str_rep(other)
     def add(self, stage, label=None):
         """Add a stage to the pipeline
 
         Parameters
         ----------
-        stage: an instance of Stage to add to the pipeline.
+        stage: Stage
+            Stage to add to the pipeline
         label: str or None
             label to be returned by created Node's __str__ method. If not
             provieded, will use Node's __repr__ method
 
         Returns
         -------
-        A Node encapsulating the given stage
+        Node 
+            A Node encapsulating the given stage
 
         """
         # TODO this is here to avoid a circular import. Should refactor
@@ -362,7 +398,8 @@ class Pipeline(object):
 
         Returns
         -------
-        Node which can be used to connect nodes to sub-pipeline as if
+        Node 
+            A nodewhich can be used to connect nodes to sub-pipeline as if
             the sub-pipeline were a single node.
 
         """
@@ -387,10 +424,10 @@ class Pipeline(object):
             File name for the rendered pdf. If not given, a file name will be
             selected automatically
 
-        returns
+        Returns
         -------
-        
-        potentially relative path of the rendered pdf
+        str
+            potentially relative path of the rendered pdf
 
         """
         from graphviz import Digraph
@@ -791,22 +828,28 @@ class Pipeline(object):
 
         Parameters
         ----------
-        output: str
+        output : str
             Method of displaying output. One of:
-                'bw': prints progress and truncated stage output to terminal
-                'color': prints progress and truncated stage output 
-                         to terminal using ANSI colors
-                'progress': only prints progress
-                'html': prints pipeline visualization and truncated output
-                        in an html report. Also prints progress to terminal
-                'silent' or unspecified: prints no output.
+
+                'bw'
+                    prints progress and truncated stage output to terminal
+                'color'
+                    prints progress and truncated stage output 
+                    to terminal using ANSI colors
+                'progress'
+                    only prints progress
+                'html'
+                    prints pipeline visualization and truncated output
+                    in an html report. Also prints progress to terminal
+                'silent' or unspecified
+                    prints no output.
         
-        report_path: str
+        report_path : str
             If output='html', the path of the html file to be generated.
             If unspecified, will use graph_out.html in the current working
             directory
 
-        single_step: bool
+        single_step : bool
             If True, will invoke pdb after every stage is run
 
         """

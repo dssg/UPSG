@@ -14,21 +14,22 @@ class Identity(RunnableStage):
     
     Input keys and output keys are specified on init.
 
+    Exactly 1 of input_keys or output_keys should be specified. The other 
+    should be left unspecified
+
     Parameters
     ----------
-    input_keys list or dict of (str: str) or None
+    input_keys : list or dict of (str : str) or None
         The names of the input keys that this stage takes. If a list, the 
-        output keys will be the same as the input keys but with '_output' 
+        output keys will be the same as the input keys but with '_out' 
         appended. If a dictionary, the keys should be the input keys and the 
         values should be the output keys they map to.
-    output_keys list or dict of (str: str) or None
+    output_keys : list or dict of (str : str) or None
         The names of the output keys that this stage takes. If a list, the 
         input keys will be the same as the input keys but with '_in' appended. 
         If a dictionary, the keys should be the output keys and the values 
         should be the input keys they map to.
 
-    Exactly 1 of input_keys or output_keys should be specified. The other 
-    should be left as None
 
     """
 
