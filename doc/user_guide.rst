@@ -75,7 +75,7 @@ A stage is a program that:
 1. Reads zero or more :doc:`.upsg files <file_format>`
 2. Writes zero or more .upsg files
 
-Each input and each output should have a human-readable lable, or key.
+Each input and each output should have a human-readable label, or key.
 For example, the CSVWrite stage has an output file with the key "output"
 and the CSVRead stage has an input file with the key "input." Estimators
 have inputs including "X_train", "X_test", "y_train", and "y_test" and

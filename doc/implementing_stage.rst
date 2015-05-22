@@ -23,7 +23,7 @@ with the same name, two output keys with the same name, or an input key
 with the same name as an output key.
 
 For example, say we want to write a Stage that takes two structured arrays,  
-performs an elementwise sum of the two arrays, and an elementwise multiply of 
+performs an element-wise sum of the two arrays, and an element-wise multiply of 
 the two arrays. We have two input arguments named "input0" and "input1", and
 two output arguments named "sum" and "product". A partial implementation would
 be::
@@ -144,9 +144,9 @@ arguments.
 For example, we will implement the previous example as a MetaStage rather than
 a RunnableStage using :class:`upsg.transform.identity.Identity` and 
 :class:`upsg.transform.lambda_stage.LambdaStage`. In this example, the
-elementwise multiplication and the elementwise addition are performed in 
+element-wise multiplication and the element-wise addition are performed in 
 separate, parallel Stages, allowing for the two operations to be performed in
-parallel if the schedular chooses to do so::
+parallel if the scheduler chooses to do so::
 
     from upsg.pipeline import Pipeline
     from upsg.stage import MetaStage
