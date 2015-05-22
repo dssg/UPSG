@@ -9,19 +9,100 @@ from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..export.plot import Plot
 from ..transform.identity import Identity
 
-VisualMetricSpec = namedtuple('VisualMetricSpec', ['metric', 
-                                                   'output_key_x',
-                                                   'output_key_y',
-                                                   'graph_title',
-                                                   'graph_x_label',
-                                                   'graph_y_label'])
+VisualMetricSpec_ = namedtuple('VisualMetricSpec', ['metric', 
+                                                    'output_key_x',
+                                                    'output_key_y',
+                                                    'graph_title',
+                                                    'graph_x_label',
+                                                    'graph_y_label'])
+class VisualMetricSpec(VisualMetricSpec):
+    """Specification for a metric to be used with MultiMetric_. 
+    
+    In contrast with NumericMetricSpec_, these metrics will be reported as
+    a plot rather than a number or a table.
+
+    Attributes
+    ----------
+    metric : str
+        The fully qualified package name of the sklearn metric: e.g.:
+        'sklearn.metrics.precision_recall_curve'
+    output_key_x : str
+        The output key of upsg.wrap.wrap_sklearn.wrap(metric) corresponding
+        the the x-axis on the graph. e.g.:
+        'recall'
+    output_key_y : str
+        The output key of upsg.wrap.wrap_sklearn.wrap(metric) corresponding
+        the the y-axis on the graph. e.g.:
+        'precision'
+    graph_title : str
+        The title of the graph. e.g. : 'Precision/Recall Curve'
+    graph_x_label : str
+        The label for the graph's x-axis. e.g.: 'Recall'
+    graph_y_label : str
+        The label of the graph's y-axis. e.g.: "Precision"
+    """
+    pass
 
 
-NumericMetricSpec = namedtuple('NumericMetricSpec', ['metric',
-                                                     'output_key',
-                                                     'title'])
+NumericMetricSpec_ = namedtuple('NumericMetricSpec', ['metric',
+                                                      'output_key',
+                                                      'title'])
+
+
+class NumericMetricSpec(NumericMetricSpec_):
+    """Specification for a metric to be used with MultiMetric_
+
+    In contrast with VisualMetricSpec_, these metrics will be reported as a 
+    number or a table rather than a plot
+
+    Attributes
+    ----------
+    metric : str
+        The fully qualified package name of the sklearn metric: e.g.:
+        'sklearn.metrics.roc_curve'
+    output_key : str
+        The output key of upsg.wrap.wrap_sklearn.wrap(metric) that will be
+        reported. e.g.: 'auc'
+    title : str
+        The title to associate with the score. e.g.: 'ROC AUC Score'
+
+    """
+    pass
 
 class Multimetric(MetaStage):
+    """
+    
+    A stage that automatically runs a number of metrics, makes plots, and 
+    compiles them into a report. The output of a wrapped estimator
+    (as with upsg.wrap.wrap_sklearn.wrap) can be fed to the input of a 
+    MultiMetric, and then MultiMetric will compile a report with a number
+    of metrics of that estimator's performance.
+
+    **Input Keys**
+
+    params
+        The parameters associated with the estimator, likely available in
+        the estimators "params_out" key. This will be added to the report.
+    pred_proba
+        Corresponds to the estimator's "pred_proba" output key
+    y_true
+        The true y that the estimator was attempting to predict.
+
+    **Output Keys**
+    report_file
+        The file where the report has been generated
+
+    Parameters
+    ----------
+    metrics : list of (VisualMetricSpec or NumericMetricSpec)
+        The metrics to run. Each entry of the list corresponds to one metric
+    title : str
+        The title of the report
+    file_name : str
+        The location in which to write the report. If not provided, a random
+        name will be chosen
+
+    """
 
     class __ReduceStage(RunnableStage):
 
