@@ -15,10 +15,13 @@ VisualMetricSpec_ = namedtuple('VisualMetricSpec', ['metric',
                                                     'graph_title',
                                                     'graph_x_label',
                                                     'graph_y_label'])
-class VisualMetricSpec(VisualMetricSpec):
-    """Specification for a metric to be used with MultiMetric_. 
+class VisualMetricSpec(VisualMetricSpec_):
+    """
     
-    In contrast with NumericMetricSpec_, these metrics will be reported as
+    Specification for a metric to be used with 
+    :class:`MultiMetric <upsg.model.multimetric.Multimetric>`. 
+    
+    In contrast with :class:`NumericMetricSpec`, these metrics will be reported as
     a plot rather than a number or a table.
 
     Attributes
@@ -27,13 +30,13 @@ class VisualMetricSpec(VisualMetricSpec):
         The fully qualified package name of the sklearn metric: e.g.:
         'sklearn.metrics.precision_recall_curve'
     output_key_x : str
-        The output key of upsg.wrap.wrap_sklearn.wrap(metric) corresponding
-        the the x-axis on the graph. e.g.:
-        'recall'
+        The output key of 
+        :meth:`wrap_sklearn.wrap(metric) <upsg.wrap.wrap_sklearn.wrap>`
+        corresponding the the x-axis on the graph. e.g.: 'recall'
     output_key_y : str
-        The output key of upsg.wrap.wrap_sklearn.wrap(metric) corresponding
-        the the y-axis on the graph. e.g.:
-        'precision'
+        The output key of 
+        :meth:`wrap_sklearn.wrap(metric) <upsg.wrap.wrap_sklearn.wrap>`
+        corresponding the the y-axis on the graph. e.g.: 'precision'
     graph_title : str
         The title of the graph. e.g. : 'Precision/Recall Curve'
     graph_x_label : str
@@ -50,10 +53,12 @@ NumericMetricSpec_ = namedtuple('NumericMetricSpec', ['metric',
 
 
 class NumericMetricSpec(NumericMetricSpec_):
-    """Specification for a metric to be used with MultiMetric_
+    """Specification for a metric to be used with 
+    :class:`MultiMetric <upsg.model.multimetric.Multimetric>`
 
-    In contrast with VisualMetricSpec_, these metrics will be reported as a 
-    number or a table rather than a plot
+    In contrast with 
+    :class:`VisualMetricSpec <upsg.model.multimetric.VisualMetricSpec>`, 
+    these metrics will be reported as a number or a table rather than a plot
 
     Attributes
     ----------
@@ -61,8 +66,9 @@ class NumericMetricSpec(NumericMetricSpec_):
         The fully qualified package name of the sklearn metric: e.g.:
         'sklearn.metrics.roc_curve'
     output_key : str
-        The output key of upsg.wrap.wrap_sklearn.wrap(metric) that will be
-        reported. e.g.: 'auc'
+        The output key of 
+        :meth:`wrap_sklearn.wrap(metric) <upsg.wrap.wrap_sklearn.wrap>`
+        that will be reported. e.g.: 'auc'
     title : str
         The title to associate with the score. e.g.: 'ROC AUC Score'
 
@@ -72,10 +78,10 @@ class NumericMetricSpec(NumericMetricSpec_):
 class Multimetric(MetaStage):
     """
     
-    A stage that automatically runs a number of metrics, makes plots, and 
+    A stage that automatically runs a number of metrics, makes plots, and
     compiles them into a report. The output of a wrapped estimator
-    (as with upsg.wrap.wrap_sklearn.wrap) can be fed to the input of a 
-    MultiMetric, and then MultiMetric will compile a report with a number
+    (as with :meth:`upsg.wrap.wrap_sklearn.wrap`) can be fed to the input of a 
+    Multimetric, and then Multimetric will compile a report with a number
     of metrics of that estimator's performance.
 
     **Input Keys**
@@ -89,18 +95,22 @@ class Multimetric(MetaStage):
         The true y that the estimator was attempting to predict.
 
     **Output Keys**
+
     report_file
         The file where the report has been generated
 
     Parameters
     ----------
-    metrics : list of (VisualMetricSpec or NumericMetricSpec)
+    metrics : list of ( \
+        :class:`upsg.model.multimetric.VisualMetricSpec` or \
+        :class:`upsg.model.multimetric.NumericMetricSpec`)
         The metrics to run. Each entry of the list corresponds to one metric
     title : str
         The title of the report
     file_name : str
         The location in which to write the report. If not provided, a random
         name will be chosen
+
 
     """
 
