@@ -43,8 +43,8 @@ class Multiclassify(MetaStage):
     ----------
     clf_and_params_dict : dict of (
             (upsg.stage.Stage class or 
-             sklearn.base.BaseEstimator class or 
-             str) : 
+            sklearn.base.BaseEstimator class or 
+            str) : 
             (dict of str : list)
         )
 
