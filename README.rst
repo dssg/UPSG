@@ -77,7 +77,7 @@ This is how to implement the
     stage_clf = wrap_and_make_instance(SVC, gamma=0.001, C=100.)
 
     # output to a csv
-    stage_csv = CSVWrite(self._tmp_files('out.csv'))
+    stage_csv = CSVWrite('out.csv')
 
     node_data, node_target, node_split, node_clf, node_csv = map(
         p.add, [
@@ -94,7 +94,7 @@ This is how to implement the
 
     p.run()
     
-    result = self._tmp_files.csv_read('out.csv', True)
+    # results are now in out.csv
 
 ----------
 Next Steps
