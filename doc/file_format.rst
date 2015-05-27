@@ -48,4 +48,8 @@ in a UPSG pipeline. The format specification follows.
             specification. The dictionary encodes connection parameters used
             in the `DB API 2 <https://www.python.org/dev/peps/pep-0249/>`_
             .connect method.
-
+    *external*
+        If the storage format is "external", there will be a group called 
+        "/external". That group will have the attribute "filename" which is
+        the name of a file being referenced. This can be any file-- .pdfs, 
+        .pngs, etc.
