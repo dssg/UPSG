@@ -185,11 +185,9 @@ giving some metrics for each classifier.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>clf_and_params_dict</strong> (<em>dict of (</em>) &#8211; <dl class="docutils">
 <dt>(upsg.stage.Stage class or</dt>
-<dd><blockquote class="first">
-<div>sklearn.base.BaseEstimator class or
-str) :</div></blockquote>
-<p class="last">(dict of str : list)</p>
-</dd>
+<dd>sklearn.base.BaseEstimator class or
+str) :
+(dict of str : list)</dd>
 </dl>
 <p>)</p>
 <p>A dictionary signifying the classifiers and parameters to run.</p>
@@ -254,6 +252,40 @@ precision-recall, an ROC, and auc for the ROC</p>
 <dt id="upsg.model.multimetric.Multimetric">
 <em class="property">class </em><code class="descclassname">upsg.model.multimetric.</code><code class="descname">Multimetric</code><span class="sig-paren">(</span><em>metrics</em>, <em>title</em>, <em>file_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.Multimetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a></p>
+<p>A stage that automatically runs a number of metrics, makes plots, and
+compiles them into a report. The output of a wrapped estimator
+(as with <a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-meth docutils literal"><span class="pre">upsg.wrap.wrap_sklearn.wrap()</span></code></a>) can be fed to the input of a
+Multimetric, and then Multimetric will compile a report with a number
+of metrics of that estimator&#8217;s performance.</p>
+<p><strong>Input Keys</strong></p>
+<dl class="docutils">
+<dt>params</dt>
+<dd>The parameters associated with the estimator, likely available in
+the estimators &#8220;params_out&#8221; key. This will be added to the report.</dd>
+<dt>pred_proba</dt>
+<dd>Corresponds to the estimator&#8217;s &#8220;pred_proba&#8221; output key</dd>
+<dt>y_true</dt>
+<dd>The true y that the estimator was attempting to predict.</dd>
+</dl>
+<p><strong>Output Keys</strong></p>
+<dl class="docutils">
+<dt>report_file</dt>
+<dd>The file where the report has been generated</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>metrics</strong> (list of (         <a class="reference internal" href="#upsg.model.multimetric.VisualMetricSpec" title="upsg.model.multimetric.VisualMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">upsg.model.multimetric.VisualMetricSpec</span></code></a> or         <a class="reference internal" href="#upsg.model.multimetric.NumericMetricSpec" title="upsg.model.multimetric.NumericMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">upsg.model.multimetric.NumericMetricSpec</span></code></a>)) &#8211; The metrics to run. Each entry of the list corresponds to one metric</li>
+<li><strong>title</strong> (<em>str</em>) &#8211; The title of the report</li>
+<li><strong>file_name</strong> (<em>str</em>) &#8211; The location in which to write the report. If not provided, a random
+name will be chosen</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="attribute">
 <dt id="upsg.model.multimetric.Multimetric.input_keys">
 <code class="descname">input_keys</code><a class="headerlink" href="#upsg.model.multimetric.Multimetric.input_keys" title="Permalink to this definition">¶</a></dt>
@@ -273,104 +305,106 @@ precision-recall, an ROC, and auc for the ROC</p>
 
 <dl class="class">
 <dt id="upsg.model.multimetric.NumericMetricSpec">
-<em class="property">class </em><code class="descclassname">upsg.model.multimetric.</code><code class="descname">NumericMetricSpec</code><span class="sig-paren">(</span><em>metric</em>, <em>output_key</em>, <em>title</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
-<dl class="method">
-<dt id="upsg.model.multimetric.NumericMetricSpec.__getnewargs__">
-<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec.__getnewargs__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="upsg.model.multimetric.NumericMetricSpec.__getstate__">
-<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec.__getstate__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exclude the OrderedDict from pickling</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="upsg.model.multimetric.NumericMetricSpec.__repr__">
-<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec.__repr__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a nicely formatted representation string</p>
-</dd></dl>
-
+<em class="property">class </em><code class="descclassname">upsg.model.multimetric.</code><code class="descname">NumericMetricSpec</code><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#upsg.model.multimetric.NumericMetricSpec" title="upsg.model.multimetric.NumericMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">upsg.model.multimetric.NumericMetricSpec</span></code></a></p>
+<p>Specification for a metric to be used with
+<a class="reference internal" href="#upsg.model.multimetric.Multimetric" title="upsg.model.multimetric.Multimetric"><code class="xref py py-class docutils literal"><span class="pre">MultiMetric</span></code></a></p>
+<p>In contrast with
+<a class="reference internal" href="#upsg.model.multimetric.VisualMetricSpec" title="upsg.model.multimetric.VisualMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">VisualMetricSpec</span></code></a>,
+these metrics will be reported as a number or a table rather than a plot</p>
 <dl class="attribute">
 <dt id="upsg.model.multimetric.NumericMetricSpec.metric">
 <code class="descname">metric</code><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec.metric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
+<dd><p><em>str</em></p>
+<p>The fully qualified package name of the sklearn metric: e.g.:
+&#8216;sklearn.metrics.roc_curve&#8217;</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="upsg.model.multimetric.NumericMetricSpec.output_key">
 <code class="descname">output_key</code><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec.output_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
+<dd><p><em>str</em></p>
+<p>The output key of
+<a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-meth docutils literal"><span class="pre">wrap_sklearn.wrap(metric)</span></code></a>
+that will be reported. e.g.: &#8216;auc&#8217;</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="upsg.model.multimetric.NumericMetricSpec.title">
 <code class="descname">title</code><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec.title" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
+<dd><p><em>str</em></p>
+<p>The title to associate with the score. e.g.: &#8216;ROC AUC Score&#8217;</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.model.multimetric.NumericMetricSpec_">
+<code class="descclassname">upsg.model.multimetric.</code><code class="descname">NumericMetricSpec_</code><a class="headerlink" href="#upsg.model.multimetric.NumericMetricSpec_" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#upsg.model.multimetric.NumericMetricSpec" title="upsg.model.multimetric.NumericMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">NumericMetricSpec</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="upsg.model.multimetric.VisualMetricSpec">
-<em class="property">class </em><code class="descclassname">upsg.model.multimetric.</code><code class="descname">VisualMetricSpec</code><span class="sig-paren">(</span><em>metric</em>, <em>output_key_x</em>, <em>output_key_y</em>, <em>graph_title</em>, <em>graph_x_label</em>, <em>graph_y_label</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
-<dl class="method">
-<dt id="upsg.model.multimetric.VisualMetricSpec.__getnewargs__">
-<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.__getnewargs__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="upsg.model.multimetric.VisualMetricSpec.__getstate__">
-<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.__getstate__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exclude the OrderedDict from pickling</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="upsg.model.multimetric.VisualMetricSpec.__repr__">
-<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.__repr__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a nicely formatted representation string</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.graph_title">
-<code class="descname">graph_title</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_title" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.graph_x_label">
-<code class="descname">graph_x_label</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_x_label" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 4</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.graph_y_label">
-<code class="descname">graph_y_label</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_y_label" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 5</p>
-</dd></dl>
-
+<em class="property">class </em><code class="descclassname">upsg.model.multimetric.</code><code class="descname">VisualMetricSpec</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#upsg.model.multimetric.VisualMetricSpec" title="upsg.model.multimetric.VisualMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">upsg.model.multimetric.VisualMetricSpec</span></code></a></p>
+<p>Specification for a metric to be used with
+<a class="reference internal" href="#upsg.model.multimetric.Multimetric" title="upsg.model.multimetric.Multimetric"><code class="xref py py-class docutils literal"><span class="pre">MultiMetric</span></code></a>.</p>
+<p>In contrast with <a class="reference internal" href="#upsg.model.multimetric.NumericMetricSpec" title="upsg.model.multimetric.NumericMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">NumericMetricSpec</span></code></a>, these metrics will be reported as
+a plot rather than a number or a table.</p>
 <dl class="attribute">
 <dt id="upsg.model.multimetric.VisualMetricSpec.metric">
 <code class="descname">metric</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.metric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
+<dd><p><em>str</em></p>
+<p>The fully qualified package name of the sklearn metric: e.g.:
+&#8216;sklearn.metrics.precision_recall_curve&#8217;</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="upsg.model.multimetric.VisualMetricSpec.output_key_x">
 <code class="descname">output_key_x</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.output_key_x" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
+<dd><p><em>str</em></p>
+<p>The output key of
+<a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-meth docutils literal"><span class="pre">wrap_sklearn.wrap(metric)</span></code></a>
+corresponding the the x-axis on the graph. e.g.: &#8216;recall&#8217;</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="upsg.model.multimetric.VisualMetricSpec.output_key_y">
 <code class="descname">output_key_y</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.output_key_y" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
+<dd><p><em>str</em></p>
+<p>The output key of
+<a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-meth docutils literal"><span class="pre">wrap_sklearn.wrap(metric)</span></code></a>
+corresponding the the y-axis on the graph. e.g.: &#8216;precision&#8217;</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="upsg.model.multimetric.VisualMetricSpec.graph_title">
+<code class="descname">graph_title</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_title" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em></p>
+<p>The title of the graph. e.g. : &#8216;Precision/Recall Curve&#8217;</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.model.multimetric.VisualMetricSpec.graph_x_label">
+<code class="descname">graph_x_label</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_x_label" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em></p>
+<p>The label for the graph&#8217;s x-axis. e.g.: &#8216;Recall&#8217;</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.model.multimetric.VisualMetricSpec.graph_y_label">
+<code class="descname">graph_y_label</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_y_label" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em></p>
+<p>The label of the graph&#8217;s y-axis. e.g.: &#8220;Precision&#8221;</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.model.multimetric.VisualMetricSpec_">
+<code class="descclassname">upsg.model.multimetric.</code><code class="descname">VisualMetricSpec_</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec_" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#upsg.model.multimetric.VisualMetricSpec" title="upsg.model.multimetric.VisualMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">VisualMetricSpec</span></code></a></p>
 </dd></dl>
 
 </div>
