@@ -93,16 +93,27 @@ class UObject(object):
 
     """
 
-    def __init__(self, phase, file_name=None):
+    def __open_for_read(self):
+        self.__file = tables.open_file(
+                '<string>',
+                mode='r',
+                driver='H5FD_CORE',
+                driver_core_backing_store=0
+                driver_core_image=self.__persistent_file.read())
+
+    def __init__(self, phase, persistent_file):
 
         self.__phase = phase
         self.__finalized = False
-        self.__file_name = file_name
+        self.__persistent_file = persistent_file
 
         if phase == UObjectPhase.Write:
-            if self.__file_name is None:
-                self.__file_name = str(uuid.uuid4()) + '.upsg'
-            self.__file = tables.open_file(self.__file_name, mode='w')
+            # create an in-memory hdf5 file
+            self.__file = tables.open_file(
+                    '<string>',
+                    mode='w',
+                    driver='H5FD_CORE',
+                    driver_core_backing_store=0)
             upsg_inf_grp = self.__file.create_group('/', 'upsg_inf')
             self.__file.set_node_attr(
                 upsg_inf_grp,
@@ -112,10 +123,7 @@ class UObject(object):
             return
 
         if phase == UObjectPhase.Read:
-            if self.__file_name is None:
-                raise UObjectException(
-                    'Specified read phase without providing file name')
-            self.__file = tables.open_file(self.__file_name, mode='r')
+            self.__open_for_read()
             return
 
         raise UObjectException('Invalid phase provided')
@@ -164,9 +172,10 @@ class UObject(object):
         if not self.__finalized:
             raise UObjectException('UObject is not finalized')
 
-        self.__file = tables.open_file(self.__file_name)
+        self.__open_for_read()
         self.__phase = UObjectPhase.Read
         self.__finalized = False
+        #TODO stopped here
 
     def __get_conn(self, conn=None, db_url=None, conn_params={}):
         if conn is not None:
