@@ -93,19 +93,18 @@ class UObject(object):
 
     """
 
-    def __open_for_read(self):
+    def __open_for_read(self, hdf5_image):
         self.__file = tables.open_file(
                 '<string>',
                 mode='r',
                 driver='H5FD_CORE',
                 driver_core_backing_store=0
-                driver_core_image=self.__persistent_file.read())
+                driver_core_image=hdf5_image)
 
-    def __init__(self, phase, persistent_file):
+    def __init__(self, phase, hdf5_image=None):
 
         self.__phase = phase
         self.__finalized = False
-        self.__persistent_file = persistent_file
 
         if phase == UObjectPhase.Write:
             # create an in-memory hdf5 file
@@ -123,13 +122,19 @@ class UObject(object):
             return
 
         if phase == UObjectPhase.Read:
-            self.__open_for_read()
+            if hdf5_image is None:
+                raise UObjectException(('Asked to open in read mode but no '
+                                        'image provided'))
+            self.__open_for_read(hdf5_image)
             return
 
         raise UObjectException('Invalid phase provided')
 
     def __del__(self):
         self.__file.close()
+
+    def get_image(self):
+        return self.__file.get_file_image()
 
     def get_phase(self):
         """
@@ -172,10 +177,9 @@ class UObject(object):
         if not self.__finalized:
             raise UObjectException('UObject is not finalized')
 
-        self.__open_for_read()
+        self.__open_for_read(self.__file.get_file_image())
         self.__phase = UObjectPhase.Read
         self.__finalized = False
-        #TODO stopped here
 
     def __get_conn(self, conn=None, db_url=None, conn_params={}):
         if conn is not None:
@@ -401,6 +405,7 @@ class UObject(object):
             'storage_method',
             storage_method)
         self.__file.flush()
+        # The pipeline is responsible for syncing the persistent_file
         self.__file.close()
         self.__finalized = True
 
