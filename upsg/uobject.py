@@ -78,15 +78,14 @@ class UObject(object):
     Parameters
     ----------
     phase : {UObjectPhase.Write, UObjectPhase.Read}
-        A member of UObjectPhase specifying whether the U_object
+        A member of UObjectPhase specifying whether the UObject
         is being written or read. 
-    file_name : str
-        The name of the .upsg file representing this universal
-        intermediary object.
+    hdf5_image : str
+        A string containing the contents of the hdf5 file that this
+        UObject represents
 
-        If the file is being written, this argument is optional. If not
-        specified, an arbitrary, unique filename will be chosen. This
-        filename can be found by invoking the get_file_name function.
+        If the file is being written, this argument is optional and will have
+        no effect. 
 
         If the file is being read, this argument is mandatory. Failure
         to specify the argument will result in an exception.
@@ -95,10 +94,10 @@ class UObject(object):
 
     def __open_for_read(self, hdf5_image):
         self.__file = tables.open_file(
-                '<string>',
+                str(uuid.uuid4()) + '.upsg',
                 mode='r',
                 driver='H5FD_CORE',
-                driver_core_backing_store=0
+                driver_core_backing_store=0,
                 driver_core_image=hdf5_image)
 
     def __init__(self, phase, hdf5_image=None):
@@ -109,7 +108,7 @@ class UObject(object):
         if phase == UObjectPhase.Write:
             # create an in-memory hdf5 file
             self.__file = tables.open_file(
-                    '<string>',
+                    str(uuid.uuid4()) + '.upsg',
                     mode='w',
                     driver='H5FD_CORE',
                     driver_core_backing_store=0)
@@ -145,10 +144,6 @@ class UObject(object):
         """
         return self.__phase
 
-    def get_file_name(self):
-        """Returns the path of this UObject's .upsg file."""
-        return self.__file_name
-
     def is_finalized(self):
         """
 
@@ -177,7 +172,9 @@ class UObject(object):
         if not self.__finalized:
             raise UObjectException('UObject is not finalized')
 
-        self.__open_for_read(self.__file.get_file_image())
+        image = self.__file.get_file_image()
+        self.__file.close()
+        self.__open_for_read(image)
         self.__phase = UObjectPhase.Read
         self.__finalized = False
 
@@ -406,7 +403,7 @@ class UObject(object):
             storage_method)
         self.__file.flush()
         # The pipeline is responsible for syncing the persistent_file
-        self.__file.close()
+        #self.__file.close()
         self.__finalized = True
 
     def from_csv(self, filename, **kwargs):

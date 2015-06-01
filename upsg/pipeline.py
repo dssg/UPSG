@@ -590,23 +590,23 @@ class Pipeline(object):
                 self.__print_arg_header(
                         '<-', 
                         arg, 
-                        input_args[arg].get_file_name())
+                        '')
                 self.__print_data(input_args[arg])
                 self.__print_arg_footer(
                         '<-',
                         arg,
-                        input_args[arg].get_file_name())
+                        '')
 
             for arg in output_args:
                 self.__print_arg_header(
                        '->',
                        arg,
-                       output_args[arg].get_file_name())
+                       '')
                 self.__print_data(output_args[arg])
                 self.__print_arg_footer(
                        '->',
                        arg,
-                       output_args[arg].get_file_name())
+                       '')
 
             self.__print_node_footer(node)
 
