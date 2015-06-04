@@ -911,7 +911,13 @@ class Pipeline(object):
                 pdb.set_trace()
         stage_printer.footer_print()
 
+    def run_luigi(self):
+        from .luigi import run_luigi
+        run_luigi(self.__nodes)
+
     def run(self, **kwargs):
         """Run the pipeline"""
-        # TODO a better method of scheduling/running than this
-        self.run_debug(**kwargs)
+        try:
+            run_luigi(self.__nodes)
+        except ImportError:
+            self.run_debug(**kwargs)
