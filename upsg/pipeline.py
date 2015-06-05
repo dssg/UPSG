@@ -911,13 +911,15 @@ class Pipeline(object):
                 pdb.set_trace()
         stage_printer.footer_print()
 
-    def run_luigi(self):
-        from .luigi import run_luigi
-        run_luigi(self.__nodes)
+    def run_luigi(self, **kwargs):
+        import run_luigi
+        run_luigi.run(self.__nodes)
 
     def run(self, **kwargs):
         """Run the pipeline"""
         try:
-            run_luigi(self.__nodes)
-        except ImportError:
+            self.run_luigi(**kwargs)
+        except ImportError as e:
+            print(e)
+            print('running dbg')
             self.run_debug(**kwargs)
