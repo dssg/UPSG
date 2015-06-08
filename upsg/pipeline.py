@@ -920,6 +920,5 @@ class Pipeline(object):
         try:
             self.run_luigi(**kwargs)
         except ImportError as e:
-            print(e)
-            print('running dbg')
+            print('running in debug mode')
             self.run_debug(**kwargs)
