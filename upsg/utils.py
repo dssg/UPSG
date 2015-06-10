@@ -237,12 +237,30 @@ def sql_to_np(tbl, conn):
 
     """
 
+
     # todo sessionmaker is somehow supposed to be global
     Session = sessionmaker(bind=conn)
     session = Session()
     # first pass, we don't worry about string length
-    dtype = [(str(col.name), sql_to_np_types[type(col.type)]) for
-             col in tbl.columns]
+    dtype = []
+    for col in tbl.columns:
+        sql_type = col.type
+        np_type = None
+        try:
+            np_type = sql_to_np_types[type(sql_type)]
+        except KeyError:
+            for base_sql_type in sql_to_np_types:
+                if isinstance(sql_type, base_sql_type):
+                    np_type = sql_to_np_types[base_sql_type]
+                    continue
+        # TODO nice error if we still don't find anything
+        print 'sql type: ' + str(sql_type)
+        print 'np type: ' + str(np_type)
+        if np_type is None:
+            print 'Type not found ' + str(sql_type)
+            print sql_type
+            raise KeyError()
+        dtype.append((str(col.name), np_type))
     # now, we find the max string length for our char columns
     str_cols = [tbl.columns[col_name] for col_name, col_dtype in dtype if
                 col_dtype == np.dtype(str)]
