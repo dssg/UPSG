@@ -201,13 +201,17 @@ def utf_to_ascii(s):
 # TODO I'm missing a lot of these, most notably datetime, which we don't have
 # natively so we have to do some fancy conversion
 np_to_sql_types = {
-    np.dtype(bool): (sqlt.BOOLEAN,),
-    np.dtype(int): (sqlt.INTEGER, sqlt.BIGINT, sqlt.SMALLINT),
-    np.dtype(float): (sqlt.FLOAT, sqlt.DECIMAL, sqlt.REAL, sqlt.NUMERIC),
+    np.dtype(bool): (sqlt.BOOLEAN, sqlt.Boolean),
+    np.dtype(int): (sqlt.INTEGER, sqlt.BIGINT, sqlt.SMALLINT, sqlt.BigInteger,
+                    sqlt.Integer, sqlt.SmallInteger),
+    np.dtype(float): (sqlt.FLOAT, sqlt.DECIMAL, sqlt.REAL, sqlt.NUMERIC, 
+                      sqlt.Float, sqlt.Numeric),
     np.dtype(str): (sqlt.VARCHAR, sqlt.CHAR, sqlt.NCHAR, sqlt.NVARCHAR,
-                    sqlt.TEXT),
+                    sqlt.TEXT, sqlt.String, sqlt.Text, sqlt.Unicode,
+                    sqlt.UnicodeText),
     np.dtype('datetime64[s]'): (sqlt.DATETIME, sqlt.DATE, sqlt.TIME,
-                                sqlt.TIMESTAMP)
+                                sqlt.TIMESTAMP, sqlt.Date, sqlt.DateTime,
+                                sqlt.Time)
 }
 # TODO other time resolutions. (But we do have to specify 1 of them)
 # http://stackoverflow.com/questions/16618499/numpy-datetime64-in-recarray
@@ -251,6 +255,7 @@ def sql_to_np(tbl, conn):
         except KeyError:
             for base_sql_type in sql_to_np_types:
                 if isinstance(sql_type, base_sql_type):
+                #if base_sql_type in inspect.getmro(type(sql_type)):
                     np_type = sql_to_np_types[base_sql_type]
                     continue
         # TODO nice error if we still don't find anything
