@@ -1,4 +1,5 @@
 from copy import deepcopy
+import uuid
 
 import sqlalchemy
 
@@ -18,14 +19,15 @@ class RunSQL(RunnableStage):
     
     Parameters
     ----------
-    db_url : str
-        The url of the database. Should conform to the format of
-        SQLAlchemy database URLS
-        (http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls)
-
     query : str
         The sql query to run. Should be a formatting string with keywords
         corresponding to the names of tables that UPSG is handling.
+
+    db_url : str or None
+        The url of the database. Should conform to the format of
+        SQLAlchemy database URLS
+        (http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls)
+        If None, a temporary database will be created
 
     in_keys : list of str
         The names of input keys. Also, should correspond to the keywords
@@ -62,11 +64,13 @@ class RunSQL(RunnableStage):
     
     """
 
-    def __init__(self, db_url, query, in_keys=[], out_keys=[], conn_params={}):
+    def __init__(self, query, db_url=None, in_keys=[], out_keys=[], conn_params={}):
 
         self.__query = query
         self.__in_keys = in_keys
         self.__out_keys = out_keys
+        if db_url is None:
+            db_url = 'sqlite:///UPSG_{}.db'.format(uuid.uuid4())
         self.__db_url = db_url
         self.__conn_params = conn_params
 

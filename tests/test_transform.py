@@ -539,6 +539,47 @@ class TestTransform(UPSGTestCase):
 
         assert(np.array_equal(result, ctrl))
 
+    def test_tmp_sql(self):
+        a1 = np.array([(0, 'Lisa', 2),
+                       (1, 'Bill', 1),
+                       (2, 'Fred', 2),
+                       (3, 'Samantha', 2),
+                       (4, 'Augustine', 1),
+                       (5, 'William', 0)], dtype=[('id', int),
+                                                  ('name', 'S64'),
+                                                  ('dept_id', int)])
+        a2 = np.array([(0, 'accts receivable'),
+                       (1, 'accts payable'),
+                       (2, 'shipping')], dtype=[('id', int),
+                                                ('name', 'S64')])
+        kwargs = {}
+        query = ('CREATE TABLE {joined} AS '
+                 'SELECT {e}.id AS id, {e}.name AS emp_name, {e}.id '
+                 'AS dept_id, {d}.name as dept_name FROM ' 
+                 '{e} JOIN {d} ON {e}.id = {d}.id ')
+
+        p = Pipeline()
+        a1_in = p.add(NumpyRead(a1))
+        a2_in = p.add(NumpyRead(a2))
+        sql = p.add(RunSQL(query, None, ['e', 'd'], ['joined']))
+        out = p.add(NumpyWrite())
+
+        out(sql(a1_in, a2_in))
+
+        p.run()
+
+        result =  out.get_stage().result
+        print result
+        print result.dtype
+        return
+        ctrl = obj_to_str(
+                pd.DataFrame(a1).merge(
+                    pd.DataFrame(a2),
+                    left_on='dept_id',
+                    right_on='id').to_records(index=False))
+
+        assert(np.array_equal(result, ctrl))
+
     def test_split_by_inds(self):
         in_data = np.array(
             [(0, 0), (1, 1), (2, 0), (3, 1)], 

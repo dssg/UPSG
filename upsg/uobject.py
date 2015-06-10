@@ -97,6 +97,7 @@ class UObject(object):
 
         self.__phase = phase
         self.__finalized = False
+        self.__temp_db = None
         self.__file_name = file_name
 
         if phase == UObjectPhase.Write:
@@ -171,8 +172,11 @@ class UObject(object):
     def __get_conn(self, conn=None, db_url=None, conn_params={}):
         if conn is not None:
             return conn
+        if db_url is None:
+            db_url = 'UPSG_{}.db'.format(uuid.uuid4())
         engine = sqlalchemy.create_engine(db_url)
         return engine.connect(**conn_params)
+
 
     def __get_new_table_name(self):
         return random_table_name()
