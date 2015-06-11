@@ -282,9 +282,6 @@ def sql_to_np(tbl, conn):
     # np.fromiter can't directly use the results of a query:
     #   http://mail.scipy.org/pipermail/numpy-discussion/2010-August/052358.html
     # TODO deal with unicode (which numpy can't handle)
-    print [np_process_row(row, dtype_corrected) for row in
-                                    session.query(tbl).all()]
-    print dtype_corrected
     return np.fromiter((np_process_row(row, dtype_corrected) for row in
                         session.query(tbl).all()), dtype=dtype_corrected)
 
