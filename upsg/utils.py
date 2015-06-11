@@ -259,12 +259,9 @@ def sql_to_np(tbl, conn):
                     np_type = sql_to_np_types[base_sql_type]
                     continue
         # TODO nice error if we still don't find anything
-        print 'sql type: ' + str(sql_type)
-        print 'np type: ' + str(np_type)
         if np_type is None:
-            print 'Type not found ' + str(sql_type)
-            print sql_type
-            raise KeyError()
+            raise KeyError('Type not found ' + str(sql_type))
+            # TODO a more appropriate type of error
         dtype.append((str(col.name), np_type))
     # now, we find the max string length for our char columns
     str_cols = [tbl.columns[col_name] for col_name, col_dtype in dtype if
@@ -285,8 +282,29 @@ def sql_to_np(tbl, conn):
     # np.fromiter can't directly use the results of a query:
     #   http://mail.scipy.org/pipermail/numpy-discussion/2010-August/052358.html
     # TODO deal with unicode (which numpy can't handle)
-    return np.fromiter((tuple(row) for row in
+    print [np_process_row(row, dtype_corrected) for row in
+                                    session.query(tbl).all()]
+    print dtype_corrected
+    return np.fromiter((np_process_row(row, dtype_corrected) for row in
                         session.query(tbl).all()), dtype=dtype_corrected)
+
+
+def np_process_row_elmt(entry, dtype):
+    if entry is None:
+        if 'S' in dtype:
+            return ''
+        if 'i' in dtype or 'l' in dtype:
+            return -999
+            # TODO is there some better way to handle null ints
+        return np.nan
+    if 'S' in dtype:
+        return utf_to_ascii(entry)
+    return entry
+    
+
+def np_process_row(row, dtype):
+    return tuple([np_process_row_elmt(entry, dtype[idx].str) for idx, entry in
+                  enumerate(row)])
 
 # http://stackoverflow.com/questions/13703720/converting-between-datetime-timestamp-and-datetime64
 NP_EPOCH = np.datetime64('1970-01-01T00:00:00Z')
