@@ -94,7 +94,7 @@ class UObject(object):
 
     def __open_for_read(self, hdf5_image):
         file_name = str(uuid.uuid4()) + '.upsg'
-        print 'Reading ' + file_name
+        #print 'Reading ' + file_name
         self.__file = tables.open_file(
                 file_name,
                 mode='r',
@@ -110,7 +110,7 @@ class UObject(object):
         if phase == UObjectPhase.Write:
             # create an in-memory hdf5 file
             file_name = str(uuid.uuid4()) + '.upsg'
-            print 'Writing ' + file_name
+            #print 'Writing ' + file_name
             self.__file = tables.open_file(
                     file_name,
                     mode='w',
