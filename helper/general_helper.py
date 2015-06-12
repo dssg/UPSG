@@ -246,141 +246,9 @@ def identicle_value_columns(M, value, orientation):
         return np.where(np.all(M==value, axis=orientation))
     else:
         raise UtilityError("Orientation is improperly formatted.")    
-        
-def value_counts_top(L, n): 
-    """count elements in list 
-    Parameters
-    ----------
-    L : list
-       A list of elements to be counted 
-    n : int
-       Number of top values   
-       
-    Returns
-    -------
-    List 
-        A list of tuples (value, count)
-       
-    """
-    return Counter(L).most_common(n)
-    
-def value_counts(a_list):
-    """counter, but pandas syntax
-    """
-    return Counter(a_list)
 
-def describe(a_list):
-    """gives count, mean, std, min, and max from list
-    """
-    cnt = len(a_list)
-    mean = np.mean(np.array(a_list))
-    std = np.std(np.array(a_list))
-    mi = min(a_list)
-    mx = max(a_list)    
-    return cnt, mean, std, mi, mx
-    
-    
-def crosstab(list_1, list_2):
-    """Contingancy table: compute a frequency table from two lists
-    Parameters
-    ----------
-    temp : type
-       Description 
-    
-    Attributes
-    ----------
-    temp : type
-       Description 
-       
-    Returns
-    -------
-    temp : type
-       Description
-       
-    """
-    list_1 = np.array(list_1)
-    list_2 = np.array(list_2)
-    
-    key_1 = np.unique(list_1)
-    key_2 = np.unique(list_2)
-    
-    a_dict = {}
-    
-    for aKey in key_1:
-        loc_aKey = np.where(np.array(list_1)==aKey)[0]
-        tmp_list = list_2[loc_aKey]
-        cnt = Counter(tmp_list)
-        a_dict[aKey] = cnt
-    
-    M = np.zeros(shape=(len(key_1),len(key_2)))
-    for idx, x in enumerate(key_1):
-        for idy, y in enumerate(key_2):
-            M[idx,idy] = a_dict[x][y]
-    print_Matrix_row_col(M, key_1, key_2)
-    return a_dict
-    
-def print_Matrix_row_col( M, L, L_2,):
-    """single line description
-    Parameters
-    ----------
-    L : List 
-       Description 
-    M : List 
-       Description
-    Attributes
-    ----------
-    temp : type
-       Description 
-       
-    Returns
-    -------
-    temp : type
-       Description
-       
-    """
-    row_format ="{:>15}" * (len(L_2) + 1)
-    print row_format.format("", *L_2)
-    for team, row in zip(L, M):
-        print row_format.format(team, *row)
-    return None
 
-def open_csv(loc):
-    """single line description
-    Parameters
-    ----------
-    temp : type
-       Description 
-    
-    Attributes
-    ----------
-    temp : type
-       Description 
-       
-    Returns
-    -------
-    temp : type
-       Description
-       
-    """
-    with open(loc, 'rb') as f:
-        reader = csv.reader(f)
-        data= list(reader)
-    return data
-    
-    
-def save_file(data, destination):
-    with open(destination, 'w', newline='') as fp:
-        a = csv.writer(fp, delimiter=',')
-        a.writerows(data)
-    return
 
-def convert_fixed_width_list_to_CSV_list(data, list_of_widths):
-    s = "s".join([str(s) for s in list_of_widths])
-    s= s + 's'
-    out = []
-    for x in data:
-        out.append(struct.unpack(s, x[0]))
-    return out
 
 
 def run_strat_cross(clf, M, truth, n_folds, type_of):
@@ -472,54 +340,10 @@ def repeat_random_from_list(a_list, cnt, length):
         
     return result
 
-def choose_n_from_categories(target, n):
-    """single line description
-    Parameters
-    ----------
-    temp : type
-       Description
-       
-    Returns
-    -------
-    temp : type
-       Description
-       
-    """
-    #check if target is np.array
-    target = np.array(target)
-    catagories = np.unique(target)
-    result =[]
-    for x in catagories:
-        result.append(random.sample( np.where(target==x)[0], n)  )
-    return results
 
-def haversine(gps_1, gps_2):
-    from math import radians, cos, sin, asin, sqrt
-    """
-    Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees)
-    from:
-    http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
-    """
-    # convert decimal degrees to radians 
-    lon1, lat1 = gps_1.lng, gps_1.lat
-    lon2, lat2 = gps_2.lng, gps_2.lat
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
-    # haversine formula 
-    dlon = lon2 - lon1 
-    dlat = lat2 - lat1 
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a)) 
-    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
-    return c * r
 
-def dist_less_than(gps_1, gps_2, val):
-    return (haversine(gps_1, gps_2)<val)
 
-def time_less_then(time_1, time_2, val):
-    #check both in datetime64
-    return (time_2-time_1 < val)
     
 def select_by_function(origin, data, a_func, threshold):
     a_list= []

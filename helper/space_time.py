@@ -59,6 +59,30 @@ def select_by_time_from(data, target, threshold, time_col_name):
             ret.apped(idx)
     return ret
 
+
+def haversine(gps_1, gps_2):
+    from math import radians, cos, sin, asin, sqrt
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    from:
+    http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1 = gps_1.lng, gps_1.lat
+    lon2, lat2 = gps_2.lng, gps_2.lat
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    return c * r
+
+
+
 #args = [('dist', ldoughnut, (10, 20), GPS(0, 0)),
 #        ('color', lcolor, ('red', 'blue'), None)]
 

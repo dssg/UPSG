@@ -44,7 +44,27 @@ def get_n_top_features(clf, n_top):
         return ( [ clf.feature_importances_[x] for
                 x in clf.feature_importances_.argsort()[-n_top:][::-1]])
 
-
+def choose_n_from_categories(target, n):
+    """single line description
+    Parameters
+    ----------
+    temp : type
+       Description
+       
+    Returns
+    -------
+    temp : type
+       Description
+       
+    """
+    #check if target is np.array
+    target = np.array(target)
+    catagories = np.unique(target)
+    result =[]
+    for x in catagories:
+        result.append(random.sample( np.where(target==x)[0], n)  )
+    return results
+    
 def run_cv(clf, X, y, cv_function, cv_inputs, analysis_funcs, analysis_kwargs):
     """
     
