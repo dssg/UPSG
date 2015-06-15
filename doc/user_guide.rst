@@ -17,6 +17,8 @@ data from a csv, impute that data by replacing NaNs with a constant value, and
 then write the imputed data to another csv. 
 
 In UPSG, we would express that as follows::
+
+    from upsg.pipeline import Pipeline
     
     from upsg.fetch.csv import CSVRead
     from upsg.transform.fill_na import FillNA
@@ -217,43 +219,49 @@ Pipelines
 ---------
 
 :class:`Pipelines <upsg.pipeline.Pipeline>` are the way that stages are
-organized into workflow. UPSG programs usually have five phases:
+organized into workflow. UPSG programs usually have six phases:
 
-1. Create a Pipeline
+1. Setup
+
+   >>> from upsg.pipeline import Pipeline
+   >>> from upsg.fetch.csv import CSVRead
+   >>> from upsg.export.csv import CSVWrite
+
+2. Create a Pipeline
 
    >>> p = Pipeline()
 
-2. Create all the Stages
+3. Create all the Stages
 
    >>> stage_read = CSVRead('in.csv')
    >>> stage_write = CSVWrite('out.csv')
 
-3. Add Stages to a Pipeline, creating :class:`Nodes <upsg.pipeline.Node>`
+4. Add Stages to a Pipeline, creating :class:`Nodes <upsg.pipeline.Node>`
 
    >>> node_read = p.add(stage_read)
    >>> node_write = p.add(stage_write)
 
-4. Connect nodes
+5. Connect nodes
 
    >>> node_read > node_write
 
-5. Run the pipeline
+6. Run the pipeline
 
    >>> p.run()
 
-Phase 1 merely initializes a Pipeline.
+Phase 2 merely initializes a Pipeline.
 
-Phase 2 creates a number of stages, as discussed in :ref:`stages`.
+Phase 3 creates a number of stages, as discussed in :ref:`stages`.
 
-Phase 3 adds Stages to the pipeline using the 
+Phase 4 adds Stages to the pipeline using the 
 :func:`upsg.pipeline.Pipeline.add` method. Each stage must be added to a 
 Pipeline once. The return value of Pipeline.add will be a Node, which is used
 to connect pipeline stages together.
 
-Phase 4 connects nodes together. It is discussed in more detail 
+Phase 5 connects nodes together. It is discussed in more detail 
 :ref:`below <connecting_stages_together>`.
 
-Phase 5 invokes :func:`upsg.pipeline.Pipeline.run`. This is discussed in more
+Phase 6 invokes :func:`upsg.pipeline.Pipeline.run`. This is discussed in more
 detail :ref:`below <running>`.
 
 .. _connecting_stages_together:
@@ -269,6 +277,7 @@ an output named "out_a" and :code:`stage_b` has an input named "in_b_1", and
 :code:`stage_b` expects that it's input "in_b_1" will be provided by 
 :code:`stage_a`'s "out_a" output, then we can connect the two like:
 
+>>> from upsg.pipeline import Pipeline
 >>> p = Pipeline()
 >>> node_a = p.add(stage_a)
 >>> node_b = p.add(stage_b)
@@ -448,6 +457,7 @@ resembles a
 As of release 0.0.1, functionality is limited, but it can be used for some
 simple tasks::
 
+        from upsg.toaster import DataToaster
         dt = DataToaster()
         # Read in a csv
         dt.from_csv('test_toaster.csv')
