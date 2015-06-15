@@ -908,6 +908,7 @@ class Pipeline(object):
             stage_printer.stage_print(node, input_args, output_args)
             state[node] = output_args
             if single_step:
+                import pdb
                 pdb.set_trace()
         stage_printer.footer_print()
 

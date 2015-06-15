@@ -60,6 +60,15 @@ Example
 This is how to implement the 
 `sklearn "Getting started" pipeline <http://scikit-learn.org/0.10/tutorial.html>`_::
 
+    from sklearn import datasets
+    from sklearn.svm import SVC
+
+    from upsg.fetch.np import NumpyRead
+    from upsg.wrap.wrap_sklearn import wrap_and_make_instance
+    from upsg.export.csv import CSVWrite
+    from upsg.transform.split import SplitTrainTest
+    from upsg.pipeline import Pipeline
+
     digits = datasets.load_digits()
     digits_data = digits.data
     # for now, we need a column vector rather than an array
