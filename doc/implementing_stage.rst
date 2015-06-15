@@ -77,7 +77,7 @@ In order to interpret input1 as an sql table, we could do::
     sql_1 = kwargs['input1'].to_sql()
 
 (See :func:`upsg.uobject.UObject.to_np` and 
-:func:`upsg.uobject.UObject.to_np`, respectively)
+:func:`upsg.uobject.UObject.to_sql`, respectively)
 
 For each output argument, the run method is expected to initialize a UObject 
 (in the :class:`UObjectPhase.Write <upsg.uobject.UObjectPhase>` phase), store
