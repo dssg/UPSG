@@ -134,7 +134,14 @@ class UObject(object):
         raise UObjectException('Invalid phase provided')
 
     def __del__(self):
-        self.__file.close()
+        self.cleanup()
+
+    def cleanup(self):
+        try:
+            self.__file.close()
+        except IOError:
+            # presumably, file is already closed
+            pass
 
     def get_image(self):
         return self.__file.get_file_image()
