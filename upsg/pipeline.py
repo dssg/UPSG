@@ -3,6 +3,7 @@ from collections import namedtuple
 from StringIO import StringIO
 from HTMLParser import HTMLParser
 import os
+import sys
 import weakref
 import uuid
 import abc
@@ -14,11 +15,16 @@ import numpy as np
 
 from .uobject import UObjectException
 from .utils import html_escape
+from .utils import get_resource_path
 
+RUN_MODE_ENV_VAR = 'UPSG_RUN_MODE'
+
+class RunMode:
+    DBG, LUIGI, LUIGI_QUIET = range(3)
+    from_str = {'dbg': DBG, 'luigi': LUIGI, 'luigi_quiet': LUIGI_QUIET}
 
 class PipelineException(Exception):
     pass
-
 
 class Edge(object):
     """A directed graph edge
@@ -912,14 +918,47 @@ class Pipeline(object):
                 pdb.set_trace()
         stage_printer.footer_print()
 
+    #TODO This run_debug stuff ^ should really be in its own file
+
     def run_luigi(self, **kwargs):
         import run_luigi
-        run_luigi.run(self.__nodes)
+        run_luigi.run(self.__nodes, **kwargs)
 
-    def run(self, **kwargs):
-        """Run the pipeline"""
-        try:
-            self.run_luigi(**kwargs)
-        except ImportError as e:
-            print('running in debug mode')
-            self.run_debug(**kwargs)
+    def run_luigi_quiet(self, **kwargs):
+        kwargs['logging_conf_file'] = get_resource_path(
+                'luigi_default_logging.cfg')
+        self.run_luigi(**kwargs)
+
+    RUN_METHODS = {RunMode.DBG: run_debug,
+                   RunMode.LUIGI: run_luigi,
+                   RunMode.LUIGI_QUIET: run_luigi_quiet}
+
+    def run(self, run_mode=None, **kwargs):
+        """Run the pipeline
+        
+        Parameters
+        ----------
+        run_mode : {RunMode.DBG, RunMode.LUIGI} or str or None
+            Specifies the method to use to run the pipeline. 
+            If an attribute of RunMode, specifies the run mode to use.
+            If a str, should be either 'dbg' or 'luigi'
+            If None, defaults to debug unless the environmental variable:
+            UPSG_RUN_MODE is set, which should be either 'dbg' or 'luigi' and
+            will specify the run mode
+        kwargs : kwargs
+            keyword arguments to pass to the run method
+
+        """
+        if run_mode is None:
+            try: 
+                run_mode = os.environ[RUN_MODE_ENV_VAR]
+            except KeyError:
+                run_mode = 'dbg'
+
+        if isinstance(run_mode, basestring):
+            try:
+                run_mode = RunMode.from_str[run_mode.lower()]
+            except KeyError:
+                run_mode = RunMode.DBG
+
+        self.RUN_METHODS[run_mode](self, **kwargs)

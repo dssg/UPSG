@@ -11,6 +11,7 @@ import numpy as np
 
 import upsg
 from upsg.utils import np_sa_to_nd
+import upsg.pipeline
 
 TESTS_PATH = os.path.dirname(os.path.realpath(sys.argv[0]))
 DATA_PATH = os.path.join(TESTS_PATH, 'data')
@@ -80,6 +81,8 @@ class TempFileManager(object):
         shutil.copyfile(from_path, to_path)
         return (to_path, filename)
 
+#RUN_MODE_KEY = 'UPSG_TEST_RUN_MODE'
+
 class UPSGTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -95,9 +98,5 @@ class UPSGTestCase(unittest.TestCase):
         self._tmp_files.purge()
         os.chdir(self.__cwd)
 
-    def run_pipeline(self, p, mode='dbg'):
-        if mode == 'dbg':
-            p.run_debug()
-        elif mode == 'luigi':
-            p.run_luigi(logging_conf_file=path_of_data(
-                'luigi_default_logging.cfg'))
+    def run_pipeline(self, p, mode=None):
+        p.run()
