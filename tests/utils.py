@@ -94,3 +94,10 @@ class UPSGTestCase(unittest.TestCase):
         os.system('python {}'.format(os.path.join(BIN_PATH, 'cleanup.py')))
         self._tmp_files.purge()
         os.chdir(self.__cwd)
+
+    def run_pipeline(self, p, mode='dbg'):
+        if mode == 'dbg':
+            p.run_debug()
+        elif mode == 'luigi':
+            p.run_luigi(logging_conf_file=path_of_data(
+                'luigi_default_logging.cfg'))

@@ -46,7 +46,7 @@ class TestTransform(UPSGTestCase):
         csv_read_node['output'] > trans_node['input']
         trans_node['output'] > csv_write_node['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         control = {'id', 'designation', 'tallness'}
         result = set(self._tmp_files.csv_read('out.csv').dtype.names)
@@ -88,7 +88,7 @@ class TestTransform(UPSGTestCase):
         get_hrs['tmp_hrs'] > join['tmp_hrs']
         join['joined'] > csv_out['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         ctrl = csv_read(path_of_data('test_transform_test_sql_ctrl.csv'))
         result = self._tmp_files.csv_read('out.csv')
@@ -122,7 +122,7 @@ class TestTransform(UPSGTestCase):
         split['output'] > csv_out_sel['input']
         split['complement'] > csv_out_rest['input']
 
-        p.run()
+        self.run_pipeline(p)
         
         result = self._tmp_files.csv_read('out_sel.csv')
         ctrl = csv_read(path_of_data('test_split_columns_ctrl_selected.csv'))
@@ -188,7 +188,7 @@ class TestTransform(UPSGTestCase):
         q1_node['output'] > csv_out['input']
         q1_node['complement'] > csv_comp['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('query_ctrl.csv'))
@@ -228,7 +228,7 @@ class TestTransform(UPSGTestCase):
         np_complement_inds = p.add(NumpyWrite())
         q2_node['complement_inds'] > np_complement_inds['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         self.assertTrue(np.array_equal(np_out.get_stage().result, dates[:2]))
         self.assertTrue(np.array_equal(np_complement.get_stage().result, dates[2:]))
@@ -246,7 +246,7 @@ class TestTransform(UPSGTestCase):
         csv_in['output'] > fill_na['input']
         fill_na['output'] > csv_out['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('test_transform_test_fill_na_ctrl.csv'))
@@ -264,7 +264,7 @@ class TestTransform(UPSGTestCase):
         csv_in['output'] > le['input']
         le['output'] > csv_out['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         result = self._tmp_files.csv_read('out.csv')
         ctrl = csv_read(path_of_data('test_transform_test_label_encode_ctrl.csv'))
@@ -304,7 +304,7 @@ class TestTransform(UPSGTestCase):
                     expected_folds.append(
                             np_nd_to_sa(arrays[array_i][slice_inds]))
 
-        p.run()
+        self.run_pipeline(p)
 
         for out_file, expected_fold in zip(out_files, expected_folds):
             self.assertTrue(np.array_equal(
@@ -365,7 +365,7 @@ class TestTransform(UPSGTestCase):
             csv_out_stages.append(stage)
             lambda_stage[key] > stage['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         controls = log1_sqrt2_scale3(in_data, scale)
 
@@ -391,7 +391,7 @@ class TestTransform(UPSGTestCase):
         np_out = p.add(NumpyWrite())
         timify['output'] > np_out['input']
 
-        p.run()
+        self.run_pipeline(p)
         result = np_out.get_stage().result
 
         ctrl_raw = csv_read(in_file)
@@ -443,7 +443,7 @@ class TestTransform(UPSGTestCase):
                 in_data_arrays.append(in_data)
                 out_nodes.append(node_out)
 
-            p.run()
+            self.run_pipeline(p)
 
             for in_data, out_node in zip(in_data_arrays, out_nodes):
                 self.assertTrue(np.array_equal(in_data, 
@@ -492,7 +492,7 @@ class TestTransform(UPSGTestCase):
             node_ctrl_out = p.add(NumpyWrite())
             node_ctrl_trans[out_key] > node_ctrl_out['input']
 
-            p.run()
+            self.run_pipeline(p)
 
             result = node_out.get_stage().result
             ctrl = node_ctrl_out.get_stage().result
@@ -528,7 +528,7 @@ class TestTransform(UPSGTestCase):
 
         out(merge(a1_in, a2_in))
 
-        p.run()
+        self.run_pipeline(p)
 
         result =  out.get_stage().result
         ctrl = obj_to_str(
@@ -556,7 +556,7 @@ class TestTransform(UPSGTestCase):
 
         out = p.add(NumpyWrite())
         out(split_inds)
-        p.run()
+        self.run_pipeline(p)
 
         ctrl = np.array(
             [(1, 1), (3, 1)], 
