@@ -1,7 +1,5 @@
 from __future__ import print_function
 from collections import namedtuple
-from StringIO import StringIO
-from HTMLParser import HTMLParser
 import os
 import sys
 import weakref
@@ -14,7 +12,6 @@ import itertools as it
 import numpy as np
 
 from .uobject import UObjectException
-from .utils import html_escape
 from .utils import get_resource_path
 
 RUN_MODE_ENV_VAR = 'UPSG_RUN_MODE'
