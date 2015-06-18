@@ -64,7 +64,9 @@ with which data they should be run. For example, a simple pipeline might read
 data from a csv, impute that data by replacing NaNs with a constant value, and
 then write the imputed data to another csv.</p>
 <p>In UPSG, we would express that as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.fetch.csv</span> <span class="kn">import</span> <span class="n">CSVRead</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+
+<span class="kn">from</span> <span class="nn">upsg.fetch.csv</span> <span class="kn">import</span> <span class="n">CSVRead</span>
 <span class="kn">from</span> <span class="nn">upsg.transform.fill_na</span> <span class="kn">import</span> <span class="n">FillNA</span>
 <span class="kn">from</span> <span class="nn">upsg.export.csv</span> <span class="kn">import</span> <span class="n">CSVWrite</span>
 
@@ -246,7 +248,7 @@ implemented. They are listed below.</p>
 <td>Runs data through a number of classifiers and a number of parameters per classifier.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="upsg.model.html#upsg.model.multimetric.Multimetric" title="upsg.model.multimetric.Multimetric"><code class="xref py py-obj docutils literal"><span class="pre">upsg.model.multimetric.Multimetric</span></code></a>(metrics,&nbsp;...)</td>
-<td></td>
+<td>A stage that automatically runs a number of metrics, makes plots, and compiles them into a report.</td>
 </tr>
 </tbody>
 </table>
@@ -319,8 +321,15 @@ API for more details</p>
 <div class="section" id="pipelines">
 <h2>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline" title="upsg.pipeline.Pipeline"><code class="xref py py-class docutils literal"><span class="pre">Pipelines</span></code></a> are the way that stages are
-organized into workflow. UPSG programs usually have five phases:</p>
+organized into workflow. UPSG programs usually have six phases:</p>
 <ol class="arabic">
+<li><p class="first">Setup</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.fetch.csv</span> <span class="kn">import</span> <span class="n">CSVRead</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.export.csv</span> <span class="kn">import</span> <span class="n">CSVWrite</span>
+</pre></div>
+</div>
+</li>
 <li><p class="first">Create a Pipeline</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
 </pre></div>
@@ -349,15 +358,15 @@ organized into workflow. UPSG programs usually have five phases:</p>
 </div>
 </li>
 </ol>
-<p>Phase 1 merely initializes a Pipeline.</p>
-<p>Phase 2 creates a number of stages, as discussed in <a class="reference internal" href="#stages"><span>Stages</span></a>.</p>
-<p>Phase 3 adds Stages to the pipeline using the
+<p>Phase 2 merely initializes a Pipeline.</p>
+<p>Phase 3 creates a number of stages, as discussed in <a class="reference internal" href="#stages"><span>Stages</span></a>.</p>
+<p>Phase 4 adds Stages to the pipeline using the
 <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.add" title="upsg.pipeline.Pipeline.add"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.add()</span></code></a> method. Each stage must be added to a
 Pipeline once. The return value of Pipeline.add will be a Node, which is used
 to connect pipeline stages together.</p>
-<p>Phase 4 connects nodes together. It is discussed in more detail
+<p>Phase 5 connects nodes together. It is discussed in more detail
 <a class="reference internal" href="#connecting-stages-together"><span>below</span></a>.</p>
-<p>Phase 5 invokes <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a>. This is discussed in more
+<p>Phase 6 invokes <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a>. This is discussed in more
 detail <a class="reference internal" href="#running"><span>below</span></a>.</p>
 <div class="section" id="connecting-stages-together">
 <span id="id4"></span><h3>Connecting stages together<a class="headerlink" href="#connecting-stages-together" title="Permalink to this headline">¶</a></h3>
@@ -368,7 +377,8 @@ a Stage <code class="code docutils literal"><span class="pre">stage_a</span></co
 an output named &#8220;out_a&#8221; and <code class="code docutils literal"><span class="pre">stage_b</span></code> has an input named &#8220;in_b_1&#8221;, and
 <code class="code docutils literal"><span class="pre">stage_b</span></code> expects that it&#8217;s input &#8220;in_b_1&#8221; will be provided by
 <code class="code docutils literal"><span class="pre">stage_a</span></code>&#8216;s &#8220;out_a&#8221; output, then we can connect the two like:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_a</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">node_b</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_b</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span><span class="p">[</span><span class="s">&#39;out_a&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_b</span><span class="p">[</span><span class="s">&#39;in_b_1&#39;</span><span class="p">]</span>
@@ -445,12 +455,49 @@ it may be run on a cluster by scheduling a number of Hadoop jobs.</p>
 <p>The <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline" title="upsg.pipeline.Pipeline"><code class="xref py py-class docutils literal"><span class="pre">upsg.pipeline.Pipeline</span></code></a> class will provide one method for each of
 these ways to run the pipeline. The method <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a>
 will always provide a default run method that is functionally correct.</p>
-<p>As of version 0.0.1, There is only one run method implemented:
-<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_debug" title="upsg.pipeline.Pipeline.run_debug"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_debug()</span></code></a>. The run_debug method runs the
+<p>As of version 0.0.2, There are two run methods implemented:
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_debug" title="upsg.pipeline.Pipeline.run_debug"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_debug()</span></code></a> and
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_luigi" title="upsg.pipeline.Pipeline.run_luigi"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_luigi()</span></code></a>. The run_debug method runs the
 pipeline on one core in serial, and is not suitable for extremely large jobs,
 but it does provide a number of tools to ensure that a pipeline is running
 correctly. These are discussed in more detail
-<a class="reference internal" href="#visualizing-and-debug"><span>below</span></a>.</p>
+<a class="reference internal" href="#visualizing-and-debug"><span>below</span></a>. The run_luigi method utilizes the luigi
+package run tasks in a scalable way.</p>
+<div class="section" id="environmental-variables">
+<h4>Environmental Variables<a class="headerlink" href="#environmental-variables" title="Permalink to this headline">¶</a></h4>
+<p>UPSG provides environmental variables to determine default behavior of the
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a> method. The variables are:</p>
+<dl class="docutils">
+<dt><strong>UPSG_RUN_MODE</strong></dt>
+<dd><p class="first">Determines the method to use to run the pipeline. Should be either:</p>
+<dl class="last docutils">
+<dt><em>dbg</em></dt>
+<dd>for the debug method</dd>
+<dt><em>luigi</em></dt>
+<dd>for running using luigi</dd>
+</dl>
+</dd>
+<dt><strong>UPSG_RUN_MODE</strong></dt>
+<dd><p class="first">If the pipeline is run in debug mode, and the <code class="docutils literal"><span class="pre">output</span></code> argument of
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_debug" title="upsg.pipeline.Pipeline.run_debug"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_debug()</span></code></a> is not specified, this variable
+will determine the argument of <code class="docutils literal"><span class="pre">output</span></code>. Should be one of:</p>
+<dl class="last docutils">
+<dt><em>bw</em></dt>
+<dd>prints progress and truncated stage output to terminal</dd>
+<dt><em>color</em></dt>
+<dd>prints progress and truncated stage output
+to terminal using ANSI colors</dd>
+<dt><em>progress</em></dt>
+<dd>only prints progress</dd>
+<dt><em>html</em></dt>
+<dd>prints pipeline visualization and truncated output
+in an html report. Also prints progress to terminal</dd>
+<dt><em>silent</em></dt>
+<dd>prints no output.</dd>
+</dl>
+</dd>
+</dl>
+</div>
 </div>
 <div class="section" id="visualization-and-debug-output">
 <span id="visualizing-and-debug"></span><h3>Visualization and debug output<a class="headerlink" href="#visualization-and-debug-output" title="Permalink to this headline">¶</a></h3>
@@ -563,7 +610,8 @@ resembles a
 <a class="reference external" href="http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html">Pandas DataFrame</a>.
 As of release 0.0.1, functionality is limited, but it can be used for some
 simple tasks:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">dt</span> <span class="o">=</span> <span class="n">DataToaster</span><span class="p">()</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.toaster</span> <span class="kn">import</span> <span class="n">DataToaster</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="n">DataToaster</span><span class="p">()</span>
 <span class="c"># Read in a csv</span>
 <span class="n">dt</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s">&#39;test_toaster.csv&#39;</span><span class="p">)</span>
 <span class="c"># Training is data before 2006-06-15; testing is after. The column</span>
@@ -605,7 +653,10 @@ simple tasks:</p>
 </li>
 <li><a class="reference internal" href="#pipelines">Pipelines</a><ul>
 <li><a class="reference internal" href="#connecting-stages-together">Connecting stages together</a></li>
-<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#running">Running</a><ul>
+<li><a class="reference internal" href="#environmental-variables">Environmental Variables</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#visualization-and-debug-output">Visualization and debug output</a></li>
 </ul>
 </li>

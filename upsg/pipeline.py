@@ -493,14 +493,68 @@ class Pipeline(object):
         return out_file
 
     def run_debug(self, **kwargs):
+        """Run the pipeline in the current Python process.
+
+        This method of running the job runs everything in serial on a single
+        process. It is provided for debugging purposes for use with small jobs.
+        For larger and more performant jobs, use the run method.
+
+        Parameters
+        ----------
+        output : str
+            Method of displaying output. One of:
+
+                'bw'
+                    prints progress and truncated stage output to terminal
+                'color'
+                    prints progress and truncated stage output 
+                    to terminal using ANSI colors
+                'progress'
+                    only prints progress
+                'html'
+                    prints pipeline visualization and truncated output
+                    in an html report. Also prints progress to terminal
+                'silent'
+                    prints no output.
+                ''
+                    If the environmental variable UPSG_DEBUG_OUTPUT_MODE is set
+                    to one of the above strings, then the value of 
+                    UPSG_DEBUG_OUTPUT_MODE will determine the output method.
+                    If the environmental variable is not set or is invalid, then
+                    the effect will be the same as specifying 'silent'
+        
+        report_path : str
+            If output='html', the path of the html file to be generated.
+            If unspecified, will use graph_out.html in the current working
+            directory
+
+        single_step : bool
+            If True, will invoke pdb after every stage is run
+
+        """
         import run_debug
         run_debug.run(self, self.__nodes, **kwargs)
 
     def run_luigi(self, **kwargs):
+        """Run pipeline using luigi
+
+        Parameters
+        ----------
+        logging_conf_file : str or None
+            Path of file to configure luigi logging that follows the format 
+            of: https://docs.python.org/2/library/logging.config.html
+        """
+
         import run_luigi
         run_luigi.run(self.__nodes, **kwargs)
 
     def run_luigi_quiet(self, **kwargs):
+        """Run a pipeline using luigi using a default logging configuration.
+        
+        The logging configuration notes events of level ERROR or higher
+        in the file upsg_luigi.log in the current working directory
+        """
+
         kwargs['logging_conf_file'] = get_resource_path(
                 'luigi_default_logging.cfg')
         self.run_luigi(**kwargs)

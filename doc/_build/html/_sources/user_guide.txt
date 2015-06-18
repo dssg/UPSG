@@ -17,6 +17,8 @@ data from a csv, impute that data by replacing NaNs with a constant value, and
 then write the imputed data to another csv. 
 
 In UPSG, we would express that as follows::
+
+    from upsg.pipeline import Pipeline
     
     from upsg.fetch.csv import CSVRead
     from upsg.transform.fill_na import FillNA
@@ -217,43 +219,49 @@ Pipelines
 ---------
 
 :class:`Pipelines <upsg.pipeline.Pipeline>` are the way that stages are
-organized into workflow. UPSG programs usually have five phases:
+organized into workflow. UPSG programs usually have six phases:
 
-1. Create a Pipeline
+1. Setup
+
+   >>> from upsg.pipeline import Pipeline
+   >>> from upsg.fetch.csv import CSVRead
+   >>> from upsg.export.csv import CSVWrite
+
+2. Create a Pipeline
 
    >>> p = Pipeline()
 
-2. Create all the Stages
+3. Create all the Stages
 
    >>> stage_read = CSVRead('in.csv')
    >>> stage_write = CSVWrite('out.csv')
 
-3. Add Stages to a Pipeline, creating :class:`Nodes <upsg.pipeline.Node>`
+4. Add Stages to a Pipeline, creating :class:`Nodes <upsg.pipeline.Node>`
 
    >>> node_read = p.add(stage_read)
    >>> node_write = p.add(stage_write)
 
-4. Connect nodes
+5. Connect nodes
 
    >>> node_read > node_write
 
-5. Run the pipeline
+6. Run the pipeline
 
    >>> p.run()
 
-Phase 1 merely initializes a Pipeline.
+Phase 2 merely initializes a Pipeline.
 
-Phase 2 creates a number of stages, as discussed in :ref:`stages`.
+Phase 3 creates a number of stages, as discussed in :ref:`stages`.
 
-Phase 3 adds Stages to the pipeline using the 
+Phase 4 adds Stages to the pipeline using the 
 :func:`upsg.pipeline.Pipeline.add` method. Each stage must be added to a 
 Pipeline once. The return value of Pipeline.add will be a Node, which is used
 to connect pipeline stages together.
 
-Phase 4 connects nodes together. It is discussed in more detail 
+Phase 5 connects nodes together. It is discussed in more detail 
 :ref:`below <connecting_stages_together>`.
 
-Phase 5 invokes :func:`upsg.pipeline.Pipeline.run`. This is discussed in more
+Phase 6 invokes :func:`upsg.pipeline.Pipeline.run`. This is discussed in more
 detail :ref:`below <running>`.
 
 .. _connecting_stages_together:
@@ -269,6 +277,7 @@ an output named "out_a" and :code:`stage_b` has an input named "in_b_1", and
 :code:`stage_b` expects that it's input "in_b_1" will be provided by 
 :code:`stage_a`'s "out_a" output, then we can connect the two like:
 
+>>> from upsg.pipeline import Pipeline
 >>> p = Pipeline()
 >>> node_a = p.add(stage_a)
 >>> node_b = p.add(stage_b)
@@ -353,12 +362,47 @@ The :class:`upsg.pipeline.Pipeline` class will provide one method for each of
 these ways to run the pipeline. The method :func:`upsg.pipeline.Pipeline.run`
 will always provide a default run method that is functionally correct.
 
-As of version 0.0.1, There is only one run method implemented: 
-:func:`upsg.pipeline.Pipeline.run_debug`. The run_debug method runs the 
+As of version 0.0.2, There are two run methods implemented: 
+:func:`upsg.pipeline.Pipeline.run_debug` and 
+:func:`upsg.pipeline.Pipeline.run_luigi`. The run_debug method runs the 
 pipeline on one core in serial, and is not suitable for extremely large jobs,
 but it does provide a number of tools to ensure that a pipeline is running
 correctly. These are discussed in more detail 
-:ref:`below <visualizing_and_debug>`.
+:ref:`below <visualizing_and_debug>`. The run_luigi method utilizes the luigi
+package run tasks in a scalable way.
+
+Environmental Variables
+-----------------------
+
+UPSG provides environmental variables to determine default behavior of the 
+:func:`upsg.pipeline.Pipeline.run` method. The variables are:
+
+**UPSG_RUN_MODE**
+    Determines the method to use to run the pipeline. Should be either:
+
+    *dbg* 
+        for the debug method
+    *luigi* 
+        for running using luigi
+
+**UPSG_RUN_MODE**
+    If the pipeline is run in debug mode, and the ``output`` argument of
+    :func:`upsg.pipeline.Pipeline.run_debug` is not specified, this variable
+    will determine the argument of ``output``. Should be one of:
+
+    *bw*
+        prints progress and truncated stage output to terminal
+    *color*
+        prints progress and truncated stage output 
+        to terminal using ANSI colors
+    *progress*
+        only prints progress
+    *html*
+        prints pipeline visualization and truncated output
+        in an html report. Also prints progress to terminal
+    *silent*
+        prints no output.
+
 
 .. _visualizing_and_debug:
 
@@ -448,6 +492,7 @@ resembles a
 As of release 0.0.1, functionality is limited, but it can be used for some
 simple tasks::
 
+        from upsg.toaster import DataToaster
         dt = DataToaster()
         # Read in a csv
         dt.from_csv('test_toaster.csv')

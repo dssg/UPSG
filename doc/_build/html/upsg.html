@@ -438,108 +438,14 @@ represents outgoing connections</td>
 <p>Our structure is merely a graph of pipeline elements. Execution will
 be relegated to either an external graph processing framework
 or some simplified, internal replacement.</p>
-<dl class="class">
-<dt id="upsg.pipeline.Pipeline.BasePrinter">
-<em class="property">class </em><code class="descname">BasePrinter</code><a class="headerlink" href="#upsg.pipeline.Pipeline.BasePrinter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.BasePrinter.footer_print">
-<code class="descname">footer_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.BasePrinter.footer_print" title="Permalink to this definition">¶</a></dt>
+<dl class="attribute">
+<dt id="upsg.pipeline.Pipeline.RUN_METHODS">
+<code class="descname">RUN_METHODS</code><em class="property"> = {0: &lt;function run_debug at 0x10fd76050&gt;, 1: &lt;function run_luigi at 0x10fd760c8&gt;, 2: &lt;function run_luigi_quiet at 0x10fd76140&gt;}</em><a class="headerlink" href="#upsg.pipeline.Pipeline.RUN_METHODS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.BasePrinter.header_print">
-<code class="descname">header_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.BasePrinter.header_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.BasePrinter.stage_print">
-<code class="descname">stage_print</code><span class="sig-paren">(</span><em>node</em>, <em>input_args</em>, <em>output_args</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.BasePrinter.stage_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter">
-<em class="property">class </em><code class="descclassname">Pipeline.</code><code class="descname">GraphPrinter</code><span class="sig-paren">(</span><em>png_file</em>, <em>map_file</em>, <em>scale</em>, <em>out_file</em>, <em>term_printer</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">upsg.pipeline.BasePrinter</span></code></p>
-<dl class="class">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.MapParser">
-<em class="property">class </em><code class="descname">MapParser</code><span class="sig-paren">(</span><em>scale</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.MapParser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">HTMLParser.HTMLParser</span></code></p>
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.MapParser.get_map">
-<code class="descname">get_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.MapParser.get_map" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_charref">
-<code class="descname">handle_charref</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_charref" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_data">
-<code class="descname">handle_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_endtag">
-<code class="descname">handle_endtag</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_endtag" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_entityref">
-<code class="descname">handle_entityref</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_entityref" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_starttag">
-<code class="descname">handle_starttag</code><span class="sig-paren">(</span><em>tag</em>, <em>attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.MapParser.handle_starttag" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.footer_print">
-<code class="descclassname">Pipeline.GraphPrinter.</code><code class="descname">footer_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.footer_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.header_print">
-<code class="descclassname">Pipeline.GraphPrinter.</code><code class="descname">header_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.header_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.GraphPrinter.stage_print">
-<code class="descclassname">Pipeline.GraphPrinter.</code><code class="descname">stage_print</code><span class="sig-paren">(</span><em>node</em>, <em>input_args</em>, <em>output_args</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.GraphPrinter.stage_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="upsg.pipeline.Pipeline.Printer">
-<em class="property">class </em><code class="descclassname">Pipeline.</code><code class="descname">Printer</code><span class="sig-paren">(</span><em>fmt_doc_header=''</em>, <em>fmt_doc_footer=''</em>, <em>fmt_node_header=''</em>, <em>fmt_node_footer=''</em>, <em>fmt_arg_header=''</em>, <em>fmt_arg_footer=''</em>, <em>fmt_row_1=''</em>, <em>fmt_row_2=''</em>, <em>max_cols=4294967296</em>, <em>str_cleanup=&lt;function &lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.Printer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">upsg.pipeline.BasePrinter</span></code></p>
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.Printer.footer_print">
-<code class="descname">footer_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.Printer.footer_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.Printer.header_print">
-<code class="descname">header_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.Printer.header_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.pipeline.Pipeline.Printer.stage_print">
-<code class="descname">stage_print</code><span class="sig-paren">(</span><em>node</em>, <em>input_args</em>, <em>output_args</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.Printer.stage_print" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
 
 <dl class="method">
 <dt id="upsg.pipeline.Pipeline.add">
-<code class="descclassname">Pipeline.</code><code class="descname">add</code><span class="sig-paren">(</span><em>stage</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.add" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add</code><span class="sig-paren">(</span><em>stage</em>, <em>label=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.add" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a stage to the pipeline</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -564,7 +470,7 @@ provieded, will use Node&#8217;s __repr__ method</li>
 
 <dl class="method">
 <dt id="upsg.pipeline.Pipeline.is_equal_by_str">
-<code class="descclassname">Pipeline.</code><code class="descname">is_equal_by_str</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.is_equal_by_str" title="Permalink to this definition">¶</a></dt>
+<code class="descname">is_equal_by_str</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.is_equal_by_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns whether or not self has the same nodes and edges as
 Pipeline other. Node equality is determined by whether nodes have the
 same str representation, so it&#8217;s really only useful in contrived
@@ -573,13 +479,30 @@ circumstances like our unit tests</p>
 
 <dl class="method">
 <dt id="upsg.pipeline.Pipeline.run">
-<code class="descclassname">Pipeline.</code><code class="descname">run</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.run" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run</code><span class="sig-paren">(</span><em>run_mode=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the pipeline</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>run_mode</strong> (<em>{RunMode.DBG, RunMode.LUIGI} or str or None</em>) &#8211; Specifies the method to use to run the pipeline.
+If an attribute of RunMode, specifies the run mode to use.
+If a str, should be either &#8216;dbg&#8217; or &#8216;luigi&#8217;
+If None, defaults to debug unless the environmental variable:
+UPSG_RUN_MODE is set, which should be either &#8216;dbg&#8217; or &#8216;luigi&#8217; and
+will specify the run mode</li>
+<li><strong>kwargs</strong> (<em>kwargs</em>) &#8211; keyword arguments to pass to the run method</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="upsg.pipeline.Pipeline.run_debug">
-<code class="descclassname">Pipeline.</code><code class="descname">run_debug</code><span class="sig-paren">(</span><em>output=''</em>, <em>report_path=''</em>, <em>single_step=False</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.run_debug" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run_debug</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.run_debug" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the pipeline in the current Python process.</p>
 <p>This method of running the job runs everything in serial on a single
 process. It is provided for debugging purposes for use with small jobs.
@@ -601,8 +524,16 @@ to terminal using ANSI colors</dd>
 <dt>&#8216;html&#8217;</dt>
 <dd>prints pipeline visualization and truncated output
 in an html report. Also prints progress to terminal</dd>
-<dt>&#8216;silent&#8217; or unspecified</dt>
+<dt>&#8216;silent&#8217;</dt>
 <dd>prints no output.</dd>
+</dl>
+<dl class="docutils">
+<dt>&#8216;&#8217;</dt>
+<dd>If the environmental variable UPSG_DEBUG_OUTPUT_MODE is set
+to one of the above strings, then the value of
+UPSG_DEBUG_OUTPUT_MODE will determine the output method.
+If the environmental variable is not set or is invalid, then
+the effect will be the same as specifying &#8216;silent&#8217;</dd>
 </dl>
 </li>
 <li><strong>report_path</strong> (<em>str</em>) &#8211; If output=&#8217;html&#8217;, the path of the html file to be generated.
@@ -617,8 +548,31 @@ directory</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="upsg.pipeline.Pipeline.run_luigi">
+<code class="descname">run_luigi</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.run_luigi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run pipeline using luigi</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logging_conf_file</strong> (<em>str or None</em>) &#8211; Path of file to configure luigi logging that follows the format
+of: <a class="reference external" href="https://docs.python.org/2/library/logging.config.html">https://docs.python.org/2/library/logging.config.html</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="upsg.pipeline.Pipeline.run_luigi_quiet">
+<code class="descname">run_luigi_quiet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.run_luigi_quiet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a pipeline using luigi using a default logging configuration.</p>
+<p>The logging configuration notes events of level ERROR or higher
+in the file upsg_luigi.log in the current working directory</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="upsg.pipeline.Pipeline.visualize">
-<code class="descclassname">Pipeline.</code><code class="descname">visualize</code><span class="sig-paren">(</span><em>filename=None</em>, <em>html_map=False</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.visualize" title="Permalink to this definition">¶</a></dt>
+<code class="descname">visualize</code><span class="sig-paren">(</span><em>filename=None</em>, <em>html_map=False</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.pipeline.Pipeline.visualize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a pdf to vizualize the pipeline.</p>
 <p>Requires the graphviz python package:
 (<a class="reference external" href="https://pypi.python.org/pypi/graphviz">https://pypi.python.org/pypi/graphviz</a>)
@@ -645,6 +599,31 @@ selected automatically</td>
 <dt id="upsg.pipeline.PipelineException">
 <em class="property">exception </em><code class="descclassname">upsg.pipeline.</code><code class="descname">PipelineException</code><a class="headerlink" href="#upsg.pipeline.PipelineException" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="upsg.pipeline.RunMode">
+<em class="property">class </em><code class="descclassname">upsg.pipeline.</code><code class="descname">RunMode</code><a class="headerlink" href="#upsg.pipeline.RunMode" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="upsg.pipeline.RunMode.DBG">
+<code class="descname">DBG</code><em class="property"> = 0</em><a class="headerlink" href="#upsg.pipeline.RunMode.DBG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.pipeline.RunMode.LUIGI">
+<code class="descname">LUIGI</code><em class="property"> = 1</em><a class="headerlink" href="#upsg.pipeline.RunMode.LUIGI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.pipeline.RunMode.LUIGI_QUIET">
+<code class="descname">LUIGI_QUIET</code><em class="property"> = 2</em><a class="headerlink" href="#upsg.pipeline.RunMode.LUIGI_QUIET" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.pipeline.RunMode.from_str">
+<code class="descname">from_str</code><em class="property"> = {'luigi_quiet': 2, 'dbg': 0, 'luigi': 1}</em><a class="headerlink" href="#upsg.pipeline.RunMode.from_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -892,7 +871,7 @@ should provide a value of each key specified in output_keys.</p>
 
 <dl class="class">
 <dt id="upsg.uobject.UObject">
-<em class="property">class </em><code class="descclassname">upsg.uobject.</code><code class="descname">UObject</code><span class="sig-paren">(</span><em>phase</em>, <em>file_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.uobject.UObject" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">upsg.uobject.</code><code class="descname">UObject</code><span class="sig-paren">(</span><em>phase</em>, <em>hdf5_image=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.uobject.UObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>A universal object signifying intermediary state in a pipeline.</p>
 <p>Conceptually, this object is a write-once table. It can be written
@@ -918,13 +897,12 @@ UObject must be either read-only or write-only.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>phase</strong> (<em>{UObjectPhase.Write, UObjectPhase.Read}</em>) &#8211; A member of UObjectPhase specifying whether the U_object
+<li><strong>phase</strong> (<em>{UObjectPhase.Write, UObjectPhase.Read}</em>) &#8211; A member of UObjectPhase specifying whether the UObject
 is being written or read.</li>
-<li><strong>file_name</strong> (<em>str</em>) &#8211; <p>The name of the .upsg file representing this universal
-intermediary object.</p>
-<p>If the file is being written, this argument is optional. If not
-specified, an arbitrary, unique filename will be chosen. This
-filename can be found by invoking the get_file_name function.</p>
+<li><strong>hdf5_image</strong> (<em>str</em>) &#8211; <p>A string containing the contents of the hdf5 file that this
+UObject represents</p>
+<p>If the file is being written, this argument is optional and will have
+no effect.</p>
 <p>If the file is being read, this argument is mandatory. Failure
 to specify the argument will result in an exception.</p>
 </li>
@@ -933,6 +911,11 @@ to specify the argument will result in an exception.</p>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="upsg.uobject.UObject.cleanup">
+<code class="descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.uobject.UObject.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="upsg.uobject.UObject.from_csv">
 <code class="descname">from_csv</code><span class="sig-paren">(</span><em>filename</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.uobject.UObject.from_csv" title="Permalink to this definition">¶</a></dt>
@@ -1023,10 +1006,9 @@ the cleanup.py utility.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="upsg.uobject.UObject.get_file_name">
-<code class="descname">get_file_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.uobject.UObject.get_file_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the path of this UObject&#8217;s .upsg file.</p>
-</dd></dl>
+<dt id="upsg.uobject.UObject.get_image">
+<code class="descname">get_image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.uobject.UObject.get_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="upsg.uobject.UObject.get_phase">
@@ -1267,6 +1249,16 @@ heterogeneous or different datatypes.</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="function">
+<dt id="upsg.utils.np_process_row">
+<code class="descclassname">upsg.utils.</code><code class="descname">np_process_row</code><span class="sig-paren">(</span><em>row</em>, <em>dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.utils.np_process_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="upsg.utils.np_process_row_elmt">
+<code class="descclassname">upsg.utils.</code><code class="descname">np_process_row_elmt</code><span class="sig-paren">(</span><em>entry</em>, <em>dtype</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.utils.np_process_row_elmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="upsg.utils.np_sa_to_dict">

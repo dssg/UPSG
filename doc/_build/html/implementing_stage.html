@@ -121,6 +121,8 @@ to input0 as a numpy array, we could do:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">sql_1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;input1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_sql</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>(See <a class="reference internal" href="upsg.html#upsg.uobject.UObject.to_np" title="upsg.uobject.UObject.to_np"><code class="xref py py-func docutils literal"><span class="pre">upsg.uobject.UObject.to_np()</span></code></a> and
+<a class="reference internal" href="upsg.html#upsg.uobject.UObject.to_sql" title="upsg.uobject.UObject.to_sql"><code class="xref py py-func docutils literal"><span class="pre">upsg.uobject.UObject.to_sql()</span></code></a>, respectively)</p>
 <p>For each output argument, the run method is expected to initialize a UObject
 (in the <a class="reference internal" href="upsg.html#upsg.uobject.UObjectPhase" title="upsg.uobject.UObjectPhase"><code class="xref py py-class docutils literal"><span class="pre">UObjectPhase.Write</span></code></a> phase), store
 some data in the UObject with one of its from_ methods, and then put that
@@ -170,12 +172,12 @@ somewhere else) would be:</p>
 <p>MetaStages do not implement the run method. Rather, they build their own,
 inner Pipelines, which will be transparently embedded in a larger, outer
 Pipeline when the MetaStage is added to the outer Pipeline. MetaStages must
-implement the pipeline property, which returns a tuple:</p>
+implement the <code class="code docutils literal"><span class="pre">pipeline</span></code> property, which returns a tuple:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">inner_pipeline</span><span class="p">,</span> <span class="n">entry_node</span><span class="p">,</span> <span class="n">exit_node</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The inner Pipeline will be embedded in some outer Pipeline when the outer
-Pipeline&#8217;s .add method is called.</p>
+Pipeline&#8217;s <code class="code docutils literal"><span class="pre">.add</span></code> method is called.</p>
 <p>To the outer Pipeline, the MetaStage will look like a single Stage rather than
 being the collection of Stages that it actually is. Consequently, the MetaStage
 must select an entry_node and an exit_node that will collectively appear to the
