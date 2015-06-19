@@ -385,7 +385,7 @@ UPSG provides environmental variables to determine default behavior of the
     *luigi* 
         for running using luigi
 
-**UPSG_RUN_MODE**
+**UPSG_DEBUG_OUTPUT_MODE**
     If the pipeline is run in debug mode, and the ``output`` argument of
     :func:`upsg.pipeline.Pipeline.run_debug` is not specified, this variable
     will determine the argument of ``output``. Should be one of:

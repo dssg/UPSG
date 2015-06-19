@@ -9,6 +9,7 @@ from StringIO import StringIO
 import numpy as np
 
 from .utils import html_escape
+from .uobject import UObjectException
 
 class BasePrinter(object):
     __metaclass__ = abc.ABCMeta
