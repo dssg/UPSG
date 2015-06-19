@@ -81,7 +81,7 @@ class TestPipeline(UPSGTestCase):
 
         csv_read_node['output'] > csv_write_node['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         control = np.genfromtxt(infile_name, dtype=None, delimiter=",",
                                 names=True)
@@ -103,7 +103,7 @@ class TestPipeline(UPSGTestCase):
         csv_read_node['output'] > impute_node['X_train']
         impute_node['X_new'] > csv_write_node['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         ctrl_imputer = Imputer()
         ctrl_X_sa = np.genfromtxt(infile_name, dtype=None, delimiter=",",
@@ -141,7 +141,7 @@ class TestPipeline(UPSGTestCase):
         nodes[4]['fx'] > nodes[5]['y']
         nodes[4]['fx'] > nodes[6]['x']
 
-        p.run()
+        self.run_pipeline(p)
 
         self.assertEqual(s5out.getvalue(),
                          "((S0,S1)->I3,(S1,S2)->I4)->T5")
@@ -180,7 +180,7 @@ class TestPipeline(UPSGTestCase):
         in_node_proxy['fx'] > out_nodes[2]['x']
         out_nodes[1]['fx'] > out_nodes[2]['y']
 
-        p_outer.run()
+        self.run_pipeline(p_outer)
 
         control = '[(aehmrst_in1,bdeeelrrry_in2),abdeeeehlmrrrrsty_out1]'
 

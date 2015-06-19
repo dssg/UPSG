@@ -57,7 +57,7 @@ class TestExport(UPSGTestCase):
         node_roc['fpr'] > node_plot['x']
         node_roc['tpr'] > node_plot['y']
 
-        p.run()
+        self.run_pipeline(p)
         self.assertTrue(os.path.isfile(self._tmp_files('result.png')))
 
     def test_numpy_write(self): 
@@ -66,7 +66,7 @@ class TestExport(UPSGTestCase):
         np_in = p.add(NumpyRead(in_data))
         np_out = p.add(NumpyWrite())
         np_in['output'] > np_out['input']
-        p.run()
+        self.run_pipeline(p)
         self.assertTrue(np.allclose(
             in_data, 
             np_sa_to_nd(np_out.get_stage().result)[0]))

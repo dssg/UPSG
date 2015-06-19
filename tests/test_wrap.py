@@ -107,7 +107,7 @@ class TestWrap(UPSGTestCase):
         csv_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
         sk_stage[upsg_out_key] > csv_out['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         if sk_method_name == 'predict':
             ctrl_X_train, ctrl_X_test, ctrl_y_train, ctrl_y_test = (
@@ -228,7 +228,7 @@ class TestWrap(UPSGTestCase):
         node_clf1['y_pred'] > node_pred_out_1['input']
         node_clf2['y_pred'] > node_pred_out_2['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         params_1 = self._tmp_files.csv_read('out_params_1.csv')
         params_2 = self._tmp_files.csv_read('out_params_2.csv')
@@ -290,7 +290,7 @@ class TestWrap(UPSGTestCase):
         [node_metric[out_key] > out_nodes[i]['input'] for i, out_key in
          enumerate(out_keys)]
 
-        p.run()
+        self.run_pipeline(p)
 
         ctrl_returns = metric(**ctrl_metric_args)
         if len(out_keys) == 1:
