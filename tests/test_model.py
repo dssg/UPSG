@@ -72,7 +72,7 @@ class TestModel(UPSGTestCase):
         node_split['test1'] > node_search['y_test']
         node_search['params_out'] > node_params_out['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         result = self._tmp_files.csv_read('out.csv')
 
@@ -111,7 +111,7 @@ class TestModel(UPSGTestCase):
         score_out = p.add(CSVWrite(self._tmp_files('out.csv')))
         cv_score['score'] > score_out['input']
 
-        p.run()
+        self.run_pipeline(p)
 
         result = self._tmp_files.csv_read('out.csv')['f0']
 
@@ -170,7 +170,7 @@ class TestModel(UPSGTestCase):
         split_train_test['test1'] > multi['y_true']
         clf['params_out'] > multi['params']
 
-        p.run()
+        self.run_pipeline(p)
 
         self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
 
@@ -202,7 +202,7 @@ class TestModel(UPSGTestCase):
         split_train_test['train1'] > multi['y_train']
         split_train_test['test1'] > multi['y_test']
         
-        p.run()
+        self.run_pipeline(p)
         
         self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
         

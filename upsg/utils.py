@@ -201,13 +201,17 @@ def utf_to_ascii(s):
 # TODO I'm missing a lot of these, most notably datetime, which we don't have
 # natively so we have to do some fancy conversion
 np_to_sql_types = {
-    np.dtype(bool): (sqlt.BOOLEAN,),
-    np.dtype(int): (sqlt.INTEGER, sqlt.BIGINT, sqlt.SMALLINT),
-    np.dtype(float): (sqlt.FLOAT, sqlt.DECIMAL, sqlt.REAL, sqlt.NUMERIC),
+    np.dtype(bool): (sqlt.BOOLEAN, sqlt.Boolean),
+    np.dtype(int): (sqlt.INTEGER, sqlt.BIGINT, sqlt.SMALLINT, sqlt.BigInteger,
+                    sqlt.Integer, sqlt.SmallInteger),
+    np.dtype(float): (sqlt.FLOAT, sqlt.DECIMAL, sqlt.REAL, sqlt.NUMERIC, 
+                      sqlt.Float, sqlt.Numeric),
     np.dtype(str): (sqlt.VARCHAR, sqlt.CHAR, sqlt.NCHAR, sqlt.NVARCHAR,
-                    sqlt.TEXT),
+                    sqlt.TEXT, sqlt.String, sqlt.Text, sqlt.Unicode,
+                    sqlt.UnicodeText),
     np.dtype('datetime64[s]'): (sqlt.DATETIME, sqlt.DATE, sqlt.TIME,
-                                sqlt.TIMESTAMP)
+                                sqlt.TIMESTAMP, sqlt.Date, sqlt.DateTime,
+                                sqlt.Time)
 }
 # TODO other time resolutions. (But we do have to specify 1 of them)
 # http://stackoverflow.com/questions/16618499/numpy-datetime64-in-recarray
@@ -237,12 +241,28 @@ def sql_to_np(tbl, conn):
 
     """
 
+
     # todo sessionmaker is somehow supposed to be global
     Session = sessionmaker(bind=conn)
     session = Session()
     # first pass, we don't worry about string length
-    dtype = [(str(col.name), sql_to_np_types[type(col.type)]) for
-             col in tbl.columns]
+    dtype = []
+    for col in tbl.columns:
+        sql_type = col.type
+        np_type = None
+        try:
+            np_type = sql_to_np_types[type(sql_type)]
+        except KeyError:
+            for base_sql_type in sql_to_np_types:
+                if isinstance(sql_type, base_sql_type):
+                #if base_sql_type in inspect.getmro(type(sql_type)):
+                    np_type = sql_to_np_types[base_sql_type]
+                    continue
+        # TODO nice error if we still don't find anything
+        if np_type is None:
+            raise KeyError('Type not found ' + str(sql_type))
+            # TODO a more appropriate type of error
+        dtype.append((str(col.name), np_type))
     # now, we find the max string length for our char columns
     str_cols = [tbl.columns[col_name] for col_name, col_dtype in dtype if
                 col_dtype == np.dtype(str)]
@@ -262,8 +282,26 @@ def sql_to_np(tbl, conn):
     # np.fromiter can't directly use the results of a query:
     #   http://mail.scipy.org/pipermail/numpy-discussion/2010-August/052358.html
     # TODO deal with unicode (which numpy can't handle)
-    return np.fromiter((tuple(row) for row in
+    return np.fromiter((np_process_row(row, dtype_corrected) for row in
                         session.query(tbl).all()), dtype=dtype_corrected)
+
+
+def np_process_row_elmt(entry, dtype):
+    if entry is None:
+        if 'S' in dtype:
+            return ''
+        if 'i' in dtype or 'l' in dtype:
+            return -999
+            # TODO is there some better way to handle null ints
+        return np.nan
+    if 'S' in dtype:
+        return utf_to_ascii(entry)
+    return entry
+    
+
+def np_process_row(row, dtype):
+    return tuple([np_process_row_elmt(entry, dtype[idx].str) for idx, entry in
+                  enumerate(row)])
 
 # http://stackoverflow.com/questions/13703720/converting-between-datetime-timestamp-and-datetime64
 NP_EPOCH = np.datetime64('1970-01-01T00:00:00Z')

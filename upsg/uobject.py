@@ -78,32 +78,44 @@ class UObject(object):
     Parameters
     ----------
     phase : {UObjectPhase.Write, UObjectPhase.Read}
-        A member of UObjectPhase specifying whether the U_object
+        A member of UObjectPhase specifying whether the UObject
         is being written or read. 
-    file_name : str
-        The name of the .upsg file representing this universal
-        intermediary object.
+    hdf5_image : str
+        A string containing the contents of the hdf5 file that this
+        UObject represents
 
-        If the file is being written, this argument is optional. If not
-        specified, an arbitrary, unique filename will be chosen. This
-        filename can be found by invoking the get_file_name function.
+        If the file is being written, this argument is optional and will have
+        no effect. 
 
         If the file is being read, this argument is mandatory. Failure
         to specify the argument will result in an exception.
 
     """
 
-    def __init__(self, phase, file_name=None):
+    def __open_for_read(self, hdf5_image):
+        file_name = str(uuid.uuid4()) + '.upsg'
+        #print 'Reading ' + file_name
+        self.__file = tables.open_file(
+                file_name,
+                mode='r',
+                driver='H5FD_CORE',
+                driver_core_backing_store=0,
+                driver_core_image=hdf5_image)
+
+    def __init__(self, phase, hdf5_image=None):
 
         self.__phase = phase
         self.__finalized = False
-        self.__temp_db = None
-        self.__file_name = file_name
 
         if phase == UObjectPhase.Write:
-            if self.__file_name is None:
-                self.__file_name = str(uuid.uuid4()) + '.upsg'
-            self.__file = tables.open_file(self.__file_name, mode='w')
+            # create an in-memory hdf5 file
+            file_name = str(uuid.uuid4()) + '.upsg'
+            #print 'Writing ' + file_name
+            self.__file = tables.open_file(
+                    file_name,
+                    mode='w',
+                    driver='H5FD_CORE',
+                    driver_core_backing_store=0)
             upsg_inf_grp = self.__file.create_group('/', 'upsg_inf')
             self.__file.set_node_attr(
                 upsg_inf_grp,
@@ -113,16 +125,26 @@ class UObject(object):
             return
 
         if phase == UObjectPhase.Read:
-            if self.__file_name is None:
-                raise UObjectException(
-                    'Specified read phase without providing file name')
-            self.__file = tables.open_file(self.__file_name, mode='r')
+            if hdf5_image is None:
+                raise UObjectException(('Asked to open in read mode but no '
+                                        'image provided'))
+            self.__open_for_read(hdf5_image)
             return
 
         raise UObjectException('Invalid phase provided')
 
     def __del__(self):
-        self.__file.close()
+        self.cleanup()
+
+    def cleanup(self):
+        try:
+            self.__file.close()
+        except IOError:
+            # presumably, file is already closed
+            pass
+
+    def get_image(self):
+        return self.__file.get_file_image()
 
     def get_phase(self):
         """
@@ -132,10 +154,6 @@ class UObject(object):
         
         """
         return self.__phase
-
-    def get_file_name(self):
-        """Returns the path of this UObject's .upsg file."""
-        return self.__file_name
 
     def is_finalized(self):
         """
@@ -165,7 +183,9 @@ class UObject(object):
         if not self.__finalized:
             raise UObjectException('UObject is not finalized')
 
-        self.__file = tables.open_file(self.__file_name)
+        image = self.__file.get_file_image()
+        self.__file.close()
+        self.__open_for_read(image)
         self.__phase = UObjectPhase.Read
         self.__finalized = False
 
@@ -396,7 +416,8 @@ class UObject(object):
             'storage_method',
             storage_method)
         self.__file.flush()
-        self.__file.close()
+        # The pipeline is responsible for syncing the persistent_file
+        #self.__file.close()
         self.__finalized = True
 
     def from_csv(self, filename, **kwargs):
