@@ -362,12 +362,47 @@ The :class:`upsg.pipeline.Pipeline` class will provide one method for each of
 these ways to run the pipeline. The method :func:`upsg.pipeline.Pipeline.run`
 will always provide a default run method that is functionally correct.
 
-As of version 0.0.1, There is only one run method implemented: 
-:func:`upsg.pipeline.Pipeline.run_debug`. The run_debug method runs the 
+As of version 0.0.2, There are two run methods implemented: 
+:func:`upsg.pipeline.Pipeline.run_debug` and 
+:func:`upsg.pipeline.Pipeline.run_luigi`. The run_debug method runs the 
 pipeline on one core in serial, and is not suitable for extremely large jobs,
 but it does provide a number of tools to ensure that a pipeline is running
 correctly. These are discussed in more detail 
-:ref:`below <visualizing_and_debug>`.
+:ref:`below <visualizing_and_debug>`. The run_luigi method utilizes the luigi
+package run tasks in a scalable way.
+
+Environmental Variables
+-----------------------
+
+UPSG provides environmental variables to determine default behavior of the 
+:func:`upsg.pipeline.Pipeline.run` method. The variables are:
+
+**UPSG_RUN_MODE**
+    Determines the method to use to run the pipeline. Should be either:
+
+    *dbg* 
+        for the debug method
+    *luigi* 
+        for running using luigi
+
+**UPSG_DEBUG_OUTPUT_MODE**
+    If the pipeline is run in debug mode, and the ``output`` argument of
+    :func:`upsg.pipeline.Pipeline.run_debug` is not specified, this variable
+    will determine the argument of ``output``. Should be one of:
+
+    *bw*
+        prints progress and truncated stage output to terminal
+    *color*
+        prints progress and truncated stage output 
+        to terminal using ANSI colors
+    *progress*
+        only prints progress
+    *html*
+        prints pipeline visualization and truncated output
+        in an html report. Also prints progress to terminal
+    *silent*
+        prints no output.
+
 
 .. _visualizing_and_debug:
 
