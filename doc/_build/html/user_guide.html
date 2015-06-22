@@ -148,7 +148,7 @@ Programs can be written in bash, R, Python, C, or whatever you like.</p>
 <p>As of release 0.0.1, however, stages must be written in Python (or at least
 Python wrappers around other <a class="reference internal" href="upsg.transform.html#upsg.transform.sql.RunSQL" title="upsg.transform.sql.RunSQL"><code class="xref py py-class docutils literal"><span class="pre">languages</span></code></a>).
 The Python classes implementing the stage model are
-<a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a> and <code class="xref py py-class docutils literal"><span class="pre">uspg.stage.RunnableStage</span></code>.</p>
+<a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a> and <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a>.</p>
 <p>Python stages should be subclasses of either <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a>
 or <a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a>.</p>
 <p>Users can add functionality to their pipelines by either:</p>
@@ -455,7 +455,7 @@ it may be run on a cluster by scheduling a number of Hadoop jobs.</p>
 <p>The <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline" title="upsg.pipeline.Pipeline"><code class="xref py py-class docutils literal"><span class="pre">upsg.pipeline.Pipeline</span></code></a> class will provide one method for each of
 these ways to run the pipeline. The method <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a>
 will always provide a default run method that is functionally correct.</p>
-<p>As of version 0.0.2, There are two run methods implemented:
+<p>As of version 0.0.1, There are two run methods implemented:
 <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_debug" title="upsg.pipeline.Pipeline.run_debug"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_debug()</span></code></a> and
 <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_luigi" title="upsg.pipeline.Pipeline.run_luigi"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_luigi()</span></code></a>. The run_debug method runs the
 pipeline on one core in serial, and is not suitable for extremely large jobs,
@@ -531,7 +531,7 @@ doing.</p>
 <div class="section" id="universal-objects">
 <h2>Universal Objects<a class="headerlink" href="#universal-objects" title="Permalink to this headline">¶</a></h2>
 <p>The primary way that the UPSG Python library interfaces with .upsg files is
-through the <code class="xref py py-class docutils literal"><span class="pre">Universal</span> <span class="pre">Object</span></code> or UObject.
+through the <a class="reference internal" href="upsg.html#upsg.uobject.UObject" title="upsg.uobject.UObject"><code class="xref py py-class docutils literal"><span class="pre">Universal</span> <span class="pre">Object</span></code></a> or UObject.
 Conceptually, the UObject is a write-once variable that is backed by a .upsg
 file. The UObject can be written to using one of its &#8220;from_&#8221; methods, and then
 read from using one of its &#8220;to_&#8221; methods. You will generally not have to deal
