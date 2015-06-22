@@ -109,7 +109,7 @@ Programs can be written in bash, R, Python, C, or whatever you like.
 As of release 0.0.1, however, stages must be written in Python (or at least
 Python wrappers around other :class:`languages <upsg.transform.sql.RunSQL>`). 
 The Python classes implementing the stage model are
-:class:`upsg.stage.MetaStage` and :class:`uspg.stage.RunnableStage`.
+:class:`upsg.stage.MetaStage` and :class:`upsg.stage.RunnableStage`.
 
 Python stages should be subclasses of either :class:`upsg.stage.RunnableStage`
 or :class:`upsg.stage.MetaStage`.
@@ -362,7 +362,7 @@ The :class:`upsg.pipeline.Pipeline` class will provide one method for each of
 these ways to run the pipeline. The method :func:`upsg.pipeline.Pipeline.run`
 will always provide a default run method that is functionally correct.
 
-As of version 0.0.2, There are two run methods implemented: 
+As of version 0.0.1, There are two run methods implemented: 
 :func:`upsg.pipeline.Pipeline.run_debug` and 
 :func:`upsg.pipeline.Pipeline.run_luigi`. The run_debug method runs the 
 pipeline on one core in serial, and is not suitable for extremely large jobs,
@@ -445,7 +445,7 @@ Universal Objects
 -----------------
 
 The primary way that the UPSG Python library interfaces with .upsg files is
-through the :class:`Universal Object <uspg.uobject.UObject>` or UObject.
+through the :class:`Universal Object <upsg.uobject.UObject>` or UObject.
 Conceptually, the UObject is a write-once variable that is backed by a .upsg
 file. The UObject can be written to using one of its "from\_" methods, and then
 read from using one of its "to\_" methods. You will generally not have to deal
