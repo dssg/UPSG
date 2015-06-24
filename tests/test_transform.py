@@ -26,6 +26,7 @@ from upsg.transform.identity import Identity
 from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
 from upsg.transform.merge import Merge
 from upsg.transform.hstack import HStack
+from upsg.transform.generate_feature import GenerateFeature
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
@@ -590,6 +591,32 @@ class TestTransform(UPSGTestCase):
         out = p.add(NumpyWrite())
 
         out(hstack)
+
+        p.run()
+
+        self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
+
+    def test_generate_feature(self):
+        in_array = np.array(
+                [(0.0, 0.1, 0.2, 0.3), (1.0, 1.1, 1.2, 1.3), 
+                 (2.0, 2.1, 2.2, 2.3)], 
+                dtype=[('f0', float), ('f1', float), ('f2', float), 
+                       ('f3', float)])
+        ctrl = np.array(
+                [(10.4,), (12.4,), (14.4,)], 
+                dtype=[('f0', float)])
+        cols = ['f1', 'f3']
+        f = lambda tab: tab['f1'] + tab['f3'] + 10
+
+        p = Pipeline()
+
+        np_in = p.add(NumpyRead(in_array))
+
+        gen_feat = p.add(GenerateFeature(cols, f))
+        gen_feat(np_in)
+
+        out = p.add(NumpyWrite())
+        out(gen_feat)
 
         p.run()
 
