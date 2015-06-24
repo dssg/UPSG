@@ -11,10 +11,12 @@ from ..transform.identity import Identity
 
 VisualMetricSpec_ = namedtuple('VisualMetricSpec', ['metric', 
                                                     'output_key_x',
-                                                    'output_key_y',
+                                                    'output_keys_y',
+                                                    'series_labels',
                                                     'graph_title',
                                                     'graph_x_label',
-                                                    'graph_y_label'])
+                                                    'graph_y_label',
+                                                    'series_labels'])
 class VisualMetricSpec(VisualMetricSpec_):
     """
     
@@ -29,12 +31,15 @@ class VisualMetricSpec(VisualMetricSpec_):
     metric : str
         The fully qualified package name of the sklearn metric: e.g.:
         'sklearn.metrics.precision_recall_curve'
-    output_key_x : str
+    output_key_x : str or None
         The output key of 
         :meth:`wrap_sklearn.wrap(metric) <upsg.wrap.wrap_sklearn.wrap>`
         corresponding the the x-axis on the graph. e.g.: 'recall'
-    output_key_y : str
-        The output key of 
+        If None, will be index_of_y_series / length_of_y_series
+        (i.e. for the roc_curve metric, the % highest positive cases that
+        we predict to be true)
+    output_keys_y : str or list of str
+        The output key[s] of 
         :meth:`wrap_sklearn.wrap(metric) <upsg.wrap.wrap_sklearn.wrap>`
         corresponding the the y-axis on the graph. e.g.: 'precision'
     graph_title : str
@@ -43,6 +48,8 @@ class VisualMetricSpec(VisualMetricSpec_):
         The label for the graph's x-axis. e.g.: 'Recall'
     graph_y_label : str
         The label of the graph's y-axis. e.g.: "Precision"
+    series_labels : str or list of str or None (default None)
+        The label[s] of the series
     """
     pass
 
