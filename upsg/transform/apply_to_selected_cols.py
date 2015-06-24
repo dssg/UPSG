@@ -14,7 +14,8 @@ from .hstack import HStack
 class ApplyToSelectedCols(MetaStage):
 
     """
-    Applies a given transformation only to the selected columns.
+    Applies a given transformation only to the selected columns. The output
+    is the table that was passed in with the given columns altered in-place
 
     Input keys and output keys are identical to those of the selected transform
 
