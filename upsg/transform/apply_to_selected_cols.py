@@ -1,18 +1,21 @@
 import numpy as np
 
+from numpy.lib.recfunctions import merge_arrays
+
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..utils import np_sa_to_nd
 from ..pipeline import Pipeline
 from .identity import Identity
 from .split import SplitColumns
+from .hstack import HStack
 
-from numpy.lib.recfunctions import merge_arrays
 
 class ApplyToSelectedCols(MetaStage):
 
     """
-    Applies a given transformation only to the selected columns.
+    Applies a given transformation only to the selected columns. The output
+    is the table that was passed in with the given columns altered in-place
 
     Input keys and output keys are identical to those of the selected transform
 
@@ -28,23 +31,6 @@ class ApplyToSelectedCols(MetaStage):
         init kwargs for the stage
 
     """
-
-    class __Merge(RunnableStage):
-        @property
-        def input_keys(self): 
-            return ['input0', 'input1']
-
-        @property
-        def output_keys(self):
-            return ['output']
-
-        def run(self, outputs_requested, **kwargs):
-            in0 = kwargs['input0'].to_np()
-            in1 = kwargs['input1'].to_np()
-            out = merge_arrays((in0, in1), flatten=True)
-            uo_out = UObject(UObjectPhase.Write)
-            uo_out.from_np(out)
-            return {'output': uo_out}
 
     def __init__(self, col_names, stage_cls, *args, **kwargs):
         p = Pipeline()
@@ -64,7 +50,7 @@ class ApplyToSelectedCols(MetaStage):
         for in_key in trans_node_in_keys:
             in_node[correspondence[in_key]] > trans_node[in_key]
         trans_node_out_keys = list(trans_node.output_keys)
-        merge_node = p.add(self.__Merge())
+        merge_node = p.add(HStack(2))
         out_node = p.add(Identity(output_keys=trans_node_out_keys))
         correspondence = out_node.get_stage().get_correspondence(False)
         for out_key in ('output', 'X_new'):
