@@ -9,6 +9,7 @@ from ..pipeline import Pipeline
 from .identity import Identity
 from .split import SplitColumns
 from .lambda_stage import LambdaStage
+from .rename_cols import RenameCols
 
 
 class GenerateFeature(MetaStage):
@@ -29,28 +30,37 @@ class GenerateFeature(MetaStage):
 
     Parameters
     ----------
-    col_names : list of str
-        Names of the columns to which the transform Stage will be supplied
     gen_func : numpy structured array -> numpy structured array
         Function to generate features. The input array will consist of the
         columns selected. The output array should have the generated feature
+    in_col_names : list of str
+        Names of the columns to which the transform Stage will be supplied
+    out_col_names : list of str or None
+        Names of columns for generated features. If None, names will be 
+        automatically generated
 
     """
 
-    def __init__(self, col_names, gen_func):
+    def __init__(self, gen_func, in_col_names, out_col_names=None):
         p = Pipeline()
         self.__pipeline = p
 
         in_node = p.add(Identity(input_keys=['input']))
 
-        split_node = p.add(SplitColumns(col_names))
+        split_node = p.add(SplitColumns(in_col_names))
         split_node(in_node)
 
         lambda_node = p.add(LambdaStage(gen_func, n_outputs=1))
         lambda_node(split_node)
 
         out_node = p.add(Identity(output_keys=['output']))
-        out_node(lambda_node)
+
+        if out_col_names is not None:
+            rename = p.add(RenameCols(out_col_names))
+            rename(lambda_node)
+            out_node(rename)
+        else:
+            out_node(lambda_node)
 
         self.__pipeline = p
         self.__in_node = in_node
