@@ -612,7 +612,28 @@ class TestTransform(UPSGTestCase):
 
         np_in = p.add(NumpyRead(in_array))
 
-        gen_feat = p.add(GenerateFeature(cols, f))
+        gen_feat = p.add(GenerateFeature(f, cols))
+        gen_feat(np_in)
+
+        out = p.add(NumpyWrite())
+        out(gen_feat)
+
+        p.run()
+
+        self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
+
+        ctrl = np.array(
+                [(1, 10.1), (11, 11.1), (21, 12.1)],
+                dtype=[('times10', float), ('add10', float)])
+        cols = ['f1']
+        f = lambda tab: np.array(zip(tab['f1'] * 10, tab['f1'] + 10))
+        out_col_names = ['times10', 'add10']
+
+        p = Pipeline()
+
+        np_in = p.add(NumpyRead(in_array))
+
+        gen_feat = p.add(GenerateFeature(f, cols, out_col_names))
         gen_feat(np_in)
 
         out = p.add(NumpyWrite())
