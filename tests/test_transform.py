@@ -25,6 +25,7 @@ from upsg.transform.timify import Timify
 from upsg.transform.identity import Identity
 from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
 from upsg.transform.merge import Merge
+from upsg.transform.hstack import HStack
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
@@ -561,6 +562,36 @@ class TestTransform(UPSGTestCase):
         ctrl = np.array(
             [(1, 1), (3, 1)], 
             dtype=[('id', int), ('include', int)])
+
+        self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
+
+    def test_hstack(self):
+        a = np.array(
+                [(0.0, 0.1), (1.0, 1.1), (2.0, 2.1)], 
+                dtype=[('f0', float), ('f1', float)])
+        b = np.array(
+                [(0.2, 0.3), (1.2, 1.3), (2.2, 2.3)], 
+                dtype=[('f2', float), ('f3', float)])
+        ctrl = np.array(
+                [(0.0, 0.1, 0.2, 0.3), (1.0, 1.1, 1.2, 1.3), 
+                 (2.0, 2.1, 2.2, 2.3)], 
+                dtype=[('f0', float), ('f1', float), ('f2', float), 
+                       ('f3', float)])
+
+        p = Pipeline()
+
+        np_in_a = p.add(NumpyRead(a))
+
+        np_in_b = p.add(NumpyRead(b))
+
+        hstack = p.add(HStack(2))
+        hstack(np_in_a, np_in_b)
+
+        out = p.add(NumpyWrite())
+
+        out(hstack)
+
+        p.run()
 
         self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
 
