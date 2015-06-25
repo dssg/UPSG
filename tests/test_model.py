@@ -203,7 +203,7 @@ class TestModel(UPSGTestCase):
         split_train_test['test1'] > multi['y_test']
         
         self.run_pipeline(p)
-        
+
         self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
         
 if __name__ == '__main__':

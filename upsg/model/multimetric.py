@@ -121,7 +121,7 @@ class Multimetric(MetaStage):
             self.__title = title
             self.__n_metrics = len(metrics)
             self.__metrics = metrics
-            self.__input_keys = (['params'] + 
+            self.__input_keys = (['params', 'feature_importances'] + 
                                  ['metric{}_in'.format(i) for 
                                   i in xrange(self.__n_metrics)])   
 
@@ -144,6 +144,14 @@ class Multimetric(MetaStage):
                         '<h3>{}</h3><h4>Best params</h4>\n<p>{}</p>\n'.format(
                             self.__title, 
                             kwargs['params'].to_dict()))
+                try:
+                    feature_importance = kwargs['feature_importances']
+                    print 'We\'re in!'
+                    fout.write(
+                        '<h4>Feature Importance</h4>\n<p>{}</p>\n'.format(
+                            feature_importance.to_np()))
+                except KeyError:
+                    print 'Not passed to multimetric.__reduce'
                 for i, metric in enumerate(self.__metrics):
                     uo = kwargs['metric{}_in'.format(i)]
                     if isinstance(metric, VisualMetricSpec):
@@ -170,10 +178,16 @@ class Multimetric(MetaStage):
 
         self.__file_name = file_name
 
-        node_map = p.add(Identity(('params', 'pred_proba', 'y_true')))
+        node_map = p.add(Identity(('params', 'pred_proba', 'y_true', 
+                                   'feature_importances')))
         node_reduce = p.add(self.__ReduceStage(metrics, title, file_name))
 
         node_map['params_out'] > node_reduce['params']
+        print title
+        print 'node_map keys'
+        print node_map.output_keys
+        (node_map['feature_importances_out'] > 
+         node_reduce['feature_importances'])
 
         for i, metric in enumerate(metrics):
             stage_metric = wrap_and_make_instance(metric.metric)
