@@ -144,20 +144,18 @@ class Multimetric(MetaStage):
 
         def run(self, outputs_requested, **kwargs):
             # TODO sanitize html
-            # TODO use dbg printer's table printing
             with open(self.__file_name, 'w') as fout:
                 fout.write(
                         '<h3>{}</h3><h4>Best params</h4>\n<p>{}</p>\n'.format(
                             self.__title, 
-                            kwargs['params'].to_dict()))
+                            self.__html_table(kwargs['params'].to_np())))
                 try:
                     feature_importance = kwargs['feature_importances']
-                    print 'We\'re in!'
                     fout.write(
                         '<h4>Feature Importance</h4>\n{}\n'.format(
                             self.__html_table(feature_importance.to_np())))
                 except KeyError:
-                    print 'Not passed to multimetric.__reduce'
+                    pass
                 for i, metric in enumerate(self.__metrics):
                     uo = kwargs['metric{}_in'.format(i)]
                     if isinstance(metric, VisualMetricSpec):
@@ -189,9 +187,6 @@ class Multimetric(MetaStage):
         node_reduce = p.add(self.__ReduceStage(metrics, title, file_name))
 
         node_map['params_out'] > node_reduce['params']
-        print title
-        print 'node_map keys'
-        print node_map.output_keys
         (node_map['feature_importances_out'] > 
          node_reduce['feature_importances'])
 
