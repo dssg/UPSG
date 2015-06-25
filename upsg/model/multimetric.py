@@ -1,10 +1,12 @@
 from collections import namedtuple
 import uuid
+from StringIO import StringIO
 
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
 from ..utils import dict_to_np_sa
+from ..utils import np_to_html_table
 from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..export.plot import Plot
 from ..transform.identity import Identity
@@ -135,6 +137,10 @@ class Multimetric(MetaStage):
         def output_keys(self):
             return self.__output_keys
 
+        def __html_table(self, sa):
+            sio = StringIO()
+            np_to_html_table(sa, sio)
+            return sio.getvalue()
 
         def run(self, outputs_requested, **kwargs):
             # TODO sanitize html
@@ -148,8 +154,8 @@ class Multimetric(MetaStage):
                     feature_importance = kwargs['feature_importances']
                     print 'We\'re in!'
                     fout.write(
-                        '<h4>Feature Importance</h4>\n<p>{}</p>\n'.format(
-                            feature_importance.to_np()))
+                        '<h4>Feature Importance</h4>\n{}\n'.format(
+                            self.__html_table(feature_importance.to_np())))
                 except KeyError:
                     print 'Not passed to multimetric.__reduce'
                 for i, metric in enumerate(self.__metrics):

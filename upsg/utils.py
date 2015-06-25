@@ -378,6 +378,12 @@ def html_escape(s):
     """Returns a string with all its html-averse characters html escaped"""
     return cgi.escape(s).encode('ascii', 'xmlcharrefreplace')
 
+def html_format(fmt, *args, **kwargs):
+    clean_args = [html_escape(str(arg)) for arg in args]
+    clean_kwargs = {key: html_escape(str(kwargs[key])) for 
+                    key in kwargs}
+    return fmt.format(*clean_args, **clean_kwargs)
+
 def import_object_by_name(target):
     """Imports an object given its fully qualified package name
 
@@ -417,5 +423,30 @@ def obj_to_str(sa):
         cols.append(col)
         ndtype.append((col_name, sub_dtype))
     return merge_arrays(cols).view(dtype=ndtype)
+
+def np_to_html_table(sa, fout):
+    fout.write('<p>table of shape: ({},{})</p>'.format(
+        len(sa),
+        len(sa.dtype)))
+    fout.write('<p><table>\n')
+    header = '<tr>{}</tr>\n'.format(
+        ''.join(
+                [html_format(
+                    '<th>{}</th>',
+                    name) for 
+                 name in sa.dtype.names]))
+    fout.write(header)
+    rows = sa[:100]
+    data = '\n'.join(
+        ['<tr>{}</tr>'.format(
+            ''.join(
+                [html_format(
+                    '<td>{}</td>',
+                    cell) for
+                 cell in row])) for
+         row in rows])
+    fout.write(data)
+    fout.write('\n')
+    fout.write('</table></p>')
 
 

@@ -204,6 +204,8 @@ class TestModel(UPSGTestCase):
         
         self.run_pipeline(p)
 
+        import pdb; pdb.set_trace()
+
         self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
         
 if __name__ == '__main__':

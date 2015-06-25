@@ -9,6 +9,8 @@ from StringIO import StringIO
 import numpy as np
 
 from .utils import html_escape
+from .utils import np_to_html_table
+from .utils import html_format
 from .uobject import UObjectException
 
 class BasePrinter(object):
@@ -174,10 +176,7 @@ class GraphPrinter(BasePrinter):
             return self.__sio.getvalue()
 
     def __html_format(self, fmt, *args, **kwargs):
-        clean_args = [html_escape(str(arg)) for arg in args]
-        clean_kwargs = {key: html_escape(str(kwargs[key])) for 
-                        key in kwargs}
-        return fmt.format(*clean_args, **clean_kwargs)
+        return html_format(fmt, *args, **kwargs)
 
     def header_print(self):
         doc_header = ('<!DOCTYPE html>\n'
@@ -217,29 +216,7 @@ class GraphPrinter(BasePrinter):
             os.path.abspath(self.__out_file)))
 
     def __data_print(self, a):
-        self.__fout.write('<p>table of shape: ({},{})</p>'.format(
-            len(a),
-            len(a.dtype)))
-        self.__fout.write('<p><table>\n')
-        header = '<tr>{}</tr>\n'.format(
-            ''.join(
-                    [self.__html_format(
-                        '<th>{}</th>',
-                        name) for 
-                     name in a.dtype.names]))
-        self.__fout.write(header)
-        rows = a[:100]
-        data = '\n'.join(
-            ['<tr>{}</tr>'.format(
-                ''.join(
-                    [self.__html_format(
-                        '<td>{}</td>',
-                        cell) for
-                     cell in row])) for
-             row in rows])
-        self.__fout.write(data)
-        self.__fout.write('\n')
-        self.__fout.write('</table></p>')
+        np_to_html_table(a, self.__fout)
 
     def stage_print(self, node, input_args, output_args):
 
