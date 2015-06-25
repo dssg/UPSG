@@ -23,7 +23,7 @@ def get_resource_path(file_name):
     """given the name of a resource, returns the full path"""
     return os.path.join(RESOURCES_PATH, file_name)
 
-__type_permissiveness_ranks = {'M': 0, 'i': 100, 'f': 200, 'S': 300}
+__type_permissiveness_ranks = {'b': 0, 'M': 100, 'i': 200, 'f': 300, 'S': 400}
 def __type_permissiveness(dtype):
     # TODO handle other types
     return __type_permissiveness_ranks[dtype.kind] + dtype.itemsize
