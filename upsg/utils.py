@@ -106,6 +106,8 @@ def np_nd_to_sa(nd, dtype=None):
     -------
     A structured numpy.ndarray
     """
+    if is_sa(nd):
+        return nd
     if nd.ndim not in (0, 1, 2):
         raise TypeError('np_nd_to_sa only takes 0, 1 or 2-dimensional arrays')
     nd_dtype = nd.dtype
