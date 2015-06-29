@@ -254,12 +254,23 @@ class Multimetric(MetaStage):
                     out_file,
                     xlabel = metric.graph_x_label,
                     ylabel = metric.graph_y_label))
-                if (isinstance(metric.output_keys_y, basestring) or 
-                    len(metric.output_keys_y) == 1):
-                    node_metric[metric.output_key_x] > node_plot['x']
-                    node_metric[metric.output_key_y] > node_plot['y']
-                else:
+                output_keys_y = metric.output_keys_y
+                if isinstance(output_keys_y, basestring):
+                    output_keys_y = (output_keys_y,)
+                if len(output_keys_y) == 1):
                     
+                    node_metric[metric.output_key_x] > node_plot['x']
+                    node_metric[output_keys_y[0]] > node_plot['y']
+                else:
+                    labels = metric.series_labels
+                    if labels is None:
+                        labels = ['s{}'.format(i) for i in 
+                                  xrange(len(output_keys_y))]
+                    weave = self.__PlotWeaver(labels)
+                    for i, key in enumerate(output_keys_y):
+                        node_metric[key] > weave['input{}'.format(i)]
+                    weave > node_plot['y']
+
                 node_plot['plot_file'] > node_reduce[metric_in_key]
             else:
                 node_metric[metric.output_key] > node_reduce[metric_in_key]
