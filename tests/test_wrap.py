@@ -30,6 +30,7 @@ from upsg.fetch.csv import CSVRead
 from upsg.fetch.np import NumpyRead
 from upsg.export.csv import CSVWrite
 from upsg.export.plot import Plot
+from upsg.export.np import NumpyWrite
 from upsg.transform.split import SplitY, SplitTrainTest
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, get_resource_path
 from upsg.utils import import_object_by_name
@@ -317,6 +318,37 @@ class TestWrap(UPSGTestCase):
         for metric in [roc_curve, roc_auc_score, precision_recall_curve]:
             self.__metric_pipeline(metric, in_data=in_data)
 
+    def test_feature_importance(self):
+
+        #50% 20% 100% predictability
+        X = np.array([[1, 0, 1],
+                      [1, 0, 0],
+                      [1, 0, 1],
+                      [0, 0, 1],
+                      [0, 0, 0],
+                      [0, 0, 1],
+                      [1, 0, 1],
+                      [0, 0, 1]])
+        y = np.array([1, 0, 1, 1, 0, 1, 1, 1])
+
+        p = Pipeline()
+
+        X_in = p.add(NumpyRead(X))
+        y_in = p.add(NumpyRead(y))
+
+        est = p.add(wrap_and_make_instance(
+            'sklearn.ensemble.RandomForestClassifier',
+            random_state=0))
+        est(X_train=X_in, y_train=y_in)
+
+        out = p.add(NumpyWrite())
+        out(est['feature_importances'])
+
+        p.run()
+
+        result = out.get_stage().result['col_name']
+        ctrl = np.array(['f2', 'f0', 'f1'])
+        self.assertTrue(np.array_equal(ctrl, result))
 
 if __name__ == '__main__':
     unittest.main()

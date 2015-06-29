@@ -186,6 +186,9 @@ class Multiclassify(MetaStage):
             node_proba_cat_1['y'] > node_metric['pred_proba']
             node_map['y_test_out'] > node_metric['y_true']
             node_grid_search['params_out'] > node_metric['params']
+            if 'feature_importances' in node_grid_search.output_keys:
+                (node_grid_search['feature_importances'] > 
+                 node_metric['feature_importances'])
 
             (node_metric['report_file'] > 
              node_reduce['report_in{}'.format(i)])

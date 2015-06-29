@@ -1,6 +1,8 @@
 from collections import namedtuple
 import logging
 
+import numpy as np
+
 import luigi
 import luigi.mock
 
@@ -42,7 +44,23 @@ def node_to_task(node, context):
                           input_files[in_key].read()) for in_key in 
                           others_output_keys}
         [input_files[in_key].close() for in_key in input_files]
-        output_args = node.get_stage().run(node_outputs.keys(), **input_args)
+        expected_out_keys = node_outputs.keys()
+        output_args = node.get_stage().run(
+                expected_out_keys, 
+                **input_args)
+
+        actual_out_keys = output_args.keys()  
+        for key in expected_out_keys:
+            if key not in actual_out_keys:
+                logger.warning(
+                        ('Expected key {} not returned by node {}. '
+                         'Providing empty table'.format(
+                            key,
+                            node)))
+                uo = UObject(UObjectPhase.Write)
+                uo.from_np(np.array([]))
+                output_args[key] = uo
+
         output_files = {out_key: self.output()[out_key].open('w') for 
                         out_key in node_outputs}
         [output_files[out_key].write(output_args[out_key].get_image()) for 
@@ -74,12 +92,16 @@ def node_to_task(node, context):
     return task
 
 
-def run(nodes, logging_conf_file=None):
+def run(nodes, logging_conf_file=None, worker_processes=None):
     node_queue = [node for node in nodes
                   if not node.get_outputs()]  # start with the leaves
     context = dict.fromkeys(nodes, None)
     luigi.interface.setup_interface_logging(logging_conf_file)
     sch = luigi.scheduler.CentralPlannerScheduler()
+    if worker_processes is None:
+        import multiprocessing
+        worker_processes = multiprocessing.cpu_count()
+    #w = luigi.worker.Worker(scheduler=sch, worker_processes=worker_processes)
     w = luigi.worker.Worker(scheduler=sch)
     while node_queue:
         node = node_queue.pop()

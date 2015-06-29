@@ -191,6 +191,28 @@ def __wrap_estimator(sk_cls):
                     return self.__np_to_uo(result)
                 __funcs_to_run['pred_log_proba'] = __do_predict_log_proba
 
+            if hasattr(sk_cls, 'feature_importances_'):
+                __output_keys.add('feature_importances')
+
+                def __do_feature_importances(self, **kwargs):
+                    self.__fit(**kwargs)
+                    clf = self.__sk_instance
+                    (X_train, X_train_dtype) = self.__uo_to_np(kwargs['X_train'])
+                    col_names = X_train_dtype.names
+                    feat_importances = [ (col_names[x], 
+                                          clf.feature_importances_[x]) for
+                        x in clf.feature_importances_.argsort()[::-1]]
+                    col_name_chars = len(max(
+                        feat_importances, 
+                        key=lambda feat: len(feat[0]))[0])
+                    np_importances = np.array(
+                            feat_importances,
+                            dtype=[('col_name', 'S{}'.format(col_name_chars)), 
+                                   ('rank', float)])
+                    return self.__np_to_uo(np_importances) 
+                __funcs_to_run['feature_importances'] = __do_feature_importances
+                    
+
         def run(self, outputs_requested, **kwargs):
             try:
                 self.__params = kwargs['params_in'].to_dict()

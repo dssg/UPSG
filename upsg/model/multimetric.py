@@ -1,10 +1,12 @@
 from collections import namedtuple
 import uuid
+from StringIO import StringIO
 
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
 from ..utils import dict_to_np_sa
+from ..utils import np_to_html_table
 from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..export.plot import Plot
 from ..transform.identity import Identity
@@ -128,7 +130,7 @@ class Multimetric(MetaStage):
             self.__title = title
             self.__n_metrics = len(metrics)
             self.__metrics = metrics
-            self.__input_keys = (['params'] + 
+            self.__input_keys = (['params', 'feature_importances'] + 
                                  ['metric{}_in'.format(i) for 
                                   i in xrange(self.__n_metrics)])   
 
@@ -142,15 +144,25 @@ class Multimetric(MetaStage):
         def output_keys(self):
             return self.__output_keys
 
+        def __html_table(self, sa):
+            sio = StringIO()
+            np_to_html_table(sa, sio)
+            return sio.getvalue()
 
         def run(self, outputs_requested, **kwargs):
             # TODO sanitize html
-            # TODO use dbg printer's table printing
             with open(self.__file_name, 'w') as fout:
                 fout.write(
                         '<h3>{}</h3><h4>Best params</h4>\n<p>{}</p>\n'.format(
                             self.__title, 
-                            kwargs['params'].to_dict()))
+                            self.__html_table(kwargs['params'].to_np())))
+                try:
+                    feature_importance = kwargs['feature_importances']
+                    fout.write(
+                        '<h4>Feature Importance</h4>\n{}\n'.format(
+                            self.__html_table(feature_importance.to_np())))
+                except KeyError:
+                    pass
                 for i, metric in enumerate(self.__metrics):
                     uo = kwargs['metric{}_in'.format(i)]
                     if isinstance(metric, VisualMetricSpec):
@@ -177,10 +189,13 @@ class Multimetric(MetaStage):
 
         self.__file_name = file_name
 
-        node_map = p.add(Identity(('params', 'pred_proba', 'y_true')))
+        node_map = p.add(Identity(('params', 'pred_proba', 'y_true', 
+                                   'feature_importances')))
         node_reduce = p.add(self.__ReduceStage(metrics, title, file_name))
 
         node_map['params_out'] > node_reduce['params']
+        (node_map['feature_importances_out'] > 
+         node_reduce['feature_importances'])
 
         for i, metric in enumerate(metrics):
             stage_metric = wrap_and_make_instance(metric.metric)

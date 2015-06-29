@@ -14,11 +14,16 @@ class RenameCols(RunnableStage):
 
     Parameters
     ----------
-    rename_dict : dict of str : str
-        A dictionary mapping old column names to new column names. If the
-        table connected to the 'input' input has columns corresponding to the
-        keys of this dictionary, the resulting table will have columns
-        names with the corresponding values.
+    rename_dict : (dict of str : str) or (list of str)
+        If a dict:
+            A dictionary mapping old column names to new column names. If the
+            table connected to the 'input' input has columns corresponding to the
+            keys of this dictionary, the resulting table will have columns
+            names with the corresponding values.
+        If a list:
+            Colums will be renamed in order. The first column will be renamed
+            to the first entry of this list. The second column will be renamed
+            to the second entry, etc.
     
     """
 
@@ -40,12 +45,15 @@ class RenameCols(RunnableStage):
         in_array = kwargs['input'].to_np()
         rename_dict = self.__rename_dict
 
-        def repl(col):
-            try:
-                return rename_dict[col]
-            except KeyError:
-                return col
-        in_array.dtype.names = map(repl, in_array.dtype.names)
+        if isinstance(rename_dict, dict):
+            def repl(col):
+                try:
+                    return rename_dict[col]
+                except KeyError:
+                    return col
+            in_array.dtype.names = map(repl, in_array.dtype.names)
+        else:
+            in_array.dtype.names = rename_dict
         uo_out.from_np(in_array)
 
         return {'output': uo_out}
