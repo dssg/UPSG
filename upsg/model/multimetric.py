@@ -14,12 +14,24 @@ from ..transform.identity import Identity
 VisualMetricSpec_ = namedtuple('VisualMetricSpec', ['metric', 
                                                     'output_key_x',
                                                     'output_keys_y',
-                                                    'series_labels',
                                                     'graph_title',
                                                     'graph_x_label',
                                                     'graph_y_label',
                                                     'series_labels'])
 class VisualMetricSpec(VisualMetricSpec_):
+    def __new__(cls, metric, output_key_x, output_keys_y, graph_title,
+                graph_x_label, graph_y_label, series_labels=None):
+        # Default values in named tuple
+        # http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
+        return super(VisualMetricSpec, cls).__new__(
+                cls, 
+                metric, 
+                output_key_x,
+                output_keys_y,
+                graph_title,
+                graph_x_label,
+                graph_y_label,
+                series_labels)
     """
     
     Specification for a metric to be used with 
@@ -123,6 +135,31 @@ class Multimetric(MetaStage):
 
     """
 
+    class __PlotWeaver(RunnableStage):
+
+        def __init__(self, labels):
+            self.__input_keys = ['input{}'.format(i) 
+                                 for i in xrange(len(labels))]
+            self.__labels = labels
+
+        @property
+        def input_keys(self):
+            return self.__input_keys
+
+        @property
+        def output_keys(self):
+            return ['output']
+
+        def run(self, outputs_requested, **kwargs):
+            in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
+            dtype = [(label, array.dtype[0]) for 
+                     label, array in zip(self.__labels, in_arrays)]
+            out_array = np.array(zip([array[array.dtype.names[0]] for 
+                                      array in in_arrays]), dtype)
+            uo = UObject(UObjectPhase.Write)
+            uo.from_np(out_array)
+            return {'output': uo}
+
     class __ReduceStage(RunnableStage):
 
         def __init__(self, metrics, title, file_name):
@@ -217,8 +254,12 @@ class Multimetric(MetaStage):
                     out_file,
                     xlabel = metric.graph_x_label,
                     ylabel = metric.graph_y_label))
-                node_metric[metric.output_key_x] > node_plot['x']
-                node_metric[metric.output_key_y] > node_plot['y']
+                if (isinstance(metric.output_keys_y, basestring) or 
+                    len(metric.output_keys_y) == 1):
+                    node_metric[metric.output_key_x] > node_plot['x']
+                    node_metric[metric.output_key_y] > node_plot['y']
+                else:
+                    
                 node_plot['plot_file'] > node_reduce[metric_in_key]
             else:
                 node_metric[metric.output_key] > node_reduce[metric_in_key]
