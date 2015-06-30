@@ -348,57 +348,6 @@ that will be reported. e.g.: &#8216;auc&#8217;</p>
 <dt id="upsg.model.multimetric.VisualMetricSpec">
 <em class="property">class </em><code class="descclassname">upsg.model.multimetric.</code><code class="descname">VisualMetricSpec</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#upsg.model.multimetric.VisualMetricSpec" title="upsg.model.multimetric.VisualMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">upsg.model.multimetric.VisualMetricSpec</span></code></a></p>
-<p>Specification for a metric to be used with
-<a class="reference internal" href="#upsg.model.multimetric.Multimetric" title="upsg.model.multimetric.Multimetric"><code class="xref py py-class docutils literal"><span class="pre">MultiMetric</span></code></a>.</p>
-<p>In contrast with <a class="reference internal" href="#upsg.model.multimetric.NumericMetricSpec" title="upsg.model.multimetric.NumericMetricSpec"><code class="xref py py-class docutils literal"><span class="pre">NumericMetricSpec</span></code></a>, these metrics will be reported as
-a plot rather than a number or a table.</p>
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.metric">
-<code class="descname">metric</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.metric" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em></p>
-<p>The fully qualified package name of the sklearn metric: e.g.:
-&#8216;sklearn.metrics.precision_recall_curve&#8217;</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.output_key_x">
-<code class="descname">output_key_x</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.output_key_x" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em></p>
-<p>The output key of
-<a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-meth docutils literal"><span class="pre">wrap_sklearn.wrap(metric)</span></code></a>
-corresponding the the x-axis on the graph. e.g.: &#8216;recall&#8217;</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.output_key_y">
-<code class="descname">output_key_y</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.output_key_y" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em></p>
-<p>The output key of
-<a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-meth docutils literal"><span class="pre">wrap_sklearn.wrap(metric)</span></code></a>
-corresponding the the y-axis on the graph. e.g.: &#8216;precision&#8217;</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.graph_title">
-<code class="descname">graph_title</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_title" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em></p>
-<p>The title of the graph. e.g. : &#8216;Precision/Recall Curve&#8217;</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.graph_x_label">
-<code class="descname">graph_x_label</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_x_label" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em></p>
-<p>The label for the graph&#8217;s x-axis. e.g.: &#8216;Recall&#8217;</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.model.multimetric.VisualMetricSpec.graph_y_label">
-<code class="descname">graph_y_label</code><a class="headerlink" href="#upsg.model.multimetric.VisualMetricSpec.graph_y_label" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>str</em></p>
-<p>The label of the graph&#8217;s y-axis. e.g.: &#8220;Precision&#8221;</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="attribute">

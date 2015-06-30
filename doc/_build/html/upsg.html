@@ -440,7 +440,7 @@ be relegated to either an external graph processing framework
 or some simplified, internal replacement.</p>
 <dl class="attribute">
 <dt id="upsg.pipeline.Pipeline.RUN_METHODS">
-<code class="descname">RUN_METHODS</code><em class="property"> = {0: &lt;function run_debug at 0x11085b410&gt;, 1: &lt;function run_luigi at 0x11085b488&gt;, 2: &lt;function run_luigi_quiet at 0x11085b500&gt;}</em><a class="headerlink" href="#upsg.pipeline.Pipeline.RUN_METHODS" title="Permalink to this definition">¶</a></dt>
+<code class="descname">RUN_METHODS</code><em class="property"> = {0: &lt;function run_debug at 0x1078dc1b8&gt;, 1: &lt;function run_luigi at 0x1078dc230&gt;, 2: &lt;function run_luigi_quiet at 0x1078dc2a8&gt;}</em><a class="headerlink" href="#upsg.pipeline.Pipeline.RUN_METHODS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -553,8 +553,13 @@ directory</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logging_conf_file</strong> (<em>str or None</em>) &#8211; Path of file to configure luigi logging that follows the format
-of: <a class="reference external" href="https://docs.python.org/2/library/logging.config.html">https://docs.python.org/2/library/logging.config.html</a></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>logging_conf_file</strong> (<em>str or None</em>) &#8211; Path of file to configure luigi logging that follows the format
+of: <a class="reference external" href="https://docs.python.org/2/library/logging.config.html">https://docs.python.org/2/library/logging.config.html</a></li>
+<li><strong>worker_processes</strong> (<em>int or None</em>) &#8211; Number of processes to run on. If None, will pick the number
+of cpus on the host system</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -566,6 +571,15 @@ of: <a class="reference external" href="https://docs.python.org/2/library/loggin
 <dd><p>Run a pipeline using luigi using a default logging configuration.</p>
 <p>The logging configuration notes events of level ERROR or higher
 in the file upsg_luigi.log in the current working directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_processes</strong> (<em>int or None</em>) &#8211; Number of processes to run on. If None, will pick the number
+of cpus on the host system</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1195,6 +1209,11 @@ This enumeration specifies what is happening at present.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="upsg.utils.html_format">
+<code class="descclassname">upsg.utils.</code><code class="descname">html_format</code><span class="sig-paren">(</span><em>fmt</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.utils.html_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="upsg.utils.import_object_by_name">
 <code class="descclassname">upsg.utils.</code><code class="descname">import_object_by_name</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.utils.import_object_by_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Imports an object given its fully qualified package name</p>
@@ -1294,6 +1313,11 @@ the structured array that was passed in.</td>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="function">
+<dt id="upsg.utils.np_to_html_table">
+<code class="descclassname">upsg.utils.</code><code class="descname">np_to_html_table</code><span class="sig-paren">(</span><em>sa</em>, <em>fout</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.utils.np_to_html_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="upsg.utils.np_to_sql">

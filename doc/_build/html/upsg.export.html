@@ -145,9 +145,11 @@
 <p><strong>Input Keys</strong></p>
 <dl class="docutils">
 <dt>x</dt>
-<dd>table of x coords</dd>
+<dd>table of x coords. If not provided, will use the index of y for x.</dd>
 <dt>y</dt>
-<dd>table of y coords</dd>
+<dd>table of y coords. Can have multiple columns. If so, each column will
+be a different series and series will be labeled by the names of the
+columns.</dd>
 </dl>
 <p><strong>Output Keys</strong></p>
 <dl class="docutils">
