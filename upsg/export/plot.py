@@ -12,9 +12,11 @@ class Plot(RunnableStage):
     **Input Keys**
 
     x
-        table of x coords
+        table of x coords. If not provided, will use the index of y for x.
     y
-        table of y coords
+        table of y coords. Can have multiple columns. If so, each column will
+        be a different series and series will be labeled by the names of the
+        columns.
 
     **Output Keys**
 
