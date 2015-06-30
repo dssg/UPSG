@@ -132,11 +132,12 @@ class TestModel(UPSGTestCase):
                            'precision',), # y-label
                    VisualMetricSpec(
                            'sklearn.metrics.roc_curve',
-                           'fpr',
-                           'tpr',
+                           None,
+                           ('tpr', 'fpr'),
                            'ROC Curve',
-                           'FPR',
-                           'TPR'),
+                           'Results tagged positive',
+                           'Rate',
+                           ('FPR', 'TPR')),
                    NumericMetricSpec(
                            'sklearn.metrics.roc_auc_score',
                            'auc',
@@ -203,7 +204,6 @@ class TestModel(UPSGTestCase):
         split_train_test['test1'] > multi['y_test']
         
         self.run_pipeline(p)
-        
         self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
         
 if __name__ == '__main__':

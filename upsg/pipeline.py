@@ -543,6 +543,9 @@ class Pipeline(object):
         logging_conf_file : str or None
             Path of file to configure luigi logging that follows the format 
             of: https://docs.python.org/2/library/logging.config.html
+        worker_processes : int or None
+            Number of processes to run on. If None, will pick the number
+            of cpus on the host system
         """
 
         import run_luigi
@@ -553,6 +556,12 @@ class Pipeline(object):
         
         The logging configuration notes events of level ERROR or higher
         in the file upsg_luigi.log in the current working directory
+
+        Parameters
+        ----------
+        worker_processes : int or None
+            Number of processes to run on. If None, will pick the number
+            of cpus on the host system
         """
 
         kwargs['logging_conf_file'] = get_resource_path(

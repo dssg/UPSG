@@ -1,21 +1,39 @@
 from collections import namedtuple
 import uuid
+from StringIO import StringIO
+
+import numpy as np
 
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
 from ..utils import dict_to_np_sa
+from ..utils import np_to_html_table
 from ..wrap.wrap_sklearn import wrap, wrap_and_make_instance
 from ..export.plot import Plot
 from ..transform.identity import Identity
 
 VisualMetricSpec_ = namedtuple('VisualMetricSpec', ['metric', 
                                                     'output_key_x',
-                                                    'output_key_y',
+                                                    'output_keys_y',
                                                     'graph_title',
                                                     'graph_x_label',
-                                                    'graph_y_label'])
+                                                    'graph_y_label',
+                                                    'series_labels'])
 class VisualMetricSpec(VisualMetricSpec_):
+    def __new__(cls, metric, output_key_x, output_keys_y, graph_title,
+                graph_x_label, graph_y_label, series_labels=None):
+        # Default values in named tuple
+        # http://stackoverflow.com/questions/11351032/named-tuple-and-optional-keyword-arguments
+        return super(VisualMetricSpec, cls).__new__(
+                cls, 
+                metric, 
+                output_key_x,
+                output_keys_y,
+                graph_title,
+                graph_x_label,
+                graph_y_label,
+                series_labels)
     """
     
     Specification for a metric to be used with 
@@ -29,12 +47,15 @@ class VisualMetricSpec(VisualMetricSpec_):
     metric : str
         The fully qualified package name of the sklearn metric: e.g.:
         'sklearn.metrics.precision_recall_curve'
-    output_key_x : str
+    output_key_x : str or None
         The output key of 
         :meth:`wrap_sklearn.wrap(metric) <upsg.wrap.wrap_sklearn.wrap>`
         corresponding the the x-axis on the graph. e.g.: 'recall'
-    output_key_y : str
-        The output key of 
+        If None, will be index_of_y_series / length_of_y_series
+        (i.e. for the roc_curve metric, the % highest positive cases that
+        we predict to be true)
+    output_keys_y : str or list of str
+        The output key[s] of 
         :meth:`wrap_sklearn.wrap(metric) <upsg.wrap.wrap_sklearn.wrap>`
         corresponding the the y-axis on the graph. e.g.: 'precision'
     graph_title : str
@@ -43,6 +64,8 @@ class VisualMetricSpec(VisualMetricSpec_):
         The label for the graph's x-axis. e.g.: 'Recall'
     graph_y_label : str
         The label of the graph's y-axis. e.g.: "Precision"
+    series_labels : str or list of str or None (default None)
+        The label[s] of the series
     """
     pass
 
@@ -114,6 +137,31 @@ class Multimetric(MetaStage):
 
     """
 
+    class __PlotWeaver(RunnableStage):
+
+        def __init__(self, labels):
+            self.__input_keys = ['input{}'.format(i) 
+                                 for i in xrange(len(labels))]
+            self.__labels = labels
+
+        @property
+        def input_keys(self):
+            return self.__input_keys
+
+        @property
+        def output_keys(self):
+            return ['output']
+
+        def run(self, outputs_requested, **kwargs):
+            in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
+            dtype = [(label, array.dtype[0]) for 
+                     label, array in zip(self.__labels, in_arrays)]
+            out_array = np.array(zip(*[array[array.dtype.names[0]] for 
+                                      array in in_arrays]), dtype)
+            uo = UObject(UObjectPhase.Write)
+            uo.from_np(out_array)
+            return {'output': uo}
+
     class __ReduceStage(RunnableStage):
 
         def __init__(self, metrics, title, file_name):
@@ -121,7 +169,7 @@ class Multimetric(MetaStage):
             self.__title = title
             self.__n_metrics = len(metrics)
             self.__metrics = metrics
-            self.__input_keys = (['params'] + 
+            self.__input_keys = (['params', 'feature_importances'] + 
                                  ['metric{}_in'.format(i) for 
                                   i in xrange(self.__n_metrics)])   
 
@@ -135,15 +183,25 @@ class Multimetric(MetaStage):
         def output_keys(self):
             return self.__output_keys
 
+        def __html_table(self, sa):
+            sio = StringIO()
+            np_to_html_table(sa, sio)
+            return sio.getvalue()
 
         def run(self, outputs_requested, **kwargs):
             # TODO sanitize html
-            # TODO use dbg printer's table printing
             with open(self.__file_name, 'w') as fout:
                 fout.write(
                         '<h3>{}</h3><h4>Best params</h4>\n<p>{}</p>\n'.format(
                             self.__title, 
-                            kwargs['params'].to_dict()))
+                            self.__html_table(kwargs['params'].to_np())))
+                try:
+                    feature_importance = kwargs['feature_importances']
+                    fout.write(
+                        '<h4>Feature Importance</h4>\n{}\n'.format(
+                            self.__html_table(feature_importance.to_np())))
+                except KeyError:
+                    pass
                 for i, metric in enumerate(self.__metrics):
                     uo = kwargs['metric{}_in'.format(i)]
                     if isinstance(metric, VisualMetricSpec):
@@ -170,10 +228,13 @@ class Multimetric(MetaStage):
 
         self.__file_name = file_name
 
-        node_map = p.add(Identity(('params', 'pred_proba', 'y_true')))
+        node_map = p.add(Identity(('params', 'pred_proba', 'y_true', 
+                                   'feature_importances')))
         node_reduce = p.add(self.__ReduceStage(metrics, title, file_name))
 
         node_map['params_out'] > node_reduce['params']
+        (node_map['feature_importances_out'] > 
+         node_reduce['feature_importances'])
 
         for i, metric in enumerate(metrics):
             stage_metric = wrap_and_make_instance(metric.metric)
@@ -195,8 +256,22 @@ class Multimetric(MetaStage):
                     out_file,
                     xlabel = metric.graph_x_label,
                     ylabel = metric.graph_y_label))
-                node_metric[metric.output_key_x] > node_plot['x']
-                node_metric[metric.output_key_y] > node_plot['y']
+                output_keys_y = metric.output_keys_y
+                if isinstance(output_keys_y, basestring):
+                    output_keys_y = (output_keys_y,)
+                if len(output_keys_y) == 1:
+                    node_metric[metric.output_key_x] > node_plot['x']
+                    node_metric[output_keys_y[0]] > node_plot['y']
+                else:
+                    labels = metric.series_labels
+                    if labels is None:
+                        labels = ['s{}'.format(i) for i in 
+                                  xrange(len(output_keys_y))]
+                    weave = p.add(self.__PlotWeaver(labels))
+                    for i, key in enumerate(output_keys_y):
+                        node_metric[key] > weave['input{}'.format(i)]
+                    weave > node_plot['y']
+
                 node_plot['plot_file'] > node_reduce[metric_in_key]
             else:
                 node_metric[metric.output_key] > node_reduce[metric_in_key]

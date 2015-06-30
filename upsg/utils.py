@@ -23,7 +23,7 @@ def get_resource_path(file_name):
     """given the name of a resource, returns the full path"""
     return os.path.join(RESOURCES_PATH, file_name)
 
-__type_permissiveness_ranks = {'M': 0, 'i': 100, 'f': 200, 'S': 300}
+__type_permissiveness_ranks = {'b': 0, 'M': 100, 'i': 200, 'f': 300, 'S': 400}
 def __type_permissiveness(dtype):
     # TODO handle other types
     return __type_permissiveness_ranks[dtype.kind] + dtype.itemsize
@@ -106,6 +106,8 @@ def np_nd_to_sa(nd, dtype=None):
     -------
     A structured numpy.ndarray
     """
+    if is_sa(nd):
+        return nd
     if nd.ndim not in (0, 1, 2):
         raise TypeError('np_nd_to_sa only takes 0, 1 or 2-dimensional arrays')
     nd_dtype = nd.dtype
@@ -376,6 +378,12 @@ def html_escape(s):
     """Returns a string with all its html-averse characters html escaped"""
     return cgi.escape(s).encode('ascii', 'xmlcharrefreplace')
 
+def html_format(fmt, *args, **kwargs):
+    clean_args = [html_escape(str(arg)) for arg in args]
+    clean_kwargs = {key: html_escape(str(kwargs[key])) for 
+                    key in kwargs}
+    return fmt.format(*clean_args, **clean_kwargs)
+
 def import_object_by_name(target):
     """Imports an object given its fully qualified package name
 
@@ -415,5 +423,30 @@ def obj_to_str(sa):
         cols.append(col)
         ndtype.append((col_name, sub_dtype))
     return merge_arrays(cols).view(dtype=ndtype)
+
+def np_to_html_table(sa, fout):
+    fout.write('<p>table of shape: ({},{})</p>'.format(
+        len(sa),
+        len(sa.dtype)))
+    fout.write('<p><table>\n')
+    header = '<tr>{}</tr>\n'.format(
+        ''.join(
+                [html_format(
+                    '<th>{}</th>',
+                    name) for 
+                 name in sa.dtype.names]))
+    fout.write(header)
+    rows = sa[:100]
+    data = '\n'.join(
+        ['<tr>{}</tr>'.format(
+            ''.join(
+                [html_format(
+                    '<td>{}</td>',
+                    cell) for
+                 cell in row])) for
+         row in rows])
+    fout.write(data)
+    fout.write('\n')
+    fout.write('</table></p>')
 
 
