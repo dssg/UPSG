@@ -69,16 +69,18 @@ class Plot(RunnableStage):
         return ['plot_file']
 
     def run(self, outputs_requested, **kwargs):
-        y = np_sa_to_nd(kwargs['y'].to_np())[0]
+        y = kwargs['y'].to_np()
         try:
             x = np_sa_to_nd(kwargs['x'].to_np())[0]
         except KeyError:
             M = y.shape[0]
             x = np.arange(M).reshape(M, 1)
-        plt.plot(x, y, *self.__args, **self.__kwargs)
+        y_nd = np_sa_to_nd(y)[0]
+        plt.plot(x, y_nd, *self.__args, **self.__kwargs)
         plt.title(self.__title)
         plt.xlabel(self.__xlabel)
         plt.ylabel(self.__ylabel)
+        plt.legend(y.dtype.names)
         plt.savefig(self.__file_name)
         plt.close()
         uo_plot = UObject(UObjectPhase.Write)

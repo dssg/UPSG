@@ -2,6 +2,8 @@ from collections import namedtuple
 import uuid
 from StringIO import StringIO
 
+import numpy as np
+
 from ..stage import RunnableStage, MetaStage
 from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
@@ -154,7 +156,7 @@ class Multimetric(MetaStage):
             in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
             dtype = [(label, array.dtype[0]) for 
                      label, array in zip(self.__labels, in_arrays)]
-            out_array = np.array(zip([array[array.dtype.names[0]] for 
+            out_array = np.array(zip(*[array[array.dtype.names[0]] for 
                                       array in in_arrays]), dtype)
             uo = UObject(UObjectPhase.Write)
             uo.from_np(out_array)
@@ -257,8 +259,7 @@ class Multimetric(MetaStage):
                 output_keys_y = metric.output_keys_y
                 if isinstance(output_keys_y, basestring):
                     output_keys_y = (output_keys_y,)
-                if len(output_keys_y) == 1):
-                    
+                if len(output_keys_y) == 1:
                     node_metric[metric.output_key_x] > node_plot['x']
                     node_metric[output_keys_y[0]] > node_plot['y']
                 else:
@@ -266,7 +267,7 @@ class Multimetric(MetaStage):
                     if labels is None:
                         labels = ['s{}'.format(i) for i in 
                                   xrange(len(output_keys_y))]
-                    weave = self.__PlotWeaver(labels)
+                    weave = p.add(self.__PlotWeaver(labels))
                     for i, key in enumerate(output_keys_y):
                         node_metric[key] > weave['input{}'.format(i)]
                     weave > node_plot['y']
