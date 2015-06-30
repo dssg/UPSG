@@ -137,11 +137,12 @@ class Multiclassify(MetaStage):
                            'Precision'), # y-label
                        VisualMetricSpec(
                            'sklearn.metrics.roc_curve',
-                           'fpr',
-                           'tpr',
+                           None,
+                           ('tpr', 'fpr'),
                            'ROC Curve',
-                           'FPR',
-                           'TPR'),
+                           'Results tagged positive',
+                           'Rate',
+                           ('FPR', 'TPR')),
                        NumericMetricSpec(
                            'sklearn.metrics.roc_auc_score',
                            'auc',
