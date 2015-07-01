@@ -10,6 +10,7 @@ from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import cross_val_score
 from sklearn.cross_validation import KFold as SKKFold
+from sklearn.cross_validation import StratifiedKFold, LeaveOneOut 
 
 from upsg.fetch.np import NumpyRead
 from upsg.wrap.wrap_sklearn import wrap, wrap_and_make_instance
@@ -98,27 +99,41 @@ class TestModel(UPSGTestCase):
         X = np.random.random((rows, 10))
         y = np.random.randint(0, 2, (rows))
         
-        p = Pipeline()
+        for PartIter, kwargs in ((SKKFold, {'n': rows, 'n_folds': folds, 
+                                            'random_stage': 0}),
+                                 (StratifiedKFold, {'y': y, 'n_folds': folds,
+                                                    'random_state': 0}),
+                                 (LeaveOneOut, {'n': rows})):
+            print PartIter
 
-        np_in_X = p.add(NumpyRead(X))
-        np_in_y = p.add(NumpyRead(y))
+            p = Pipeline()
 
-        cv_score = p.add(CrossValidationScore(wrap(SVC), 'score', {}, folds,
-                                              random_state=0))               
-        np_in_X['output'] > cv_score['X_train']
-        np_in_y['output'] > cv_score['y_train']
+            np_in_X = p.add(NumpyRead(X))
+            np_in_y = p.add(NumpyRead(y))
 
-        score_out = p.add(CSVWrite(self._tmp_files('out.csv')))
-        cv_score['score'] > score_out['input']
+            cv_score = p.add(CrossValidationScore(
+                wrap(SVC), 
+                'score', 
+                {}, 
+                wrap(PartIter),
+                n_folds=folds, 
+                random_state=0))
+            np_in_X['output'] > cv_score['X_train']
+            np_in_y['output'] > cv_score['y_train']
 
-        self.run_pipeline(p)
+            score_out = p.add(CSVWrite(self._tmp_files('out.csv')))
+            cv_score['score'] > score_out['input']
 
-        result = self._tmp_files.csv_read('out.csv')['f0']
+            self.run_pipeline(p)
 
-        ctrl_kf = SKKFold(rows, folds, random_state=0)
-        ctrl = np.mean(cross_val_score(SVC(), X, y, cv=ctrl_kf))
+            result = self._tmp_files.csv_read('out.csv')['f0']
 
-        self.assertTrue(np.allclose(ctrl, result))
+            print result
+            ctrl_kf = PartIter(**kwargs)
+            ctrl = np.mean(cross_val_score(SVC(), X, y, cv=ctrl_kf))
+            print ctrl
+
+            self.assertTrue(np.allclose(ctrl, result))
 
     def test_multimetric(self):
         samples = 150

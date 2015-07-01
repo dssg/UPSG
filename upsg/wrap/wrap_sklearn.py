@@ -44,6 +44,9 @@ def __wrap_partition_iterator(sk_cls):
             in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
             if len(in_arrays) < 1:
                 return {}
+            kwargs = self.__kwargs
+            import pdb; pdb.set_trace()
+            # TODO introspect sk_cls input args to figure out what it needs to take
             pi = self.__sk_cls(in_arrays[0].shape[0], self.__n_folds, **self.__kwargs)
             results = {key: UObject(UObjectPhase.Write) for key
                        in self.__output_keys}
