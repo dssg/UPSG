@@ -4,6 +4,7 @@ import inspect
 from operator import itemgetter
 
 import sklearn.base
+import sklearn.cross_validation
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
@@ -441,6 +442,7 @@ def wrap(target):
     >>> roc_stage = WrappedRoc()
 
     """
+    #TODO add partitioniterator to doc
     if isinstance(target, basestring):
         skl_object = import_object_by_name(target)
     else:
@@ -449,6 +451,8 @@ def wrap(target):
         return __wrap_metric(skl_object)
     if issubclass(skl_object, sklearn.base.BaseEstimator):
         return __wrap_estimator(skl_object)
+    if issubclass(skl_object, sklearn.cross_validation._PartitionIterator):
+        return __wrap_partition_iterator(skl_object)
     raise TypeError(
         ('wrap takes a sklearn.base.BaseEstimator class '
          'or a function or a package name of one of the above objects'))
