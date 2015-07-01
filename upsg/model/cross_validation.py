@@ -84,11 +84,13 @@ class CrossValidationScore(MetaStage):
         self.__pipeline = p
 
         node_map = p.add(Identity(('X_train', 'y_train')))
-        node_kfold = p.add(KFold(2, n_folds, **kfold_kwargs))
+        node_kfold = p.add(cv_stage(2, n_folds, **kfold_kwargs))
         node_reduce = p.add(self.__ReduceStage(n_folds))
 
         node_map['X_train_out'] > node_kfold['input0']
         node_map['y_train_out'] > node_kfold['input1']
+        if 'y' in node_kfold.input_keys:
+            node_map['y_train_out'] > node_kfold['y']
 
         for fold_i in xrange(n_folds):
             node_clf = p.add(clf_stage(**params))

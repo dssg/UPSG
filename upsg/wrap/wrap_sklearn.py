@@ -25,8 +25,13 @@ def __wrap_partition_iterator(sk_cls):
             self.__n_arrays = n_arrays
             self.__n_folds = n_folds
             self.__kwargs = kwargs
-            self.__input_keys = ['input{}'.format(array) for array in 
+            self.__expected_kwargs = inspect.getargspec(
+                    self._WrappedPartitionIterator__sk_cls.__init__).args
+            self.__in_array_keys = ['input{}'.format(array) for array in 
                                  xrange(n_arrays)]
+            self.__input_keys = list(self.__in_array_keys)
+            if 'y' in self.__expected_kwargs:
+                self.__input_keys.append('y')
             self.__output_keys = list(it.chain.from_iterable(
                     (('train{}_{}'.format(array, fold), 
                       'test{}_{}'.format(array, fold))
@@ -41,17 +46,23 @@ def __wrap_partition_iterator(sk_cls):
             return self.__output_keys
 
         def run(self, outputs_requested, **kwargs):
-            in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
+            import pdb; pdb.set_trace()
+            in_arrays = [kwargs[key].to_np() for key in self.__in_array_keys]
             if len(in_arrays) < 1:
                 return {}
-            kwargs = self.__kwargs
-            import pdb; pdb.set_trace()
+            pi_kwargs = self.__kwargs
             # TODO introspect sk_cls input args to figure out what it needs to take
-            pi = self.__sk_cls(in_arrays[0].shape[0], self.__n_folds, **self.__kwargs)
+            if 'n' in self.__expected_kwargs:
+                pi_kwargs['n'] = in_arrays[0].shape[0]
+            if 'n_folds' in self.__expected_kwargs:
+                pi_kwargs['n_folds'] = self.__n_folds
+            if 'y' in self.__expected_kwargs:
+                pi_kwargs['y'] = np_sa_to_nd(kwargs['y'].to_np())[0]
+            pi = self.__sk_cls(**self.__kwargs)
             results = {key: UObject(UObjectPhase.Write) for key
                        in self.__output_keys}
             for fold_index, (train_inds, test_inds) in enumerate(pi):
-                for array_index, in_key in enumerate(self.__input_keys):
+                for array_index, in_key in enumerate(self.__in_array_keys):
                     key_number = int(in_key.replace('input', ''))
                     results['train{}_{}'.format(key_number, fold_index)].from_np(
                         in_arrays[array_index][train_inds])
@@ -426,6 +437,9 @@ def wrap(target):
     n_folds argument. There are n_arrays input arrays called:
 
     'input0', 'input1', 'input2', ...
+
+    If the _PartitionIterator takes a 'y' argument (e.g. StratifiedKFold) then
+    there is additionally a 'y' input key
 
     Depending on the number of folds requested (n_folds) output keys will be:
 

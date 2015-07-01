@@ -98,12 +98,17 @@ class TestModel(UPSGTestCase):
 
         X = np.random.random((rows, 10))
         y = np.random.randint(0, 2, (rows))
+
+        trials = ((SKKFold, 
+                   {'random_state': 0}, 
+                   {'n': rows, 'n_folds': folds, 'random_state': 0}),
+                  (StratifiedKFold, 
+                   {'random_state': 0}, 
+                   {'y': y, 'n_folds': folds, 'random_state': 0}),
+                  (LeaveOneOut, {}, {'n': rows}))
+
         
-        for PartIter, kwargs in ((SKKFold, {'n': rows, 'n_folds': folds, 
-                                            'random_stage': 0}),
-                                 (StratifiedKFold, {'y': y, 'n_folds': folds,
-                                                    'random_state': 0}),
-                                 (LeaveOneOut, {'n': rows})):
+        for PartIter, res_kwargs, ctrl_kwargs in trials:
             print PartIter
 
             p = Pipeline()
@@ -117,7 +122,7 @@ class TestModel(UPSGTestCase):
                 {}, 
                 wrap(PartIter),
                 n_folds=folds, 
-                random_state=0))
+                **res_kwargs))
             np_in_X['output'] > cv_score['X_train']
             np_in_y['output'] > cv_score['y_train']
 
@@ -129,7 +134,7 @@ class TestModel(UPSGTestCase):
             result = self._tmp_files.csv_read('out.csv')['f0']
 
             print result
-            ctrl_kf = PartIter(**kwargs)
+            ctrl_kf = PartIter(**ctrl_kwargs)
             ctrl = np.mean(cross_val_score(SVC(), X, y, cv=ctrl_kf))
             print ctrl
 
