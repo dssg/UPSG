@@ -7,6 +7,7 @@ from ..uobject import UObject, UObjectPhase
 from ..pipeline import Pipeline
 from ..transform.split import KFold
 from ..transform.identity import Identity
+from ..wrap.wrap_sklearn import wrap
 
 
 class CrossValidationScore(MetaStage):
@@ -33,6 +34,13 @@ class CrossValidationScore(MetaStage):
             The table that the key stores should be of size 1x1
     params : dict of str: ? (default {})
         The parameters pass to the classifier
+    cv_stage : Stage class or None
+        class of stage to provide cross-validate partitioning.
+        For example, 
+        upsg.wrap.wrap_sklearn.wrap('sklearn.cross_validation.KFold')
+        If None, then
+        upsg.wrap.wrap_sklearn.wrap('sklearn.cross_validation.KFold')
+        is used.
     n_folds: int (default 2)
         The number of folds. Must be at least 2.
     kfold_kwargs:
@@ -67,9 +75,11 @@ class CrossValidationScore(MetaStage):
             score.from_np(np.mean(scores_array))
             return {'score': score}
 
-    def __init__(self, clf_stage, score_key, params={}, n_folds=2, 
-                 **kfold_kwargs):
+    def __init__(self, clf_stage, score_key, params={}, cv_stage=None, 
+                 n_folds=2, **kfold_kwargs):
 
+        if cv_stage is None:
+            cv_stage = wrap('sklearn.cross_validation.KFold')
         p = Pipeline()
         self.__pipeline = p
 
