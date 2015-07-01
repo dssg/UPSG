@@ -190,6 +190,8 @@ implemented. They are listed below.
 
     upsg.transform.apply_to_selected_cols.ApplyToSelectedCols
     upsg.transform.fill_na.FillNA
+    upsg.transform.generate_feature.GenerateFeature
+    upsg.transform.hstack.HStack
     upsg.transform.identity.Identity
     upsg.transform.label_encode.LabelEncode
     upsg.transform.lambda_stage.LambdaStage
@@ -211,8 +213,8 @@ Wrapping sklearn
 
 By using the :func:`upsg.wrap.wrap_sklearn.wrap` function or the 
 :func:`upsg.wrap.wrap_sklearn.wrap_and_make_instance` function we can make
-Stages from sklearn estimators or metrics with only a few lines of code. See
-API for more details
+Stages from sklearn estimators, metrics, or partition iterators with only a few 
+lines of code. See API for more details
 
 ---------
 Pipelines

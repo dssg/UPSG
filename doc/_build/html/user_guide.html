@@ -267,6 +267,12 @@ implemented. They are listed below.</p>
 <tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.fill_na.FillNA" title="upsg.transform.fill_na.FillNA"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.fill_na.FillNA</span></code></a>(default_value)</td>
 <td>Fills NaNs with some default value</td>
 </tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.generate_feature.GenerateFeature</span></code>(...)</td>
+<td>Applies a given function only to the selected columns and outputs a table consisting only of the columns with the function applied.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.hstack.HStack</span></code>(n_arrays)</td>
+<td>Stacks two tables column-wise in a manner similar to numpy.hstack</td>
+</tr>
 <tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.identity.Identity" title="upsg.transform.identity.Identity"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.identity.Identity</span></code></a>([...])</td>
 <td>Passes Uobjects on to further pipeline stages without altering them.</td>
 </tr>
@@ -282,28 +288,25 @@ implemented. They are listed below.</p>
 <tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.rename_cols.RenameCols" title="upsg.transform.rename_cols.RenameCols"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.rename_cols.RenameCols</span></code></a>(...)</td>
 <td>Renames columns of the table &#8216;input&#8217; and produces a table &#8216;output&#8217; that is identical to the &#8216;input&#8217; table except with colums renamed .</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.KFold" title="upsg.transform.split.KFold"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.KFold</span></code></a>([n_arrays,&nbsp;n_folds])</td>
-<td>Splits tables &#8216;input0&#8217;, &#8216;input1&#8217;, &#8216;input2&#8217;, ...</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.Query" title="upsg.transform.split.Query"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.Query</span></code></a>(query)</td>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.Query" title="upsg.transform.split.Query"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.Query</span></code></a>(query)</td>
 <td>Selects rows to put in a table based on a given query</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitByInds" title="upsg.transform.split.SplitByInds"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitByInds</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitByInds" title="upsg.transform.split.SplitByInds"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitByInds</span></code></a></td>
 <td>Splits the in array according to provided indices</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitColumns" title="upsg.transform.split.SplitColumns"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitColumns</span></code></a>(columns)</td>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitColumns" title="upsg.transform.split.SplitColumns"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitColumns</span></code></a>(columns)</td>
 <td>Splits a table &#8216;input&#8217; into two tables &#8216;output&#8217; and &#8216;complement&#8217; where</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitTrainTest" title="upsg.transform.split.SplitTrainTest"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitTrainTest</span></code></a>([n_arrays])</td>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitTrainTest" title="upsg.transform.split.SplitTrainTest"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitTrainTest</span></code></a>([n_arrays])</td>
 <td>Splits tables &#8216;input0&#8217;, &#8216;input1&#8217;, &#8216;input2&#8217;, ...</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitY" title="upsg.transform.split.SplitY"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitY</span></code></a>(column)</td>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitY" title="upsg.transform.split.SplitY"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitY</span></code></a>(column)</td>
 <td>Splits a table &#8216;input&#8217; into two tables &#8216;X&#8217; and &#8216;y&#8217; where y is one column of A and X is everything else.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.sql.RunSQL" title="upsg.transform.sql.RunSQL"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.sql.RunSQL</span></code></a>(db_url,&nbsp;query[,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.sql.RunSQL" title="upsg.transform.sql.RunSQL"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.sql.RunSQL</span></code></a>(db_url,&nbsp;query[,&nbsp;...])</td>
 <td>Run a SQL query.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.timify.Timify" title="upsg.transform.timify.Timify"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.timify.Timify</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.timify.Timify" title="upsg.transform.timify.Timify"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.timify.Timify</span></code></a></td>
 <td>Transforms string columns that look like dates into datetime64 columns</td>
 </tr>
 </tbody>
@@ -314,8 +317,8 @@ implemented. They are listed below.</p>
 <span id="id3"></span><h3>Wrapping sklearn<a class="headerlink" href="#wrapping-sklearn" title="Permalink to this headline">¶</a></h3>
 <p>By using the <a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-func docutils literal"><span class="pre">upsg.wrap.wrap_sklearn.wrap()</span></code></a> function or the
 <a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap_and_make_instance" title="upsg.wrap.wrap_sklearn.wrap_and_make_instance"><code class="xref py py-func docutils literal"><span class="pre">upsg.wrap.wrap_sklearn.wrap_and_make_instance()</span></code></a> function we can make
-Stages from sklearn estimators or metrics with only a few lines of code. See
-API for more details</p>
+Stages from sklearn estimators, metrics, or partition iterators with only a few
+lines of code. See API for more details</p>
 </div>
 </div>
 <div class="section" id="pipelines">

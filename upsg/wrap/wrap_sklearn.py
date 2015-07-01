@@ -405,10 +405,10 @@ def wrap(target):
        X argument of predict_proba and predict_log_proba. The stage will 
        provide the output keys "pred_proba" and "pred_log_proba" respectively.
 
-    If the object being wrapped is an estimator, the input keys will have the
-    same names as the arguments to the estimator. The output keys are
+    If the object being wrapped is a metric, the input keys will have the
+    same names as the arguments to the metric. The output keys are
     currently assigned arbitrarily. At present, output keys for supported
-    estimators are:
+    metric are:
 
     roc_curve
         "fpr", "tpr", "thresholds"
@@ -417,12 +417,34 @@ def wrap(target):
     roc_auc_score
         "auc"
 
+    If the object being wrapped is a subclass of 
+    sklearn.cross_validation._PartitionIterator, (i.e. sklearn.cross_validation.KFold) 
+    the returned class must be initialized with an n_arrays argument and an 
+    n_folds argument. There are n_arrays input arrays called:
+
+    'input0', 'input1', 'input2', ...
+
+    Depending on the number of folds requested (n_folds) output keys will be:
+
+        'train0_0', 'test0_0', 'train0_1', 'test0_1',... (corresponding to
+        different folds of 'input0')
+
+        'train1_0', 'test1_0', 'train1_1', 'test1_1',... (corresponding to
+        different folds of 'input1')
+
+        'train2_0', 'test2_0', 'train2_1', 'test2_1',... (corresponding to
+        different folds of 'input2')
+
+        etc. 
+
     Parameters
     ----------
-    target: sklearn.base.BaseEstimator class | sklearn.metrics function | str
+    target: sklearn.base.BaseEstimator class | sklearn.metrics function | sklearn.cross_validation._PartitionIterator class | str
         Either a BaseEstimator subclass or the fully qualified package name
         of a BaseEstimater subclass or a function in sklearn.metrics or the
-        qualified backage name of a function in sklearn.metrics.
+        qualified backage name of a function in sklearn.metrics or the 
+        _PartitionIterator subclass or the fully qualified package name of the
+        _PartitionIterator.
 
     Examples
     --------
@@ -441,6 +463,11 @@ def wrap(target):
 
     >>> WrappedRoc = wrap('sklearn.metrics.roc_curve')
     >>> roc_stage = WrappedRoc()
+
+    or
+
+    >>> WrappedKFold = wrap('sklearn.cross_validation.KFold')
+    >>> kfold_stage = WrappedKFold(n_arrays=2, n_folds=3)
 
     """
     #TODO add partitioniterator to doc
@@ -464,10 +491,12 @@ def wrap_and_make_instance(target, **kwargs):
 
     Parameters
     ----------
-    target: sklearn.base.BaseEstimator class | sklearn.metrics function | str
+    target: sklearn.base.BaseEstimator class | sklearn.metrics function | sklearn.cross_validation._PartitionIterator class | str
         Either a BaseEstimator subclass or the fully qualified package name
         of a BaseEstimater subclass or a function in sklearn.metrics or the
-        qualified backage name of a function in sklearn.metrics.
+        qualified backage name of a function in sklearn.metrics or the 
+        _PartitionIterator subclass or the fully qualified package name of the
+        _PartitionIterator.
     args:
         positional arguments to pass to constructor.
     kwargs:
@@ -487,6 +516,11 @@ def wrap_and_make_instance(target, **kwargs):
 
     >>> from sklearn.metrics import roc_curve
     >>> roc_stage = wrap_and_make_instance(roc_curve)
+
+    or 
+
+    >>> kfold_stage = wrap_and_make_instance('sklearn.cross_validation.KFold',
+            n_arrays=2, n_folds=3)
 
     """
     cls = wrap(target)

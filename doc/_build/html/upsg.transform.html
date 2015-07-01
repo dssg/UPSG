@@ -375,54 +375,6 @@ to the second entry, etc.</dd>
 <div class="section" id="module-upsg.transform.split">
 <span id="upsg-transform-split-module"></span><h2>upsg.transform.split module<a class="headerlink" href="#module-upsg.transform.split" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="upsg.transform.split.KFold">
-<em class="property">class </em><code class="descclassname">upsg.transform.split.</code><code class="descname">KFold</code><span class="sig-paren">(</span><em>n_arrays=1</em>, <em>n_folds=2</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.KFold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
-<p>Splits tables &#8216;input0&#8217;, &#8216;input1&#8217;, &#8216;input2&#8217;, ... into n_folds train and test sets
-called:</p>
-<blockquote>
-<div><p>&#8216;train0_0&#8217;, &#8216;test0_0&#8217;, &#8216;train0_1&#8217;, &#8216;test0_1&#8217;,... (corresponding to
-different folds of &#8216;input0&#8217;)</p>
-<p>&#8216;train1_0&#8217;, &#8216;test1_0&#8217;, &#8216;train1_1&#8217;, &#8216;test1_1&#8217;,... (corresponding to
-different folds of &#8216;input1&#8217;)</p>
-<p>&#8216;train2_0&#8217;, &#8216;test2_0&#8217;, &#8216;train2_1&#8217;, &#8216;test2_1&#8217;,... (corresponding to
-different folds of &#8216;input2&#8217;)</p>
-<p>etc.</p>
-</div></blockquote>
-<p>All input tables should have the same number of rows</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>n_arrays</strong> (<em>int (default 1)</em>) &#8211; The number of arrays that will be split</li>
-<li><strong>n_folds</strong> (<em>int (default 2)</em>) &#8211; The number of folds. Must be at least 2.</li>
-<li><strong>kwargs</strong> (<em>dict</em>) &#8211; Arguments corresponding to the keyword arguments of
-sklearn.cross_validation.KFold other than n and
-n_folds</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="attribute">
-<dt id="upsg.transform.split.KFold.input_keys">
-<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.split.KFold.input_keys" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="upsg.transform.split.KFold.output_keys">
-<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.split.KFold.output_keys" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="upsg.transform.split.KFold.run">
-<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.KFold.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="upsg.transform.split.Query">
 <em class="property">class </em><code class="descclassname">upsg.transform.split.</code><code class="descname">Query</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.Query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>

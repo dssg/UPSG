@@ -116,10 +116,10 @@ the Stage will provide the input key &#8220;X_test&#8221;, which corresponds to 
 X argument of predict_proba and predict_log_proba. The stage will
 provide the output keys &#8220;pred_proba&#8221; and &#8220;pred_log_proba&#8221; respectively.</li>
 </ol>
-<p>If the object being wrapped is an estimator, the input keys will have the
-same names as the arguments to the estimator. The output keys are
+<p>If the object being wrapped is a metric, the input keys will have the
+same names as the arguments to the metric. The output keys are
 currently assigned arbitrarily. At present, output keys for supported
-estimators are:</p>
+metric are:</p>
 <dl class="docutils">
 <dt>roc_curve</dt>
 <dd>&#8220;fpr&#8221;, &#8220;tpr&#8221;, &#8220;thresholds&#8221;</dd>
@@ -128,13 +128,30 @@ estimators are:</p>
 <dt>roc_auc_score</dt>
 <dd>&#8220;auc&#8221;</dd>
 </dl>
+<p>If the object being wrapped is a subclass of
+sklearn.cross_validation._PartitionIterator, (i.e. sklearn.cross_validation.KFold)
+the returned class must be initialized with an n_arrays argument and an
+n_folds argument. There are n_arrays input arrays called:</p>
+<p>&#8216;input0&#8217;, &#8216;input1&#8217;, &#8216;input2&#8217;, ...</p>
+<p>Depending on the number of folds requested (n_folds) output keys will be:</p>
+<blockquote>
+<div><p>&#8216;train0_0&#8217;, &#8216;test0_0&#8217;, &#8216;train0_1&#8217;, &#8216;test0_1&#8217;,... (corresponding to
+different folds of &#8216;input0&#8217;)</p>
+<p>&#8216;train1_0&#8217;, &#8216;test1_0&#8217;, &#8216;train1_1&#8217;, &#8216;test1_1&#8217;,... (corresponding to
+different folds of &#8216;input1&#8217;)</p>
+<p>&#8216;train2_0&#8217;, &#8216;test2_0&#8217;, &#8216;train2_1&#8217;, &#8216;test2_1&#8217;,... (corresponding to
+different folds of &#8216;input2&#8217;)</p>
+<p>etc.</p>
+</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> (<em>sklearn.base.BaseEstimator class | sklearn.metrics function | str</em>) &#8211; Either a BaseEstimator subclass or the fully qualified package name
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> (<em>sklearn.base.BaseEstimator class | sklearn.metrics function | sklearn.cross_validation._PartitionIterator class | str</em>) &#8211; Either a BaseEstimator subclass or the fully qualified package name
 of a BaseEstimater subclass or a function in sklearn.metrics or the
-qualified backage name of a function in sklearn.metrics.</td>
+qualified backage name of a function in sklearn.metrics or the
+_PartitionIterator subclass or the fully qualified package name of the
+_PartitionIterator.</td>
 </tr>
 </tbody>
 </table>
@@ -158,6 +175,11 @@ qualified backage name of a function in sklearn.metrics.</td>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">roc_stage</span> <span class="o">=</span> <span class="n">WrappedRoc</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>or</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">WrappedKFold</span> <span class="o">=</span> <span class="n">wrap</span><span class="p">(</span><span class="s">&#39;sklearn.cross_validation.KFold&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kfold_stage</span> <span class="o">=</span> <span class="n">WrappedKFold</span><span class="p">(</span><span class="n">n_arrays</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_folds</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -169,9 +191,11 @@ qualified backage name of a function in sklearn.metrics.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>target</strong> (<em>sklearn.base.BaseEstimator class | sklearn.metrics function | str</em>) &#8211; Either a BaseEstimator subclass or the fully qualified package name
+<li><strong>target</strong> (<em>sklearn.base.BaseEstimator class | sklearn.metrics function | sklearn.cross_validation._PartitionIterator class | str</em>) &#8211; Either a BaseEstimator subclass or the fully qualified package name
 of a BaseEstimater subclass or a function in sklearn.metrics or the
-qualified backage name of a function in sklearn.metrics.</li>
+qualified backage name of a function in sklearn.metrics or the
+_PartitionIterator subclass or the fully qualified package name of the
+_PartitionIterator.</li>
 <li><strong>args</strong> &#8211; positional arguments to pass to constructor.</li>
 <li><strong>kwargs</strong> &#8211; keyword arguments to pass to constructor</li>
 </ul>
@@ -194,6 +218,11 @@ qualified backage name of a function in sklearn.metrics.</li>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">roc_curve</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">roc_stage</span> <span class="o">=</span> <span class="n">wrap_and_make_instance</span><span class="p">(</span><span class="n">roc_curve</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">kfold_stage</span> <span class="o">=</span> <span class="n">wrap_and_make_instance</span><span class="p">(</span><span class="s">&#39;sklearn.cross_validation.KFold&#39;</span><span class="p">,</span>
+<span class="go">        n_arrays=2, n_folds=3)</span>
 </pre></div>
 </div>
 </dd></dl>
