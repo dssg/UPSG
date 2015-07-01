@@ -14,6 +14,48 @@ class WrapSKLearnException(Exception):
     pass
 
 
+def __wrap_partition_iterator(sk_cls):
+    """Wraps a subclass of sklearn.cross_validation._PartitionIterator"""
+    class WrappedPartitionIterator(RunnableStage):
+        __sk_cls = sk_cls
+
+        def __init__(self, n_arrays=1, **kwargs):
+            self.__n_arrays = n_arrays
+            self.__kwargs = kwargs
+
+            self.__input_keys = ['input{}'.format(array) for array in 
+                                 xrange(n_arrays)]
+            self.__output_keys = list(it.chain.from_iterable(
+                    (('train{}_{}'.format(array, fold), 
+                      'test{}_{}'.format(array, fold))
+                     for array, fold in it.product(
+                         xrange(n_arrays), xrange(n_folds)))))
+        @property
+        def input_keys(self):
+            return self.__input_keys
+
+        @property
+        def output_keys(self):
+            return self.__output_keys
+
+        def run(self, outputs_requested, **kwargs):
+            in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
+            if len(in_arrays) < 1:
+                return {}
+            pi = self.__sk_cls(in_arrays[0].shape[0], **self.__kwargs)
+            results = {key: UObject(UObjectPhase.Write) for key
+                       in self.__output_keys}
+            for fold_index, (train_inds, test_inds) in enumerate(pi):
+                for array_index, in_key in enumerate(self.__input_keys):
+                    key_number = int(in_key.replace('input', ''))
+                    results['train{}_{}'.format(key_number, fold_index)].from_np(
+                        in_arrays[array_index][train_inds])
+                    results['test{}_{}'.format(key_number, fold_index)].from_np(
+                        in_arrays[array_index][test_inds])
+            return results
+
+    return WrappedPartitionIterator
+
 def unpickle_estimator(sk_cls, params):
     """ 
     
