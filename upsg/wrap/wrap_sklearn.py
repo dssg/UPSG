@@ -2,6 +2,7 @@ import numpy as np
 from types import FunctionType
 import inspect
 from operator import itemgetter
+import itertools as it
 
 import sklearn.base
 import sklearn.cross_validation
@@ -20,10 +21,10 @@ def __wrap_partition_iterator(sk_cls):
     class WrappedPartitionIterator(RunnableStage):
         __sk_cls = sk_cls
 
-        def __init__(self, n_arrays=1, **kwargs):
+        def __init__(self, n_arrays=1, n_folds=2, **kwargs):
             self.__n_arrays = n_arrays
+            self.__n_folds = n_folds
             self.__kwargs = kwargs
-
             self.__input_keys = ['input{}'.format(array) for array in 
                                  xrange(n_arrays)]
             self.__output_keys = list(it.chain.from_iterable(
@@ -43,7 +44,7 @@ def __wrap_partition_iterator(sk_cls):
             in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
             if len(in_arrays) < 1:
                 return {}
-            pi = self.__sk_cls(in_arrays[0].shape[0], **self.__kwargs)
+            pi = self.__sk_cls(in_arrays[0].shape[0], self.__n_folds, **self.__kwargs)
             results = {key: UObject(UObjectPhase.Write) for key
                        in self.__output_keys}
             for fold_index, (train_inds, test_inds) in enumerate(pi):
