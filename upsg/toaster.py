@@ -192,11 +192,11 @@ class DataToaster(MetaStage):
             cv=2,
             metrics=None):
         return self.__model(Multiclassify,
-            'score', 
-            report_file_name, 
-            clf_and_params_dict, 
-            cv,
-            metrics)
+            report_file_name=report_file_name, 
+            clf_and_params_dict=clf_and_params_dict, 
+            cv_stage=wrap('sklearn.cross_validation.KFold'),
+            cv_stage_kwargs={'n_folds': cv},
+            metrics=metrics)
 
     def run(self, **kwargs):
         if self.__state == self.UNINITIALIZED:

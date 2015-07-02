@@ -212,10 +212,7 @@ class TestModel(UPSGTestCase):
         np_in_y['output'] > split_train_test['input1']
 
         multi = p.add(Multiclassify(
-            'score', 
-            self._tmp_files('report.html'),
-            None,
-            folds))
+            report_file_name=self._tmp_files('report.html')))
 
         split_train_test['train0'] > multi['X_train']
         split_train_test['test0'] > multi['X_test']

@@ -20,7 +20,6 @@ class TestToaster(UPSGTestCase):
         # Try a bunch of classifiers and parameters
         dt.classify_and_report(report_file_name=self._tmp_files('report.html'))
         dt.run()
-
         self.assertTrue(os.path.isfile(self._tmp_files('report.html')))
 
 if __name__ == '__main__':
