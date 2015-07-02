@@ -104,12 +104,10 @@ class TestModel(UPSGTestCase):
                    {'n': rows, 'n_folds': folds, 'random_state': 0}),
                   (StratifiedKFold, 
                    {'random_state': 0}, 
-                   {'y': y, 'n_folds': folds, 'random_state': 0}),
-                  (LeaveOneOut, {}, {'n': rows}))
+                   {'y': y, 'n_folds': folds, 'random_state': 0}))
 
         
         for PartIter, res_kwargs, ctrl_kwargs in trials:
-            print PartIter
 
             p = Pipeline()
 
@@ -133,10 +131,8 @@ class TestModel(UPSGTestCase):
 
             result = self._tmp_files.csv_read('out.csv')['f0']
 
-            print result
             ctrl_kf = PartIter(**ctrl_kwargs)
             ctrl = np.mean(cross_val_score(SVC(), X, y, cv=ctrl_kf))
-            print ctrl
 
             self.assertTrue(np.allclose(ctrl, result))
 

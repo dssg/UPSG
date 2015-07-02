@@ -20,13 +20,17 @@ def __wrap_partition_iterator(sk_cls):
     """Wraps a subclass of sklearn.cross_validation._PartitionIterator"""
     class WrappedPartitionIterator(RunnableStage):
         __sk_cls = sk_cls
+        expected_kwargs = inspect.getargspec(__sk_cls.__init__).args
+
+        if 'n_folds' not in expected_kwargs:
+            raise WrapSKLearnException(('LeaveOut Partition iterators are not '
+                                        'supported yet.'))
 
         def __init__(self, n_arrays=1, n_folds=2, **kwargs):
             self.__n_arrays = n_arrays
             self.__n_folds = n_folds
             self.__kwargs = kwargs
-            self.__expected_kwargs = inspect.getargspec(
-                    self._WrappedPartitionIterator__sk_cls.__init__).args
+            self.__expected_kwargs = self.expected_kwargs
             self.__in_array_keys = ['input{}'.format(array) for array in 
                                  xrange(n_arrays)]
             self.__input_keys = list(self.__in_array_keys)
@@ -46,7 +50,6 @@ def __wrap_partition_iterator(sk_cls):
             return self.__output_keys
 
         def run(self, outputs_requested, **kwargs):
-            import pdb; pdb.set_trace()
             in_arrays = [kwargs[key].to_np() for key in self.__in_array_keys]
             if len(in_arrays) < 1:
                 return {}
