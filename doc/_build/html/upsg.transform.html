@@ -1,0 +1,789 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>upsg.transform package &mdash; UPSG 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="UPSG 0.0.1 documentation" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="upsg-transform-package">
+<h1>upsg.transform package<a class="headerlink" href="#upsg-transform-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-upsg.transform.apply_to_selected_cols">
+<span id="upsg-transform-apply-to-selected-cols-module"></span><h2>upsg.transform.apply_to_selected_cols module<a class="headerlink" href="#module-upsg.transform.apply_to_selected_cols" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.apply_to_selected_cols.ApplyToSelectedCols">
+<em class="property">class </em><code class="descclassname">upsg.transform.apply_to_selected_cols.</code><code class="descname">ApplyToSelectedCols</code><span class="sig-paren">(</span><em>col_names</em>, <em>stage_cls</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.apply_to_selected_cols.ApplyToSelectedCols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a></p>
+<p>Applies a given transformation only to the selected columns. The output
+is the table that was passed in with the given columns altered in-place</p>
+<p>Input keys and output keys are identical to those of the selected transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>col_names</strong> (<em>list of str</em>) &#8211; Names of the columns to which the transform Stage will be supplied</li>
+<li><strong>stage_cls</strong> (<em>upsg.stage.Stage class</em>) &#8211; the class of the transform Stage</li>
+<li><strong>args</strong> (<em>list</em>) &#8211; init args for the Stage</li>
+<li><strong>kwargs</strong> (<em>dict</em>) &#8211; init kwargs for the stage</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.apply_to_selected_cols.ApplyToSelectedCols.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.apply_to_selected_cols.ApplyToSelectedCols.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.apply_to_selected_cols.ApplyToSelectedCols.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.apply_to_selected_cols.ApplyToSelectedCols.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.apply_to_selected_cols.ApplyToSelectedCols.pipeline">
+<code class="descname">pipeline</code><a class="headerlink" href="#upsg.transform.apply_to_selected_cols.ApplyToSelectedCols.pipeline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.fill_na">
+<span id="upsg-transform-fill-na-module"></span><h2>upsg.transform.fill_na module<a class="headerlink" href="#module-upsg.transform.fill_na" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.fill_na.FillNA">
+<em class="property">class </em><code class="descclassname">upsg.transform.fill_na.</code><code class="descname">FillNA</code><span class="sig-paren">(</span><em>default_value</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.fill_na.FillNA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Fills NaNs with some default value</p>
+<dl class="attribute">
+<dt id="upsg.transform.fill_na.FillNA.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.fill_na.FillNA.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.fill_na.FillNA.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.fill_na.FillNA.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.fill_na.FillNA.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.fill_na.FillNA.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.identity">
+<span id="upsg-transform-identity-module"></span><h2>upsg.transform.identity module<a class="headerlink" href="#module-upsg.transform.identity" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.identity.Identity">
+<em class="property">class </em><code class="descclassname">upsg.transform.identity.</code><code class="descname">Identity</code><span class="sig-paren">(</span><em>input_keys=None</em>, <em>output_keys=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.identity.Identity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Passes Uobjects on to further pipeline stages without altering them.</p>
+<p>This is mostly useful as the first stage in MetaStages in order to make
+sure that it takes the correct keys.</p>
+<p>Input keys and output keys are specified on init.</p>
+<p>Exactly 1 of input_keys or output_keys should be specified. The other
+should be left unspecified</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input_keys</strong> (<em>list or dict of (str : str) or None</em>) &#8211; The names of the input keys that this stage takes. If a list, the
+output keys will be the same as the input keys but with &#8216;_out&#8217;
+appended. If a dictionary, the keys should be the input keys and the
+values should be the output keys they map to.</li>
+<li><strong>output_keys</strong> (<em>list or dict of (str : str) or None</em>) &#8211; The names of the output keys that this stage takes. If a list, the
+input keys will be the same as the input keys but with &#8216;_in&#8217; appended.
+If a dictionary, the keys should be the output keys and the values
+should be the input keys they map to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="upsg.transform.identity.Identity.get_correspondence">
+<code class="descname">get_correspondence</code><span class="sig-paren">(</span><em>in_to_out=True</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.identity.Identity.get_correspondence" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a dictionary of which input keys correspond to which output keys</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>in_to_out</strong> (<em>bool</em>) &#8211; If True, the returned object is a dict of input_key: output key.
+If False, the returned object is a dict of output_key: input_key</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.identity.Identity.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.identity.Identity.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.identity.Identity.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.identity.Identity.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.identity.Identity.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.identity.Identity.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.label_encode">
+<span id="upsg-transform-label-encode-module"></span><h2>upsg.transform.label_encode module<a class="headerlink" href="#module-upsg.transform.label_encode" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.label_encode.LabelEncode">
+<em class="property">class </em><code class="descclassname">upsg.transform.label_encode.</code><code class="descname">LabelEncode</code><a class="headerlink" href="#upsg.transform.label_encode.LabelEncode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Encodes all strings to a value with behavior similar to
+sklearn.preprocessing.LabelEncoder</p>
+<p><strong>Input Keys</strong></p>
+<p>input</p>
+<p><strong>Output Keys</strong></p>
+<p>output</p>
+<dl class="attribute">
+<dt id="upsg.transform.label_encode.LabelEncode.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.label_encode.LabelEncode.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.label_encode.LabelEncode.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.label_encode.LabelEncode.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.label_encode.LabelEncode.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.label_encode.LabelEncode.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.lambda_stage">
+<span id="upsg-transform-lambda-stage-module"></span><h2>upsg.transform.lambda_stage module<a class="headerlink" href="#module-upsg.transform.lambda_stage" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.lambda_stage.LambdaStage">
+<em class="property">class </em><code class="descclassname">upsg.transform.lambda_stage.</code><code class="descname">LambdaStage</code><span class="sig-paren">(</span><em>func</em>, <em>output_keys=None</em>, <em>n_outputs=1</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.lambda_stage.LambdaStage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Execute arbitrary instructions on Numpy structured arrays</p>
+<p>Allows the user to pass in an arbitrary function which operates on
+0 or more Numpy structured arrays corresponding to UPSG tables and
+returns either a Numpy structured array or a tuple of structured
+arrays or None.</p>
+<p><strong>Input Keys</strong></p>
+<p>Input keys will correspond to the function used to initialize
+LambdaStage. For example, if you initialize a LambdaStage with:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">my_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">employees</span><span class="p">,</span> <span class="n">hours</span><span class="p">:</span> <span class="k">return</span> <span class="n">do_custom_join</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">employees</span><span class="p">,</span> <span class="n">hours</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span> <span class="o">=</span> <span class="n">LambdaStage</span><span class="p">(</span><span class="n">my_func</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Then the input keys will be &#8216;employees&#8217; and &#8216;hours&#8217;</p>
+<p><strong>Output Keys</strong></p>
+<p>Output keys will correspond to the output_keys argument passed to
+initialize LambdaStage. For example, if you initialize LambdaStage with:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">my_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">to_split</span><span class="p">:</span> <span class="k">return</span> <span class="p">(</span><span class="n">to_split</span><span class="p">[:</span><span class="mi">50</span><span class="p">],</span> <span class="n">to_split</span><span class="p">[</span><span class="mi">50</span><span class="p">:])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span> <span class="o">=</span> <span class="n">LambdaStage</span><span class="p">(</span><span class="n">my_func</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;first_fifty&#39;</span><span class="p">,</span> <span class="s">&#39;rest&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Then the output keys will be &#8216;first_fifty&#8217; and &#8216;rest&#8217;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func</strong> (<em>(0 or more structured arrays) -&gt; (structured array or tuple of structured arrays or None)</em>) &#8211; Function to apply at this Stage. Numpy structured arrays will
+be passed to the function and the function is expected to output
+either one structured array if output_keys has length 1,
+a tuple of structured arrays if output_keys has a length of more
+than 1, or None if output_keys has a length of 0</li>
+<li><strong>output_keys</strong> (<em>tuple of str or None:</em>) &#8211; The keys to which outputs will be assigned. If func returns a
+structured array, output_keys should be a tuple of length 1. If
+func returns a tuple of structured arrays, output_keys should have
+length equal to the length of the returned tuple. If func returns
+None, output_keys should be a tuple of length 0. If set to None,
+output keys will be generated according to the pattern: &#8216;output0&#8217;,
+&#8216;output1&#8217;, &#8216;output2&#8217;, ...</li>
+<li><strong>n_outputs</strong> (<em>int</em>) &#8211; If output_keys is unspecified, the number of outputs that will be
+expected. If n_outputs == 1, output keys will be (&#8216;output0&#8217;,). If
+n_outputs == 2, output keys will be (&#8216;output0&#8217;, &#8216;output1&#8217;,) etc.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.lambda_stage.LambdaStage.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.lambda_stage.LambdaStage.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.lambda_stage.LambdaStage.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.lambda_stage.LambdaStage.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.lambda_stage.LambdaStage.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.lambda_stage.LambdaStage.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.merge">
+<span id="upsg-transform-merge-module"></span><h2>upsg.transform.merge module<a class="headerlink" href="#module-upsg.transform.merge" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.merge.Merge">
+<em class="property">class </em><code class="descclassname">upsg.transform.merge.</code><code class="descname">Merge</code><span class="sig-paren">(</span><em>left_on</em>, <em>right_on</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.merge.Merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Does an operation analogous to SQL JOIN (or pandas DataFrame.merge)</p>
+<p><strong>Input Keys</strong></p>
+<dl class="docutils">
+<dt>input_left</dt>
+<dd>first table to join</dd>
+<dt>input_right</dt>
+<dd>second table to join</dd>
+</dl>
+<p><strong>Output Keys</strong></p>
+<p>output</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>left_on</strong> (<em>str</em>) &#8211; column on which to join the left table</li>
+<li><strong>right_on</strong> (<em>str</em>) &#8211; column on which to join the right table</li>
+<li><strong>kwargs</strong> (<em>dict</em>) &#8211; kwargs corresponding to the optional arguments of
+pandas.DataFrame.merge other than left_on and right_on</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.merge.Merge.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.merge.Merge.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.merge.Merge.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.merge.Merge.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.merge.Merge.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.merge.Merge.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.rename_cols">
+<span id="upsg-transform-rename-cols-module"></span><h2>upsg.transform.rename_cols module<a class="headerlink" href="#module-upsg.transform.rename_cols" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.rename_cols.RenameCols">
+<em class="property">class </em><code class="descclassname">upsg.transform.rename_cols.</code><code class="descname">RenameCols</code><span class="sig-paren">(</span><em>rename_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.rename_cols.RenameCols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Renames columns of the table &#8216;input&#8217; and produces a table &#8216;output&#8217;
+that is identical to the &#8216;input&#8217; table except with colums renamed .</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rename_dict</strong> (<em>(dict of str : str) or (list of str)</em>) &#8211; <dl class="docutils">
+<dt>If a dict:</dt>
+<dd>A dictionary mapping old column names to new column names. If the
+table connected to the &#8216;input&#8217; input has columns corresponding to the
+keys of this dictionary, the resulting table will have columns
+names with the corresponding values.</dd>
+<dt>If a list:</dt>
+<dd>Colums will be renamed in order. The first column will be renamed
+to the first entry of this list. The second column will be renamed
+to the second entry, etc.</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.rename_cols.RenameCols.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.rename_cols.RenameCols.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.rename_cols.RenameCols.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.rename_cols.RenameCols.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.rename_cols.RenameCols.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.rename_cols.RenameCols.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.split">
+<span id="upsg-transform-split-module"></span><h2>upsg.transform.split module<a class="headerlink" href="#module-upsg.transform.split" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.split.Query">
+<em class="property">class </em><code class="descclassname">upsg.transform.split.</code><code class="descname">Query</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.Query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Selects rows to put in a table based on a given query</p>
+<p><strong>Input Keys</strong></p>
+<p>input</p>
+<p><strong>Output Keys</strong></p>
+<dl class="docutils">
+<dt>output</dt>
+<dd>table containing only rows that match the query</dd>
+<dt>output_inds</dt>
+<dd>one-column table containing the indices of in that matched the query</dd>
+<dt>complement</dt>
+<dd>table containing only rows that do not match the query</dd>
+<dt>complement_inds</dt>
+<dd>one-column table containing the indices of in that did not match the query</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>query</strong> (<em>str</em>) &#8211; <p>A query used to select rows conforming to a small, Python-like
+langauge defined as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>primary_expr:
+    &#39;(&#39; expr &#39;)&#39; |
+    expr
+expr:
+    mask |
+    unop primary_expr |
+    binop_expr
+binop_expr:
+    &#39;(&#39; expr &#39;)&#39; binop &#39;(&#39; expr &#39;)&#39; |
+    &#39;(&#39; expr &#39;)&#39; binop variable |
+    variable binop &#39;(&#39; expr &#39;)&#39;
+variable:
+    literal |
+    col_name |
+    &#39;(&#39; literal &#39;)&#39; |
+    &#39;(&#39; col_name &#39;)&#39;
+mask:
+    col_name binop col_name |
+    col_name binop literal |
+    literal binop col_name |
+    col_name -- for columns of boolean type
+unop : &#39;not&#39;
+binop: &#39;&gt;&#39; | &#39;&gt;=&#39; | &#39;&lt;&#39; | &#39;&lt;=&#39; | &#39;==&#39; | &#39;!=&#39; | &#39;and&#39; | &#39;or&#39;
+literal:
+    NUMBER |
+    STRING |
+    datetime
+datetime:
+    &quot;DT(&#39;&quot; ISO_8601_DATE_OR_DATETIME_STRING &quot;&#39;)&quot;
+</pre></div>
+</div>
+<p>col_names need to be the name of a column in the table. col_names
+SHOULD NOT be quoted. Literal string SHOULD be quoted</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q1</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="s">&quot;id &gt; 50&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q2</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="s">&quot;(name == &#39;Sarah&#39;) and (salary &gt; 50000)&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q3</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="s">&quot;(start_dt != end_dt) or (not category == 2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q4</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="s">&quot;start_dt &lt; DT(&#39;2014-06-01&#39;)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="upsg.transform.split.Query.dump_ast">
+<code class="descname">dump_ast</code><span class="sig-paren">(</span><em>col_names</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.Query.dump_ast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dumps the AST of the query transformed into Python. Provided for debugging purposes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.split.Query.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.split.Query.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.split.Query.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.split.Query.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.split.Query.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.Query.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="upsg.transform.split.QueryError">
+<em class="property">exception </em><code class="descclassname">upsg.transform.split.</code><code class="descname">QueryError</code><a class="headerlink" href="#upsg.transform.split.QueryError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="upsg.transform.split.SplitByInds">
+<em class="property">class </em><code class="descclassname">upsg.transform.split.</code><code class="descname">SplitByInds</code><a class="headerlink" href="#upsg.transform.split.SplitByInds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Splits the in array according to provided indices</p>
+<p><strong>Input Keys</strong></p>
+<dl class="docutils">
+<dt>input</dt>
+<dd>the table to split</dd>
+<dt>inds</dt>
+<dd>indices to select</dd>
+</dl>
+<p><strong>Output Keys</strong></p>
+<p>output</p>
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitByInds.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.split.SplitByInds.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitByInds.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.split.SplitByInds.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.split.SplitByInds.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.SplitByInds.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="upsg.transform.split.SplitColumns">
+<em class="property">class </em><code class="descclassname">upsg.transform.split.</code><code class="descname">SplitColumns</code><span class="sig-paren">(</span><em>columns</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.SplitColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Splits a table &#8216;input&#8217; into two tables &#8216;output&#8217; and &#8216;complement&#8217; where
+&#8216;output&#8217; consists of the given columns and &#8216;complement&#8217; consists of the complement
+of the columns</p>
+<p><strong>Input Keys</strong></p>
+<p>input</p>
+<p><strong>Output Keys</strong></p>
+<dl class="docutils">
+<dt>output</dt>
+<dd>table with selected columns</dd>
+<dt>complement</dt>
+<dd>table with complement of selected columns</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>columns</strong> (<em>list of str</em>) &#8211; Colums that will appear in the &#8216;output&#8217; table but not the &#8216;complement&#8217;
+table</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitColumns.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.split.SplitColumns.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitColumns.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.split.SplitColumns.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.split.SplitColumns.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.SplitColumns.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="upsg.transform.split.SplitTrainTest">
+<em class="property">class </em><code class="descclassname">upsg.transform.split.</code><code class="descname">SplitTrainTest</code><span class="sig-paren">(</span><em>n_arrays=1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.SplitTrainTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Splits tables &#8216;input0&#8217;, &#8216;input1&#8217;, &#8216;input2&#8217;, ... into training and testing
+data &#8216;train0&#8217;, &#8216;test0&#8217;, &#8216;train1&#8217;, &#8216;test1&#8217;, &#8216;train2&#8217;, &#8216;test2&#8217;, ...</p>
+<p>All input tables should have the same number of rows</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>n_arrays</strong> (<em>int (default 1)</em>) &#8211; the number of arrays that will be split</li>
+<li><strong>kwargs</strong> (<em>dict</em>) &#8211; arguments corresponding to the keyword arguments of
+sklearn.cross_validation.train_test_split</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitTrainTest.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.split.SplitTrainTest.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitTrainTest.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.split.SplitTrainTest.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.split.SplitTrainTest.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.SplitTrainTest.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="upsg.transform.split.SplitY">
+<em class="property">class </em><code class="descclassname">upsg.transform.split.</code><code class="descname">SplitY</code><span class="sig-paren">(</span><em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.SplitY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Splits a table &#8216;input&#8217; into two tables &#8216;X&#8217; and &#8216;y&#8217; where y is one column of
+A and X is everything else.</p>
+<p><strong>Input Keys</strong></p>
+<p>input</p>
+<p><strong>Output Keys</strong></p>
+<p>X</p>
+<p>y</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>column</strong> (<em>int or str</em>) &#8211; index or name of the column from which &#8216;y&#8217; will be extracted</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitY.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.split.SplitY.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.split.SplitY.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.split.SplitY.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.split.SplitY.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.split.SplitY.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.sql">
+<span id="upsg-transform-sql-module"></span><h2>upsg.transform.sql module<a class="headerlink" href="#module-upsg.transform.sql" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.sql.RunSQL">
+<em class="property">class </em><code class="descclassname">upsg.transform.sql.</code><code class="descname">RunSQL</code><span class="sig-paren">(</span><em>db_url</em>, <em>query</em>, <em>in_keys=[]</em>, <em>out_keys=[]</em>, <em>conn_params={}</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.sql.RunSQL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Run a SQL query. Tables utilized and generated can be generated by
+UPSG</p>
+<p>Input keys and output keys are init arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>db_url</strong> (<em>str</em>) &#8211; The url of the database. Should conform to the format of
+SQLAlchemy database URLS
+(<a class="reference external" href="http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls">http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls</a>)</li>
+<li><strong>query</strong> (<em>str</em>) &#8211; The sql query to run. Should be a formatting string with keywords
+corresponding to the names of tables that UPSG is handling.</li>
+<li><strong>in_keys</strong> (<em>list of str</em>) &#8211; The names of input keys. Also, should correspond to the keywords
+in query representing tables that are inputs of the query.</li>
+<li><strong>out_keys</strong> (<em>list of str</em>) &#8211; The names of output keys. Also, should correspond to the keywords
+in query representing tables that are outputs of the query.</li>
+<li><strong>conn_params</strong> (<em>dict of str to ?</em>) &#8211; A dictionary of the keyword arguments to be passed to the connect
+method of some library implementing the Python Database API
+Specification 2.0
+(<a class="reference external" href="https://www.python.org/dev/peps/pep-0249/#connect">https://www.python.org/dev/peps/pep-0249/#connect</a>)</li>
+<li><strong>and out_keys should not share any elements</strong> (<em>in_keys</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Say that we are generating two tables elsewhere in the
+pipeline. We don&#8217;t know a priori what the names of these tables
+are, since they&#8217;re generated. However, we know that one table will
+correspond to the input key &#8216;employees&#8217; and the other will
+correspond to the input key &#8216;hours&#8217;. We intend to join these
+tables and generate a third table, corresponding to the output key
+&#8216;report&#8217;. We would initialize our stage like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">query</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;CREATE TABLE {report} AS &#39;</span>
+<span class="gp">... </span>    <span class="s">&#39;SELECT {employees} JOIN {hours} &#39;</span>
+<span class="gp">... </span>    <span class="s">&#39;ON {employees}.id = {hours}.employee_id &#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stage</span> <span class="o">=</span> <span class="n">RunSQL</span><span class="p">(</span><span class="n">db_url</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">in_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;employees&#39;</span><span class="p">,</span> <span class="s">&#39;hours&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">out_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;report&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="upsg.transform.sql.RunSQL.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.sql.RunSQL.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.sql.RunSQL.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.sql.RunSQL.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.sql.RunSQL.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.sql.RunSQL.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.timify">
+<span id="upsg-transform-timify-module"></span><h2>upsg.transform.timify module<a class="headerlink" href="#module-upsg.transform.timify" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.timify.Timify">
+<em class="property">class </em><code class="descclassname">upsg.transform.timify.</code><code class="descname">Timify</code><a class="headerlink" href="#upsg.transform.timify.Timify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Transforms string columns that look like dates into datetime64 columns</p>
+<p>Strings must follow ISO 8601 time or datetime format in accordance with:
+(<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.datetime.html">http://docs.scipy.org/doc/numpy/reference/arrays.datetime.html</a>)</p>
+<p><strong>Input Keys</strong></p>
+<p>input</p>
+<p><strong>Output Keys</strong></p>
+<p>output</p>
+<dl class="attribute">
+<dt id="upsg.transform.timify.Timify.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.timify.Timify.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.timify.Timify.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.timify.Timify.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.timify.Timify.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.timify.Timify.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-upsg.transform" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">upsg.transform package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.apply_to_selected_cols">upsg.transform.apply_to_selected_cols module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.fill_na">upsg.transform.fill_na module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.identity">upsg.transform.identity module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.label_encode">upsg.transform.label_encode module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.lambda_stage">upsg.transform.lambda_stage module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.merge">upsg.transform.merge module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.rename_cols">upsg.transform.rename_cols module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.split">upsg.transform.split module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.sql">upsg.transform.sql module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.timify">upsg.transform.timify module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/upsg.transform.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Data Science for Social Good.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

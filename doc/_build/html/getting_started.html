@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started &mdash; UPSG 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="UPSG 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="User Guide" href="user_guide.html" />
+    <link rel="prev" title="Welcome to UPSG’s documentation!" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to UPSG’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>UPSG (Universal Pipeline for Social Good) is a standard methodology, an
+interchange format, and a Python library for writing machine learning
+pipelines.</p>
+<p>It is designed primarily to provide different teams working on different
+machine learning problems a way to share code across different languages
+and environments.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>install with:</p>
+<div class="highlight-python"><div class="highlight"><pre>pip install git+git://github.com/dssg/UPSG.git
+</pre></div>
+</div>
+<p>To use the UPSG Python library, we currently require the following packages.
+In most environments, pip should take care of this for you.</p>
+<div class="section" id="required">
+<h3>Required<a class="headerlink" href="#required" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="python-packages">
+<h4>Python packages<a class="headerlink" href="#python-packages" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><a class="reference external" href="https://www.python.org/">Python 2.7</a></li>
+<li><a class="reference external" href="http://www.numpy.org/">Numpy</a></li>
+<li><a class="reference external" href="http://scikit-learn.org/stable/">scikit-learn</a></li>
+<li><a class="reference external" href="https://pytables.github.io/">PyTables</a></li>
+<li><a class="reference external" href="http://www.sqlalchemy.org/">SQLAlchemy</a></li>
+</ul>
+</div>
+<div class="section" id="other-packages">
+<h4>Other packages<a class="headerlink" href="#other-packages" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><a class="reference external" href="https://www.hdfgroup.org/downloads/index.html">HDF5</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="optional">
+<h3>Optional<a class="headerlink" href="#optional" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id1">
+<h4>Python packages<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><a class="reference external" href="http://matplotlib.org/">plotlib</a></li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/graphviz">graphviz</a></li>
+<li><a class="reference external" href="http://pandas.pydata.org/">pandas</a></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h4>Other packages<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><a class="reference external" href="http://www.graphviz.org/">Graphviz</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>This is how to implement the
+<a class="reference external" href="http://scikit-learn.org/0.10/tutorial.html">sklearn &#8220;Getting started&#8221; pipeline</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVC</span>
+
+<span class="kn">from</span> <span class="nn">upsg.fetch.np</span> <span class="kn">import</span> <span class="n">NumpyRead</span>
+<span class="kn">from</span> <span class="nn">upsg.wrap.wrap_sklearn</span> <span class="kn">import</span> <span class="n">wrap_and_make_instance</span>
+<span class="kn">from</span> <span class="nn">upsg.export.csv</span> <span class="kn">import</span> <span class="n">CSVWrite</span>
+<span class="kn">from</span> <span class="nn">upsg.transform.split</span> <span class="kn">import</span> <span class="n">SplitTrainTest</span>
+<span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+
+<span class="n">digits</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">load_digits</span><span class="p">()</span>
+<span class="n">digits_data</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">data</span>
+<span class="c"># for now, we need a column vector rather than an array</span>
+<span class="n">digits_target</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">target</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
+
+<span class="c"># load data from a numpy dataset</span>
+<span class="n">stage_data</span> <span class="o">=</span> <span class="n">NumpyRead</span><span class="p">(</span><span class="n">digits_data</span><span class="p">)</span>
+<span class="n">stage_target</span> <span class="o">=</span> <span class="n">NumpyRead</span><span class="p">(</span><span class="n">digits_target</span><span class="p">)</span>
+
+<span class="c"># train/test split</span>
+<span class="n">stage_split_data</span> <span class="o">=</span> <span class="n">SplitTrainTest</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c"># build a classifier</span>
+<span class="n">stage_clf</span> <span class="o">=</span> <span class="n">wrap_and_make_instance</span><span class="p">(</span><span class="n">SVC</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="mf">100.</span><span class="p">)</span>
+
+<span class="c"># output to a csv</span>
+<span class="n">stage_csv</span> <span class="o">=</span> <span class="n">CSVWrite</span><span class="p">(</span><span class="s">&#39;out.csv&#39;</span><span class="p">)</span>
+
+<span class="n">node_data</span><span class="p">,</span> <span class="n">node_target</span><span class="p">,</span> <span class="n">node_split</span><span class="p">,</span> <span class="n">node_clf</span><span class="p">,</span> <span class="n">node_csv</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">,</span> <span class="p">[</span>
+        <span class="n">stage_data</span><span class="p">,</span> <span class="n">stage_target</span><span class="p">,</span> <span class="n">stage_split_data</span><span class="p">,</span> <span class="n">stage_clf</span><span class="p">,</span>
+        <span class="n">stage_csv</span><span class="p">])</span>
+
+<span class="c"># connect the pipeline stages together</span>
+<span class="n">node_data</span><span class="p">[</span><span class="s">&#39;output&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_split</span><span class="p">[</span><span class="s">&#39;input0&#39;</span><span class="p">]</span>
+<span class="n">node_target</span><span class="p">[</span><span class="s">&#39;output&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_split</span><span class="p">[</span><span class="s">&#39;input1&#39;</span><span class="p">]</span>
+<span class="n">node_split</span><span class="p">[</span><span class="s">&#39;train0&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_clf</span><span class="p">[</span><span class="s">&#39;X_train&#39;</span><span class="p">]</span>
+<span class="n">node_split</span><span class="p">[</span><span class="s">&#39;train1&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_clf</span><span class="p">[</span><span class="s">&#39;y_train&#39;</span><span class="p">]</span>
+<span class="n">node_split</span><span class="p">[</span><span class="s">&#39;test0&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_clf</span><span class="p">[</span><span class="s">&#39;X_test&#39;</span><span class="p">]</span>
+<span class="n">node_clf</span><span class="p">[</span><span class="s">&#39;y_pred&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_csv</span><span class="p">[</span><span class="s">&#39;input&#39;</span><span class="p">]</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="c"># results are now in out.csv</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
+<p>Check out the <a class="reference internal" href="user_guide.html"><em>User Guide</em></a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting Started</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#required">Required</a><ul>
+<li><a class="reference internal" href="#python-packages">Python packages</a></li>
+<li><a class="reference internal" href="#other-packages">Other packages</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optional">Optional</a><ul>
+<li><a class="reference internal" href="#id1">Python packages</a></li>
+<li><a class="reference internal" href="#id2">Other packages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example">Example</a></li>
+<li><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to UPSG&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="user_guide.html"
+                        title="next chapter">User Guide</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/getting_started.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to UPSG’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Data Science for Social Good.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

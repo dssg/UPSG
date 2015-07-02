@@ -1,0 +1,726 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>User Guide &mdash; UPSG 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="UPSG 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Implementing a Stage" href="implementing_stage.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="implementing_stage.html" title="Implementing a Stage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="getting_started.html" title="Getting Started"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="user-guide">
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="stages">
+<span id="id1"></span><h2>Stages<a class="headerlink" href="#stages" title="Permalink to this headline">¶</a></h2>
+<p>UPSG programs are a number of pipeline stages that are connected in the context
+of a pipeline. Each stage performs one task (for example, reading data from a
+csv, imputing data, selecting features, or running an estimator on data).
+Pipelines specify which stages should be run, in order they should be run, and
+with which data they should be run. For example, a simple pipeline might read
+data from a csv, impute that data by replacing NaNs with a constant value, and
+then write the imputed data to another csv.</p>
+<p>In UPSG, we would express that as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+
+<span class="kn">from</span> <span class="nn">upsg.fetch.csv</span> <span class="kn">import</span> <span class="n">CSVRead</span>
+<span class="kn">from</span> <span class="nn">upsg.transform.fill_na</span> <span class="kn">import</span> <span class="n">FillNA</span>
+<span class="kn">from</span> <span class="nn">upsg.export.csv</span> <span class="kn">import</span> <span class="n">CSVWrite</span>
+
+<span class="c"># create csv-reading stage</span>
+<span class="n">stage_read_csv</span> <span class="o">=</span> <span class="n">CSVRead</span><span class="p">(</span><span class="s">&#39;incomplete_data.csv&#39;</span><span class="p">)</span>
+
+<span class="c"># create a stage that fill&#39;s NaNs with the value 0</span>
+<span class="n">stage_fill_na</span> <span class="o">=</span> <span class="n">FillNA</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c"># create a stage that writes csvs</span>
+<span class="n">stage_write_csv</span> <span class="o">=</span> <span class="n">CSVWrite</span><span class="p">(</span><span class="s">&#39;filled_data.csv&#39;</span><span class="p">)</span>
+
+<span class="c"># create a pipeline</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
+
+<span class="c"># add the stages to the pipeline</span>
+<span class="n">node_read_csv</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_read_csv</span><span class="p">)</span>
+<span class="n">node_fill_na</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_fill_na</span><span class="p">)</span>
+<span class="n">node_write_csv</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_write_csv</span><span class="p">)</span>
+
+<span class="c"># connect the output of the csv reader to the input of the fill stage</span>
+<span class="n">node_read_csv</span> <span class="o">&gt;</span> <span class="n">node_fill_na</span>
+
+<span class="c"># connect the output of the fill stage to the input of the csv writer</span>
+<span class="n">node_fill_na</span> <span class="o">&gt;</span> <span class="n">node_write_csv</span>
+</pre></div>
+</div>
+<div class="figure align-center" id="id7">
+<img alt="_images/three_stage.png" src="_images/three_stage.png" />
+<p class="caption"><span class="caption-text">A simple pipeline which reads from a csv, fills NaN entries, and then
+writes to a different csv.</span></p>
+</div>
+<p>After the pipeline is constructed, we run our program and then we can see
+our results in filled_data.csv:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Pipelines do not have to be linear, as in the above example. UPSG supports
+arbitrary directed acyclic graphs. That means that a pipeline can have
+any number of input stages and any number of output stages, and the stages
+can be connected in any way as long as there are no loops (cycles).</p>
+<div class="figure align-center" id="id8">
+<a class="reference internal image-reference" href="_images/complicated.png"><img alt="_images/complicated.png" src="_images/complicated.png" style="height: 500px;" /></a>
+<p class="caption"><span class="caption-text">A more complicated pipeline</span></p>
+</div>
+<div class="section" id="the-stage-interface">
+<h3>The stage interface<a class="headerlink" href="#the-stage-interface" title="Permalink to this headline">¶</a></h3>
+<p>A stage is a program that:</p>
+<ol class="arabic simple">
+<li>Reads zero or more <a class="reference internal" href="file_format.html"><em>.upsg files</em></a></li>
+<li>Writes zero or more .upsg files</li>
+</ol>
+<p>Each input and each output should have a human-readable label, or key.
+For example, the CSVWrite stage has an output file with the key &#8220;output&#8221;
+and the CSVRead stage has an input file with the key &#8220;input.&#8221; Estimators
+have inputs including &#8220;X_train&#8221;, &#8220;X_test&#8221;, &#8220;y_train&#8221;, and &#8220;y_test&#8221; and
+outputs including &#8220;y_pred&#8221; and &#8220;pred_proba&#8221;. In the Python interface, these
+keys can be specified when connecting nodes together. The above example could
+have been written:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># connect the output of the csv reader to the input of the fill stage</span>
+<span class="n">node_read_csv</span><span class="p">[</span><span class="s">&#39;output&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_fill_na</span><span class="p">[</span><span class="s">&#39;input&#39;</span><span class="p">]</span>
+
+<span class="c"># connect the output of the fill stage to the input of the csv writer</span>
+<span class="n">node_fill_na</span><span class="p">[</span><span class="s">&#39;output&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_write_csv</span><span class="p">[</span><span class="s">&#39;input&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>In that example, the .upsg file assigned to node_read_csv&#8217;s key called
+&#8220;output&#8221; is selected to be the .upsg file assigned to node_fill_na&#8217;s key
+called &#8220;input&#8221;. Also, the .upsg file assigned to fill_node_na&#8217;s key called
+&#8220;output&#8221; is selected to be the .upsg file assigned to node_write_csv&#8217;s key
+called &#8220;input&#8221;.</p>
+<p>If the keys are omitted, UPSG picks the first key returned by the stage&#8217;s
+.output_keys attribute. Since CSVRead&#8217;s first output key is &#8220;output&#8221;,
+node_fill_na&#8217;s first input key is &#8220;input&#8221;, node_fill_na&#8217;s first output key
+is &#8220;output&#8221;, and node_write_csv&#8217;s first input key is &#8220;input&#8221;, both this code
+block and the previous code block have equivalent code.</p>
+<p>In principal, any program that fulfills these tasks can be a pipeline Stage.
+Programs can be written in bash, R, Python, C, or whatever you like.</p>
+<p>As of release 0.0.1, however, stages must be written in Python (or at least
+Python wrappers around other <a class="reference internal" href="upsg.transform.html#upsg.transform.sql.RunSQL" title="upsg.transform.sql.RunSQL"><code class="xref py py-class docutils literal"><span class="pre">languages</span></code></a>).
+The Python classes implementing the stage model are
+<a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a> and <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a>.</p>
+<p>Python stages should be subclasses of either <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a>
+or <a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a>.</p>
+<p>Users can add functionality to their pipelines by either:</p>
+<ol class="arabic simple">
+<li>Selecting a <a class="reference internal" href="#stages-by-module"><span>pre-existing Stage</span></a>. This is a good
+option, provided your venerable devs have anticipated your needs.</li>
+<li><a class="reference internal" href="#wrapping-sklearn"><span>Wrapping</span></a> an sklearn estimator or metric</li>
+<li>Implement your own Stage. This option is the most
+flexible, but also the most involved. See <a class="reference internal" href="implementing_stage.html"><em>Implementing a Stage</em></a>.</li>
+<li>Wrap arbitrary code inside the
+<a class="reference internal" href="upsg.transform.html#upsg.transform.lambda_stage.LambdaStage" title="upsg.transform.lambda_stage.LambdaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.transform.lambda_stage.LambdaStage</span></code></a>, which
+takes care of some of the boilerplate for you so you don&#8217;t have to implement
+a full Stage. (see <a class="reference internal" href="#lambda-stage"><span>here</span></a>)</li>
+</ol>
+</div>
+<div class="section" id="the-lambdastage">
+<span id="lambda-stage"></span><h3>The LambdaStage<a class="headerlink" href="#the-lambdastage" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="upsg.transform.html#upsg.transform.lambda_stage.LambdaStage" title="upsg.transform.lambda_stage.LambdaStage"><code class="xref py py-class docutils literal"><span class="pre">LambdaStage</span></code></a> class
+provides a way to wrap arbitrary code in the UPSG framework with minimal
+boilerplate. In order to initialize a LambdaStage, the user must provide:</p>
+<ol class="arabic">
+<li><p class="first">A Function that takes zero or more numpy
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/user/basics.rec.html">structured arrays</a>
+and returns either:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>A numpy array, or,</li>
+<li>A tuple of numpy arrays.</li>
+</ol>
+</div></blockquote>
+</li>
+<li><p class="first">Either a list of output keys or the number of outputs to expect</p>
+</li>
+</ol>
+<p>Using LambdaStage, any function that takes and returns Numpy arrays can be
+seamlessly incorporated into UPSG. See the API for more details.</p>
+</div>
+<div class="section" id="stages-by-module">
+<span id="id2"></span><h3>Stages by module<a class="headerlink" href="#stages-by-module" title="Permalink to this headline">¶</a></h3>
+<p>A number of other stages that perform common tasks have already been
+implemented. They are listed below.</p>
+<div class="section" id="export">
+<h4><a class="reference internal" href="upsg.export.html#module-upsg.export" title="upsg.export"><code class="xref py py-mod docutils literal"><span class="pre">export</span></code></a><a class="headerlink" href="#export" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="upsg.export.html#upsg.export.csv.CSVWrite" title="upsg.export.csv.CSVWrite"><code class="xref py py-obj docutils literal"><span class="pre">upsg.export.csv.CSVWrite</span></code></a>(filename)</td>
+<td>Write table to csv</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.export.html#upsg.export.np.NumpyWrite" title="upsg.export.np.NumpyWrite"><code class="xref py py-obj docutils literal"><span class="pre">upsg.export.np.NumpyWrite</span></code></a>()</td>
+<td>Makes a UObject available as a Numpy array</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.export.html#upsg.export.plot.Plot" title="upsg.export.plot.Plot"><code class="xref py py-obj docutils literal"><span class="pre">upsg.export.plot.Plot</span></code></a>(file_name,&nbsp;*args,&nbsp;**kwargs)</td>
+<td>Stage to make a plot</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="fetch">
+<h4><a class="reference internal" href="upsg.fetch.html#module-upsg.fetch" title="upsg.fetch"><code class="xref py py-mod docutils literal"><span class="pre">fetch</span></code></a><a class="headerlink" href="#fetch" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="upsg.fetch.html#upsg.fetch.csv.CSVRead" title="upsg.fetch.csv.CSVRead"><code class="xref py py-obj docutils literal"><span class="pre">upsg.fetch.csv.CSVRead</span></code></a>(filename,&nbsp;**kwargs)</td>
+<td>Stage to read in a csv</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.fetch.html#upsg.fetch.np.NumpyRead" title="upsg.fetch.np.NumpyRead"><code class="xref py py-obj docutils literal"><span class="pre">upsg.fetch.np.NumpyRead</span></code></a>(A)</td>
+<td>Read into pipeline from numpy array</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.fetch.html#upsg.fetch.sql.SQLRead" title="upsg.fetch.sql.SQLRead"><code class="xref py py-obj docutils literal"><span class="pre">upsg.fetch.sql.SQLRead</span></code></a>(db_url,&nbsp;table_name[,&nbsp;...])</td>
+<td>Stage to read in an sql table.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="model">
+<h4><a class="reference internal" href="upsg.model.html#module-upsg.model" title="upsg.model"><code class="xref py py-mod docutils literal"><span class="pre">model</span></code></a><a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="upsg.model.html#upsg.model.cross_validation.CrossValidationScore" title="upsg.model.cross_validation.CrossValidationScore"><code class="xref py py-obj docutils literal"><span class="pre">upsg.model.cross_validation.CrossValidationScore</span></code></a>(...)</td>
+<td>Performs KFold cross-validation on a given classifier Stage and</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.model.html#upsg.model.grid_search.GridSearch" title="upsg.model.grid_search.GridSearch"><code class="xref py py-obj docutils literal"><span class="pre">upsg.model.grid_search.GridSearch</span></code></a>(clf_stage)</td>
+<td>Searches over a grid of parameters for a given classifier and finds the set of parameters that score the best.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.model.html#upsg.model.multiclassify.Multiclassify" title="upsg.model.multiclassify.Multiclassify"><code class="xref py py-obj docutils literal"><span class="pre">upsg.model.multiclassify.Multiclassify</span></code></a>([...])</td>
+<td>Runs data through a number of classifiers and a number of parameters per classifier.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.model.html#upsg.model.multimetric.Multimetric" title="upsg.model.multimetric.Multimetric"><code class="xref py py-obj docutils literal"><span class="pre">upsg.model.multimetric.Multimetric</span></code></a>(metrics,&nbsp;...)</td>
+<td>A stage that automatically runs a number of metrics, makes plots, and compiles them into a report.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="transform">
+<h4><a class="reference internal" href="upsg.transform.html#module-upsg.transform" title="upsg.transform"><code class="xref py py-mod docutils literal"><span class="pre">transform</span></code></a><a class="headerlink" href="#transform" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.apply_to_selected_cols.ApplyToSelectedCols" title="upsg.transform.apply_to_selected_cols.ApplyToSelectedCols"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.apply_to_selected_cols.ApplyToSelectedCols</span></code></a>(...)</td>
+<td>Applies a given transformation only to the selected columns.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.fill_na.FillNA" title="upsg.transform.fill_na.FillNA"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.fill_na.FillNA</span></code></a>(default_value)</td>
+<td>Fills NaNs with some default value</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.generate_feature.GenerateFeature</span></code>(...)</td>
+<td>Applies a given function only to the selected columns and outputs a table consisting only of the columns with the function applied.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.hstack.HStack</span></code>(n_arrays)</td>
+<td>Stacks two tables column-wise in a manner similar to numpy.hstack</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.identity.Identity" title="upsg.transform.identity.Identity"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.identity.Identity</span></code></a>([...])</td>
+<td>Passes Uobjects on to further pipeline stages without altering them.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.label_encode.LabelEncode" title="upsg.transform.label_encode.LabelEncode"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.label_encode.LabelEncode</span></code></a></td>
+<td>Encodes all strings to a value with behavior similar to</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.lambda_stage.LambdaStage" title="upsg.transform.lambda_stage.LambdaStage"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.lambda_stage.LambdaStage</span></code></a>(func)</td>
+<td>Execute arbitrary instructions on Numpy structured arrays</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.merge.Merge" title="upsg.transform.merge.Merge"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.merge.Merge</span></code></a>(left_on,&nbsp;...)</td>
+<td>Does an operation analogous to SQL JOIN (or pandas DataFrame.merge)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.rename_cols.RenameCols" title="upsg.transform.rename_cols.RenameCols"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.rename_cols.RenameCols</span></code></a>(...)</td>
+<td>Renames columns of the table &#8216;input&#8217; and produces a table &#8216;output&#8217; that is identical to the &#8216;input&#8217; table except with colums renamed .</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.Query" title="upsg.transform.split.Query"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.Query</span></code></a>(query)</td>
+<td>Selects rows to put in a table based on a given query</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitByInds" title="upsg.transform.split.SplitByInds"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitByInds</span></code></a></td>
+<td>Splits the in array according to provided indices</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitColumns" title="upsg.transform.split.SplitColumns"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitColumns</span></code></a>(columns)</td>
+<td>Splits a table &#8216;input&#8217; into two tables &#8216;output&#8217; and &#8216;complement&#8217; where</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitTrainTest" title="upsg.transform.split.SplitTrainTest"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitTrainTest</span></code></a>([n_arrays])</td>
+<td>Splits tables &#8216;input0&#8217;, &#8216;input1&#8217;, &#8216;input2&#8217;, ...</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.split.SplitY" title="upsg.transform.split.SplitY"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.split.SplitY</span></code></a>(column)</td>
+<td>Splits a table &#8216;input&#8217; into two tables &#8216;X&#8217; and &#8216;y&#8217; where y is one column of A and X is everything else.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.sql.RunSQL" title="upsg.transform.sql.RunSQL"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.sql.RunSQL</span></code></a>(db_url,&nbsp;query[,&nbsp;...])</td>
+<td>Run a SQL query.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.transform.html#upsg.transform.timify.Timify" title="upsg.transform.timify.Timify"><code class="xref py py-obj docutils literal"><span class="pre">upsg.transform.timify.Timify</span></code></a></td>
+<td>Transforms string columns that look like dates into datetime64 columns</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="wrapping-sklearn">
+<span id="id3"></span><h3>Wrapping sklearn<a class="headerlink" href="#wrapping-sklearn" title="Permalink to this headline">¶</a></h3>
+<p>By using the <a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap" title="upsg.wrap.wrap_sklearn.wrap"><code class="xref py py-func docutils literal"><span class="pre">upsg.wrap.wrap_sklearn.wrap()</span></code></a> function or the
+<a class="reference internal" href="upsg.wrap.html#upsg.wrap.wrap_sklearn.wrap_and_make_instance" title="upsg.wrap.wrap_sklearn.wrap_and_make_instance"><code class="xref py py-func docutils literal"><span class="pre">upsg.wrap.wrap_sklearn.wrap_and_make_instance()</span></code></a> function we can make
+Stages from sklearn estimators, metrics, or partition iterators with only a few
+lines of code. See API for more details</p>
+</div>
+</div>
+<div class="section" id="pipelines">
+<h2>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline" title="upsg.pipeline.Pipeline"><code class="xref py py-class docutils literal"><span class="pre">Pipelines</span></code></a> are the way that stages are
+organized into workflow. UPSG programs usually have six phases:</p>
+<ol class="arabic">
+<li><p class="first">Setup</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.fetch.csv</span> <span class="kn">import</span> <span class="n">CSVRead</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.export.csv</span> <span class="kn">import</span> <span class="n">CSVWrite</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Create a Pipeline</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Create all the Stages</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">stage_read</span> <span class="o">=</span> <span class="n">CSVRead</span><span class="p">(</span><span class="s">&#39;in.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stage_write</span> <span class="o">=</span> <span class="n">CSVWrite</span><span class="p">(</span><span class="s">&#39;out.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Add Stages to a Pipeline, creating <a class="reference internal" href="upsg.html#upsg.pipeline.Node" title="upsg.pipeline.Node"><code class="xref py py-class docutils literal"><span class="pre">Nodes</span></code></a></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_read</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_read</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_write</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_write</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Connect nodes</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_read</span> <span class="o">&gt;</span> <span class="n">node_write</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Run the pipeline</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>Phase 2 merely initializes a Pipeline.</p>
+<p>Phase 3 creates a number of stages, as discussed in <a class="reference internal" href="#stages"><span>Stages</span></a>.</p>
+<p>Phase 4 adds Stages to the pipeline using the
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.add" title="upsg.pipeline.Pipeline.add"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.add()</span></code></a> method. Each stage must be added to a
+Pipeline once. The return value of Pipeline.add will be a Node, which is used
+to connect pipeline stages together.</p>
+<p>Phase 5 connects nodes together. It is discussed in more detail
+<a class="reference internal" href="#connecting-stages-together"><span>below</span></a>.</p>
+<p>Phase 6 invokes <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a>. This is discussed in more
+detail <a class="reference internal" href="#running"><span>below</span></a>.</p>
+<div class="section" id="connecting-stages-together">
+<span id="id4"></span><h3>Connecting stages together<a class="headerlink" href="#connecting-stages-together" title="Permalink to this headline">¶</a></h3>
+<p>Once we have added our Stages to the pipeline and collected a number of
+<a class="reference internal" href="upsg.html#upsg.pipeline.Node" title="upsg.pipeline.Node"><code class="xref py py-class docutils literal"><span class="pre">Nodes</span></code></a>, we can connect our Nodes together in
+order to specify the dependencies between Stages. For example, if we have
+a Stage <code class="code docutils literal"><span class="pre">stage_a</span></code> and a Stage <code class="code docutils literal"><span class="pre">stage_b</span></code>, where <code class="code docutils literal"><span class="pre">stage_a</span></code> has
+an output named &#8220;out_a&#8221; and <code class="code docutils literal"><span class="pre">stage_b</span></code> has an input named &#8220;in_b_1&#8221;, and
+<code class="code docutils literal"><span class="pre">stage_b</span></code> expects that it&#8217;s input &#8220;in_b_1&#8221; will be provided by
+<code class="code docutils literal"><span class="pre">stage_a</span></code>&#8216;s &#8220;out_a&#8221; output, then we can connect the two like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">upsg.pipeline</span> <span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_b</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_b</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span><span class="p">[</span><span class="s">&#39;out_a&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_b</span><span class="p">[</span><span class="s">&#39;in_b_1&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="figure align-center" id="id9">
+<img alt="_images/connecting1.png" src="_images/connecting1.png" />
+<p class="caption"><span class="caption-text">stage_a&#8217;s output &#8220;out_a&#8221; is connected to stage_b&#8217;s input &#8220;in_b_1&#8221;</span></p>
+</div>
+<p>Further, if <code class="code docutils literal"><span class="pre">stage_b</span></code> also takes an input called &#8220;in_b_2&#8221;, which is
+supposed to be provided by the &#8220;out_c&#8221; argument of <code class="code docutils literal"><span class="pre">stage_c</span></code>, we can
+connect it like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_c</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">stage_c</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_c</span><span class="p">[</span><span class="s">&#39;out_c&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_b</span><span class="p">[</span><span class="s">&#39;in_b_2&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="figure align-center" id="id10">
+<img alt="_images/connecting2.png" src="_images/connecting2.png" />
+<p class="caption"><span class="caption-text">In addition, stage_c&#8217;s output &#8220;out_c&#8221; is connected to stage_b&#8217;s input
+&#8220;in_b_2&#8221;</span></p>
+</div>
+<p>For convenience, there are a few alternative syntaxes to express the same thing
+expressed above.</p>
+<p>If you intend to use the first key returned by <code class="code docutils literal"><span class="pre">stage.input_keys</span></code> or
+<code class="code docutils literal"><span class="pre">stage.output_keys</span></code> for some stage, then the key of the input argument
+or the output argument can be omitted. For example, let&#8217;s assume the following
+input and output keys:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">stage_a</span><span class="o">.</span><span class="n">output_keys</span>
+<span class="go">[&#39;out_a&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stage_c</span><span class="o">.</span><span class="n">output_keys</span>
+<span class="go">[&#39;out_c&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stage_b</span><span class="o">.</span><span class="n">input_keys</span>
+<span class="go">[&#39;in_b_1&#39;, &#39;in_b_2&#39;]</span>
+</pre></div>
+</div>
+<p>Then, we could do the same thing as we did above by writing:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span> <span class="o">&gt;</span> <span class="n">node_b</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_c</span> <span class="o">&gt;</span> <span class="n">node_b</span><span class="p">[</span><span class="s">&#39;in_b_2&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that &#8220;in_b_2&#8221; still needs to be explicitly specified, since it is not the
+first key in stage_b.input_keys</p>
+<p>We also support function notation. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span> <span class="o">&gt;</span> <span class="n">node_b</span>
+</pre></div>
+</div>
+<p>is the same as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_b</span><span class="p">(</span><span class="n">node_a</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span><span class="p">[</span><span class="s">&#39;out_a&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node_b</span><span class="p">[</span><span class="s">&#39;in_b_1&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>is the same as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_b</span><span class="p">(</span><span class="n">in_b_1</span><span class="o">=</span><span class="n">node_a</span><span class="p">[</span><span class="s">&#39;out_a&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>and</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_a</span> <span class="o">&gt;</span> <span class="n">node_b</span><span class="p">[</span><span class="s">&#39;in_b_1&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node_c</span> <span class="o">&gt;</span> <span class="n">node_b</span><span class="p">[</span><span class="s">&#39;in_b_2&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>is the same as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">node_b</span><span class="p">(</span><span class="n">in_b_1</span><span class="o">=</span><span class="n">node_a</span><span class="p">,</span> <span class="n">in_b_2</span><span class="o">=</span><span class="n">node_b</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running">
+<span id="id5"></span><h3>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h3>
+<p>UPSG is designed to allow for a number of ways to run pipelines. For
+example, a pipeline may be run in a shared-memory system using unix pipes, or
+it may be run on a cluster by scheduling a number of Hadoop jobs.</p>
+<p>The <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline" title="upsg.pipeline.Pipeline"><code class="xref py py-class docutils literal"><span class="pre">upsg.pipeline.Pipeline</span></code></a> class will provide one method for each of
+these ways to run the pipeline. The method <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a>
+will always provide a default run method that is functionally correct.</p>
+<p>As of version 0.0.1, There are two run methods implemented:
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_debug" title="upsg.pipeline.Pipeline.run_debug"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_debug()</span></code></a> and
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_luigi" title="upsg.pipeline.Pipeline.run_luigi"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_luigi()</span></code></a>. The run_debug method runs the
+pipeline on one core in serial, and is not suitable for extremely large jobs,
+but it does provide a number of tools to ensure that a pipeline is running
+correctly. These are discussed in more detail
+<a class="reference internal" href="#visualizing-and-debug"><span>below</span></a>. The run_luigi method utilizes the luigi
+package run tasks in a scalable way.</p>
+<div class="section" id="environmental-variables">
+<h4>Environmental Variables<a class="headerlink" href="#environmental-variables" title="Permalink to this headline">¶</a></h4>
+<p>UPSG provides environmental variables to determine default behavior of the
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run" title="upsg.pipeline.Pipeline.run"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run()</span></code></a> method. The variables are:</p>
+<dl class="docutils">
+<dt><strong>UPSG_RUN_MODE</strong></dt>
+<dd><p class="first">Determines the method to use to run the pipeline. Should be either:</p>
+<dl class="last docutils">
+<dt><em>dbg</em></dt>
+<dd>for the debug method</dd>
+<dt><em>luigi</em></dt>
+<dd>for running using luigi</dd>
+</dl>
+</dd>
+<dt><strong>UPSG_DEBUG_OUTPUT_MODE</strong></dt>
+<dd><p class="first">If the pipeline is run in debug mode, and the <code class="docutils literal"><span class="pre">output</span></code> argument of
+<a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_debug" title="upsg.pipeline.Pipeline.run_debug"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_debug()</span></code></a> is not specified, this variable
+will determine the argument of <code class="docutils literal"><span class="pre">output</span></code>. Should be one of:</p>
+<dl class="last docutils">
+<dt><em>bw</em></dt>
+<dd>prints progress and truncated stage output to terminal</dd>
+<dt><em>color</em></dt>
+<dd>prints progress and truncated stage output
+to terminal using ANSI colors</dd>
+<dt><em>progress</em></dt>
+<dd>only prints progress</dd>
+<dt><em>html</em></dt>
+<dd>prints pipeline visualization and truncated output
+in an html report. Also prints progress to terminal</dd>
+<dt><em>silent</em></dt>
+<dd>prints no output.</dd>
+</dl>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="visualization-and-debug-output">
+<span id="visualizing-and-debug"></span><h3>Visualization and debug output<a class="headerlink" href="#visualization-and-debug-output" title="Permalink to this headline">¶</a></h3>
+<p>There are several tools provided to help ensure that a pipeline you have built
+is working correctly.</p>
+<p>One is the <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.visualize" title="upsg.pipeline.Pipeline.visualize"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.visualize()</span></code></a> method, which will use
+Graphviz to create a graph visualization of the Pipeline. Each node on the
+output graph is a Stage, and each edge is a passed .upsg file. The labels of
+the edge are in the format:</p>
+<div class="highlight-python"><div class="highlight"><pre>name of the output stage&#39;s output key
+::
+name of the input stage&#39;s input key
+</pre></div>
+</div>
+<div class="figure align-center" id="id11">
+<img alt="_images/visualize.png" src="_images/visualize.png" />
+<p class="caption"><span class="caption-text">In the above example, there is a Stage called &#8220;read_in&#8221; and a stage called
+&#8220;write_out&#8221;. &#8220;read_in&#8221; has an output argument called &#8220;output&#8221; which is
+connected to the input argument &#8220;input&#8221; of &#8220;write_out&#8221;.</span></p>
+</div>
+<p>One thing that might be useful to make graphs is to utilize the optional second
+argument of <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.add" title="upsg.pipeline.Pipeline.add"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.add()</span></code></a>. The second argument of
+Pipeline.add allows the user to provide a label which will be used as the name
+of the node.</p>
+<p>The other debugging tool is the various types of output that can be provided
+by <a class="reference internal" href="upsg.html#upsg.pipeline.Pipeline.run_debug" title="upsg.pipeline.Pipeline.run_debug"><code class="xref py py-func docutils literal"><span class="pre">upsg.pipeline.Pipeline.run_debug()</span></code></a>. Set the &#8220;output&#8221; argument to
+one of the supported strings to get some feedback on what the pipeline is
+doing.</p>
+</div>
+</div>
+<div class="section" id="universal-objects">
+<h2>Universal Objects<a class="headerlink" href="#universal-objects" title="Permalink to this headline">¶</a></h2>
+<p>The primary way that the UPSG Python library interfaces with .upsg files is
+through the <a class="reference internal" href="upsg.html#upsg.uobject.UObject" title="upsg.uobject.UObject"><code class="xref py py-class docutils literal"><span class="pre">Universal</span> <span class="pre">Object</span></code></a> or UObject.
+Conceptually, the UObject is a write-once variable that is backed by a .upsg
+file. The UObject can be written to using one of its &#8220;from_&#8221; methods, and then
+read from using one of its &#8220;to_&#8221; methods. You will generally not have to deal
+with UObjects unless you <a class="reference internal" href="implementing_stage.html"><em>implement your own Stage</em></a>.</p>
+</div>
+<div class="section" id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<p>There are a number of exposed utility functions which may be useful, especially
+if you are <a class="reference internal" href="implementing_stage.html"><em>implement your own Stage</em></a>. Most of them
+involve manipulating the types of Numpy
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/user/basics.rec.html">structured arrays</a>.
+These are in the <a class="reference internal" href="upsg.html#module-upsg.utils" title="upsg.utils"><code class="xref py py-mod docutils literal"><span class="pre">upsg.utils</span></code></a> module.</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.datetime64_to_datetime" title="upsg.utils.datetime64_to_datetime"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.datetime64_to_datetime</span></code></a>(dt)</td>
+<td>Converts a numpy.datatime64 to a Python datetime</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.dict_to_np_sa" title="upsg.utils.dict_to_np_sa"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.dict_to_np_sa</span></code></a>(d)</td>
+<td>Converts a dict to a Numpy structured array with one row to a dict</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.get_resource_path" title="upsg.utils.get_resource_path"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.get_resource_path</span></code></a>(file_name)</td>
+<td>given the name of a resource, returns the full path</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.html_escape" title="upsg.utils.html_escape"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.html_escape</span></code></a>(s)</td>
+<td>Returns a string with all its html-averse characters html escaped</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.import_object_by_name" title="upsg.utils.import_object_by_name"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.import_object_by_name</span></code></a>(target)</td>
+<td>Imports an object given its fully qualified package name</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.is_sa" title="upsg.utils.is_sa"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.is_sa</span></code></a>(A)</td>
+<td>Returns true if the numpy.ndarray A is a structured array, false otherwise.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.np_dtype_is_homogeneous" title="upsg.utils.np_dtype_is_homogeneous"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.np_dtype_is_homogeneous</span></code></a>(A)</td>
+<td>True iff dtype is nonstructured or every sub dtype is the same</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.np_nd_to_sa" title="upsg.utils.np_nd_to_sa"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.np_nd_to_sa</span></code></a>(nd[,&nbsp;dtype])</td>
+<td>Returns a view of a numpy, single-type, 0, 1 or 2-dimensional array as a</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.np_sa_to_dict" title="upsg.utils.np_sa_to_dict"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.np_sa_to_dict</span></code></a>(sa)</td>
+<td>Converts an Numpy structured array with one row to a dictionary</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.np_sa_to_nd" title="upsg.utils.np_sa_to_nd"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.np_sa_to_nd</span></code></a>(sa)</td>
+<td>Returns a view of a numpy structured array as a single-type 1 or 2-dimensional array.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.np_to_sql" title="upsg.utils.np_to_sql"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.np_to_sql</span></code></a>(A,&nbsp;tbl_name,&nbsp;conn)</td>
+<td>Converts a numpy structured array to an sql table</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.np_type" title="upsg.utils.np_type"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.np_type</span></code></a>(val)</td>
+<td>Returns a string or type that can be passed to numpy.dtype() to</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.obj_to_str" title="upsg.utils.obj_to_str"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.obj_to_str</span></code></a>(sa)</td>
+<td>Takes a structured array with columns of &#8220;O&#8221; (object) dtype and converts them to columns of &#8220;S&#8221; (string) type.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.random_table_name" title="upsg.utils.random_table_name"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.random_table_name</span></code></a>()</td>
+<td>Returns a random table name prefixed with _UPSG_ that is unlikely</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="upsg.html#upsg.utils.sql_to_np" title="upsg.utils.sql_to_np"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.sql_to_np</span></code></a>(tbl,&nbsp;conn)</td>
+<td>Converts a sql table to a Numpy structured array.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="upsg.html#upsg.utils.utf_to_ascii" title="upsg.utils.utf_to_ascii"><code class="xref py py-obj docutils literal"><span class="pre">upsg.utils.utf_to_ascii</span></code></a>(s)</td>
+<td>Converts a unicode string to an ascii string</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="the-data-toaster">
+<h2>The Data Toaster<a class="headerlink" href="#the-data-toaster" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="upsg.html#upsg.toaster.DataToaster" title="upsg.toaster.DataToaster"><code class="xref py py-class docutils literal"><span class="pre">upsg.toaster.DataToaster</span></code></a> is an interface designed to build
+pipelines without doing the process explicitly. Rather than interacting with
+Stages, Nodes, and Connections, the user interacts with a DataToaster, which
+resembles a
+<a class="reference external" href="http://pandas.pydata.org/pandas-docs/dev/generated/pandas.DataFrame.html">Pandas DataFrame</a>.
+As of release 0.0.1, functionality is limited, but it can be used for some
+simple tasks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">upsg.toaster</span> <span class="kn">import</span> <span class="n">DataToaster</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="n">DataToaster</span><span class="p">()</span>
+<span class="c"># Read in a csv</span>
+<span class="n">dt</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="s">&#39;test_toaster.csv&#39;</span><span class="p">)</span>
+<span class="c"># Training is data before 2006-06-15; testing is after. The column</span>
+<span class="c"># giving us classification is &#39;cat&#39;</span>
+<span class="n">dt</span><span class="o">.</span><span class="n">split_by_query</span><span class="p">(</span><span class="s">&#39;cat&#39;</span><span class="p">,</span> <span class="s">&quot;date &lt; DT(&#39;2006-06-15&#39;)&quot;</span><span class="p">)</span>
+<span class="c"># Select features (manually, in this case)</span>
+<span class="n">dt</span><span class="o">.</span><span class="n">transform_select_cols</span><span class="p">((</span><span class="s">&#39;factor_1&#39;</span><span class="p">,</span> <span class="s">&#39;factor_2&#39;</span><span class="p">))</span>
+<span class="c"># Do some last-minute cleanup</span>
+<span class="n">dt</span><span class="o">.</span><span class="n">transform_with_sklearn</span><span class="p">(</span><span class="s">&#39;sklearn.preprocessing.StandardScaler&#39;</span><span class="p">)</span>
+<span class="c"># Try a bunch of classifiers and parameters. Output to report.html</span>
+<span class="n">dt</span><span class="o">.</span><span class="n">classify_and_report</span><span class="p">(</span><span class="n">report_file_name</span><span class="o">=</span><span class="s">&#39;report.html&#39;</span><span class="p">)</span>
+<span class="n">dt</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">User Guide</a><ul>
+<li><a class="reference internal" href="#stages">Stages</a><ul>
+<li><a class="reference internal" href="#the-stage-interface">The stage interface</a></li>
+<li><a class="reference internal" href="#the-lambdastage">The LambdaStage</a></li>
+<li><a class="reference internal" href="#stages-by-module">Stages by module</a><ul>
+<li><a class="reference internal" href="#export"><code class="docutils literal"><span class="pre">export</span></code></a></li>
+<li><a class="reference internal" href="#fetch"><code class="docutils literal"><span class="pre">fetch</span></code></a></li>
+<li><a class="reference internal" href="#model"><code class="docutils literal"><span class="pre">model</span></code></a></li>
+<li><a class="reference internal" href="#transform"><code class="docutils literal"><span class="pre">transform</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wrapping-sklearn">Wrapping sklearn</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pipelines">Pipelines</a><ul>
+<li><a class="reference internal" href="#connecting-stages-together">Connecting stages together</a></li>
+<li><a class="reference internal" href="#running">Running</a><ul>
+<li><a class="reference internal" href="#environmental-variables">Environmental Variables</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#visualization-and-debug-output">Visualization and debug output</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#universal-objects">Universal Objects</a></li>
+<li><a class="reference internal" href="#utilities">Utilities</a></li>
+<li><a class="reference internal" href="#the-data-toaster">The Data Toaster</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="getting_started.html"
+                        title="previous chapter">Getting Started</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="implementing_stage.html"
+                        title="next chapter">Implementing a Stage</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/user_guide.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="implementing_stage.html" title="Implementing a Stage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="getting_started.html" title="Getting Started"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">UPSG 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Data Science for Social Good.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
