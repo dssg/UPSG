@@ -10,6 +10,7 @@ from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 from sklearn.cross_validation import cross_val_score
 from sklearn.cross_validation import KFold as SKKFold
+from sklearn.cross_validation import StratifiedKFold, LeaveOneOut 
 
 from upsg.fetch.np import NumpyRead
 from upsg.wrap.wrap_sklearn import wrap, wrap_and_make_instance
@@ -61,7 +62,11 @@ class TestModel(UPSGTestCase):
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
         node_split = p.add(SplitTrainTest(2, random_state=1))
-        node_search = p.add(GridSearch(wrap(SVC), 'score', parameters, folds))
+        node_search = p.add(GridSearch(
+            wrap(SVC), 
+            parameters, 
+            'score', 
+            cv_stage_kwargs={'n_folds': folds}))
         node_params_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
         node_data['output'] > node_split['input0']
@@ -97,28 +102,42 @@ class TestModel(UPSGTestCase):
 
         X = np.random.random((rows, 10))
         y = np.random.randint(0, 2, (rows))
+
+        trials = ((SKKFold, 
+                   {'random_state': 0, 'n_folds': folds}, 
+                   {'n': rows, 'n_folds': folds, 'random_state': 0}),
+                  (StratifiedKFold, 
+                   {'random_state': 0, 'n_folds': folds}, 
+                   {'y': y, 'n_folds': folds, 'random_state': 0}))
+
         
-        p = Pipeline()
+        for PartIter, res_kwargs, ctrl_kwargs in trials:
 
-        np_in_X = p.add(NumpyRead(X))
-        np_in_y = p.add(NumpyRead(y))
+            p = Pipeline()
 
-        cv_score = p.add(CrossValidationScore(wrap(SVC), 'score', {}, folds,
-                                              random_state=0))               
-        np_in_X['output'] > cv_score['X_train']
-        np_in_y['output'] > cv_score['y_train']
+            np_in_X = p.add(NumpyRead(X))
+            np_in_y = p.add(NumpyRead(y))
 
-        score_out = p.add(CSVWrite(self._tmp_files('out.csv')))
-        cv_score['score'] > score_out['input']
+            cv_score = p.add(CrossValidationScore(
+                wrap(SVC), 
+                {},
+                'score', 
+                wrap(PartIter),
+                res_kwargs))
+            np_in_X['output'] > cv_score['X_train']
+            np_in_y['output'] > cv_score['y_train']
 
-        self.run_pipeline(p)
+            score_out = p.add(CSVWrite(self._tmp_files('out.csv')))
+            cv_score['score'] > score_out['input']
 
-        result = self._tmp_files.csv_read('out.csv')['f0']
+            self.run_pipeline(p)
 
-        ctrl_kf = SKKFold(rows, folds, random_state=0)
-        ctrl = np.mean(cross_val_score(SVC(), X, y, cv=ctrl_kf))
+            result = self._tmp_files.csv_read('out.csv')['f0']
 
-        self.assertTrue(np.allclose(ctrl, result))
+            ctrl_kf = PartIter(**ctrl_kwargs)
+            ctrl = np.mean(cross_val_score(SVC(), X, y, cv=ctrl_kf))
+
+            self.assertTrue(np.allclose(ctrl, result))
 
     def test_multimetric(self):
         samples = 150
@@ -193,10 +212,7 @@ class TestModel(UPSGTestCase):
         np_in_y['output'] > split_train_test['input1']
 
         multi = p.add(Multiclassify(
-            'score', 
-            self._tmp_files('report.html'),
-            None,
-            folds))
+            report_file_name=self._tmp_files('report.html')))
 
         split_train_test['train0'] > multi['X_train']
         split_train_test['test0'] > multi['X_test']

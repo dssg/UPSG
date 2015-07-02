@@ -2,8 +2,10 @@ import numpy as np
 from types import FunctionType
 import inspect
 from operator import itemgetter
+import itertools as it
 
 import sklearn.base
+import sklearn.cross_validation
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
@@ -13,6 +15,65 @@ from ..utils import np_nd_to_sa, np_sa_to_nd, import_object_by_name
 class WrapSKLearnException(Exception):
     pass
 
+
+def __wrap_partition_iterator(sk_cls):
+    """Wraps a subclass of sklearn.cross_validation._PartitionIterator"""
+    class WrappedPartitionIterator(RunnableStage):
+        __sk_cls = sk_cls
+        expected_kwargs = inspect.getargspec(__sk_cls.__init__).args
+
+        if 'n_folds' not in expected_kwargs:
+            raise WrapSKLearnException(('LeaveOut Partition iterators are not '
+                                        'supported yet.'))
+
+        def __init__(self, n_arrays=1, n_folds=2, **kwargs):
+            self.__n_arrays = n_arrays
+            self.__n_folds = n_folds
+            self.__kwargs = kwargs
+            self.__expected_kwargs = self.expected_kwargs
+            self.__in_array_keys = ['input{}'.format(array) for array in 
+                                 xrange(n_arrays)]
+            self.__input_keys = list(self.__in_array_keys)
+            if 'y' in self.__expected_kwargs:
+                self.__input_keys.append('y')
+            self.__output_keys = list(it.chain.from_iterable(
+                    (('train{}_{}'.format(array, fold), 
+                      'test{}_{}'.format(array, fold))
+                     for array, fold in it.product(
+                         xrange(n_arrays), xrange(n_folds)))))
+        @property
+        def input_keys(self):
+            return self.__input_keys
+
+        @property
+        def output_keys(self):
+            return self.__output_keys
+
+        def run(self, outputs_requested, **kwargs):
+            in_arrays = [kwargs[key].to_np() for key in self.__in_array_keys]
+            if len(in_arrays) < 1:
+                return {}
+            pi_kwargs = self.__kwargs
+            # TODO introspect sk_cls input args to figure out what it needs to take
+            if 'n' in self.__expected_kwargs:
+                pi_kwargs['n'] = in_arrays[0].shape[0]
+            if 'n_folds' in self.__expected_kwargs:
+                pi_kwargs['n_folds'] = self.__n_folds
+            if 'y' in self.__expected_kwargs:
+                pi_kwargs['y'] = np_sa_to_nd(kwargs['y'].to_np())[0]
+            pi = self.__sk_cls(**self.__kwargs)
+            results = {key: UObject(UObjectPhase.Write) for key
+                       in self.__output_keys}
+            for fold_index, (train_inds, test_inds) in enumerate(pi):
+                for array_index, in_key in enumerate(self.__in_array_keys):
+                    key_number = int(in_key.replace('input', ''))
+                    results['train{}_{}'.format(key_number, fold_index)].from_np(
+                        in_arrays[array_index][train_inds])
+                    results['test{}_{}'.format(key_number, fold_index)].from_np(
+                        in_arrays[array_index][test_inds])
+            return results
+
+    return WrappedPartitionIterator
 
 def unpickle_estimator(sk_cls, params):
     """ 
@@ -361,10 +422,10 @@ def wrap(target):
        X argument of predict_proba and predict_log_proba. The stage will 
        provide the output keys "pred_proba" and "pred_log_proba" respectively.
 
-    If the object being wrapped is an estimator, the input keys will have the
-    same names as the arguments to the estimator. The output keys are
+    If the object being wrapped is a metric, the input keys will have the
+    same names as the arguments to the metric. The output keys are
     currently assigned arbitrarily. At present, output keys for supported
-    estimators are:
+    metric are:
 
     roc_curve
         "fpr", "tpr", "thresholds"
@@ -373,12 +434,37 @@ def wrap(target):
     roc_auc_score
         "auc"
 
+    If the object being wrapped is a subclass of 
+    sklearn.cross_validation._PartitionIterator, (i.e. sklearn.cross_validation.KFold) 
+    the returned class must be initialized with an n_arrays argument and an 
+    n_folds argument. There are n_arrays input arrays called:
+
+    'input0', 'input1', 'input2', ...
+
+    If the _PartitionIterator takes a 'y' argument (e.g. StratifiedKFold) then
+    there is additionally a 'y' input key
+
+    Depending on the number of folds requested (n_folds) output keys will be:
+
+        'train0_0', 'test0_0', 'train0_1', 'test0_1',... (corresponding to
+        different folds of 'input0')
+
+        'train1_0', 'test1_0', 'train1_1', 'test1_1',... (corresponding to
+        different folds of 'input1')
+
+        'train2_0', 'test2_0', 'train2_1', 'test2_1',... (corresponding to
+        different folds of 'input2')
+
+        etc. 
+
     Parameters
     ----------
-    target: sklearn.base.BaseEstimator class | sklearn.metrics function | str
+    target: sklearn.base.BaseEstimator class | sklearn.metrics function | sklearn.cross_validation._PartitionIterator class | str
         Either a BaseEstimator subclass or the fully qualified package name
         of a BaseEstimater subclass or a function in sklearn.metrics or the
-        qualified backage name of a function in sklearn.metrics.
+        qualified backage name of a function in sklearn.metrics or the 
+        _PartitionIterator subclass or the fully qualified package name of the
+        _PartitionIterator.
 
     Examples
     --------
@@ -398,7 +484,13 @@ def wrap(target):
     >>> WrappedRoc = wrap('sklearn.metrics.roc_curve')
     >>> roc_stage = WrappedRoc()
 
+    or
+
+    >>> WrappedKFold = wrap('sklearn.cross_validation.KFold')
+    >>> kfold_stage = WrappedKFold(n_arrays=2, n_folds=3)
+
     """
+    #TODO add partitioniterator to doc
     if isinstance(target, basestring):
         skl_object = import_object_by_name(target)
     else:
@@ -407,6 +499,8 @@ def wrap(target):
         return __wrap_metric(skl_object)
     if issubclass(skl_object, sklearn.base.BaseEstimator):
         return __wrap_estimator(skl_object)
+    if issubclass(skl_object, sklearn.cross_validation._PartitionIterator):
+        return __wrap_partition_iterator(skl_object)
     raise TypeError(
         ('wrap takes a sklearn.base.BaseEstimator class '
          'or a function or a package name of one of the above objects'))
@@ -417,10 +511,12 @@ def wrap_and_make_instance(target, **kwargs):
 
     Parameters
     ----------
-    target: sklearn.base.BaseEstimator class | sklearn.metrics function | str
+    target: sklearn.base.BaseEstimator class | sklearn.metrics function | sklearn.cross_validation._PartitionIterator class | str
         Either a BaseEstimator subclass or the fully qualified package name
         of a BaseEstimater subclass or a function in sklearn.metrics or the
-        qualified backage name of a function in sklearn.metrics.
+        qualified backage name of a function in sklearn.metrics or the 
+        _PartitionIterator subclass or the fully qualified package name of the
+        _PartitionIterator.
     args:
         positional arguments to pass to constructor.
     kwargs:
@@ -440,6 +536,11 @@ def wrap_and_make_instance(target, **kwargs):
 
     >>> from sklearn.metrics import roc_curve
     >>> roc_stage = wrap_and_make_instance(roc_curve)
+
+    or 
+
+    >>> kfold_stage = wrap_and_make_instance('sklearn.cross_validation.KFold',
+            n_arrays=2, n_folds=3)
 
     """
     cls = wrap(target)

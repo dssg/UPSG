@@ -6,10 +6,11 @@ import numpy as np
 import ast
 
 from sklearn.cross_validation import train_test_split
-from sklearn.cross_validation import KFold as SKKFold
+#from sklearn.cross_validation import KFold as SKKFold
 
 from ..stage import RunnableStage
 from ..uobject import UObject, UObjectPhase
+from ..wrap.wrap_sklearn import wrap
 
 class SplitColumns(RunnableStage):
     """
@@ -171,8 +172,8 @@ class SplitTrainTest(RunnableStage):
         return results
 
 
-class KFold(RunnableStage):
-    """
+KFold = wrap('sklearn.cross_validation.KFold')
+KFold.__doc__ = """
     
     Splits tables 'input0', 'input1', 'input2', ... into n_folds train and test sets 
     called:
@@ -202,43 +203,6 @@ class KFold(RunnableStage):
         n_folds
 
     """
-
-    def __init__(self, n_arrays=1, n_folds=2, **kwargs):
-        self.__kwargs = kwargs
-        self.__n_arrays = n_arrays
-        self.__n_folds = n_folds
-
-        self.__input_keys = ['input{}'.format(array) for array in 
-                             xrange(n_arrays)]
-        self.__output_keys = list(it.chain.from_iterable(
-                (('train{}_{}'.format(array, fold), 
-                  'test{}_{}'.format(array, fold))
-                 for array, fold in it.product(
-                     xrange(n_arrays), xrange(n_folds)))))
-
-    @property
-    def input_keys(self):
-        return self.__input_keys
-
-    @property
-    def output_keys(self):
-        return self.__output_keys
-
-    def run(self, outputs_requested, **kwargs):
-        in_arrays = [kwargs[key].to_np() for key in self.__input_keys]
-        if len(in_arrays) < 1:
-            return {}
-        kf = SKKFold(in_arrays[0].shape[0], self.__n_folds, **self.__kwargs)
-        results = {key: UObject(UObjectPhase.Write) for key
-                   in self.__output_keys}
-        for fold_index, (train_inds, test_inds) in enumerate(kf):
-            for array_index, in_key in enumerate(self.__input_keys):
-                key_number = int(in_key.replace('input', ''))
-                results['train{}_{}'.format(key_number, fold_index)].from_np(
-                    in_arrays[array_index][train_inds])
-                results['test{}_{}'.format(key_number, fold_index)].from_np(
-                    in_arrays[array_index][test_inds])
-        return results
 
 class QueryError(Exception):
     pass

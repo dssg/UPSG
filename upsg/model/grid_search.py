@@ -41,10 +41,7 @@ class GridSearch(MetaStage):
     ----------
     clf_stage : Stage class
         class of a Stage for which parameters will be tested
-    score_key : str
-        key output from clf_stage that should be used for scoring. 
-            The table that the key stores should be of size 1x1
-    params_dict : dict of (string : list)
+    clf_stage_sweep_params : dict of (string : list)
         A dictionary where the keys are parameters and their values are a
         list of values to try for that paramter. For example, if given
         {'param1' : [1, 10], 'param2' : ['a', 'b']}, GridSearch will
@@ -52,8 +49,20 @@ class GridSearch(MetaStage):
         param2 = 'a'), clf_stage(param1 = 1, param2 = 'b'),
         clf_stage(param1 = 10, param2 = 'b'), clf_stage(param1 = 10,
         param2 = 'b')
-    cv : int (default 2)
-        Number of cross-validation folds used to test a configuration.
+    score_key : str
+        key output from clf_stage that should be used for scoring. 
+            The table that the key stores should be of size 1x1
+    cv_stage : Stage class or None
+        class of stage to provide cross-validate partitioning.
+        For example, 
+        upsg.wrap.wrap_sklearn.wrap('sklearn.cross_validation.KFold')
+        If None, then
+        upsg.wrap.wrap_sklearn.wrap('sklearn.cross_validation.KFold')
+        is used.
+    cv_stage_kwargs: dict of str: ?
+        Arguments corresponding to the keyword arguments of
+        sklearn.cross_validation.KFold including n_folds
+
 
     """
 
@@ -81,14 +90,16 @@ class GridSearch(MetaStage):
             best = kwargs[self.__params_keys[np.argsort(scores_array)[-1]]]
             return {'params_out': best}
 
-    def __init__(self, clf_stage, score_key, params_dict, cv=2):
+    def __init__(self, clf_stage, clf_stage_sweep_params={}, score_key='score', 
+                 cv_stage=None, cv_stage_kwargs={}):
 
         self.__clf_stage = clf_stage
         # produces dictionaries of the cartesian product of our parameters.
         # from
         # http://stackoverflow.com/questions/5228158/cartesian-product-of-a-dictionary-of-lists
-        self.__params_prod = [dict(it.izip(params_dict, x))
-                              for x in it.product(*params_dict.itervalues())]
+        self.__params_prod = [dict(it.izip(clf_stage_sweep_params, x))
+                              for x in it.product(
+                                  *clf_stage_sweep_params.itervalues())]
         width = len(self.__params_prod)
         p = Pipeline()
         self.__pipeline = p
@@ -100,9 +111,10 @@ class GridSearch(MetaStage):
             node_cv_score = p.add(
                     CrossValidationScore(
                         clf_stage, 
+                        {key: utf_to_ascii(params[key]) for key in params},
                         score_key, 
-                        {key: utf_to_ascii(params[key]) for key in params}, 
-                        cv))
+                        cv_stage, 
+                        cv_stage_kwargs))
             node_map['X_train_out'] > node_cv_score['X_train']
             node_map['y_train_out'] > node_cv_score['y_train']
 

@@ -46,7 +46,7 @@ class Multiclassify(MetaStage):
             sklearn.base.BaseEstimator class or 
             str) : 
             (dict of str : list)
-        )
+        ) or None
 
         A dictionary signifying the classifiers and parameters to run.
         
@@ -60,19 +60,28 @@ class Multiclassify(MetaStage):
          as in the params_dict argument of 
          upsg.model.grid_search.GridSearch
 
-         If not provided, a default set of classifiers and parameters
+         If None, a default set of classifiers and parameters
          will be used. 
 
     score_key : str
         Key output from clf_stage that should be used for scoring. 
             The table that the key stores should be of size 1x1
 
+    cv_stage : Stage class or None
+        class of stage to provide cross-validate partitioning.
+        For example, 
+        upsg.wrap.wrap_sklearn.wrap('sklearn.cross_validation.KFold')
+        If None, then
+        upsg.wrap.wrap_sklearn.wrap('sklearn.cross_validation.KFold')
+        is used.
+
+    cv_stage_kwargs: dict of str: ?
+        Arguments corresponding to the keyword arguments of
+        sklearn.cross_validation.KFold including n_folds
+
     report_file_name : str
         Base name of file in which to write the report.
 
-    cv : int (default 2)
-        Number of cross-validation folds used to test a configuration.
-    
     metrics : list of (upsg.model.multimetric.VisualMetricSpec or 
                        upsg.model.multimetric.NumericMetricSpec or
                        None)              
@@ -117,10 +126,11 @@ class Multiclassify(MetaStage):
 
     def __init__(
             self, 
-            score_key, 
-            report_file_name, 
             clf_and_params_dict=None, 
-            cv=2,
+            score_key='score', 
+            cv_stage=None,
+            cv_stage_kwargs={},
+            report_file_name='report.html', 
             metrics=None):
 
         """
@@ -171,9 +181,10 @@ class Multiclassify(MetaStage):
             node_grid_search = p.add(
                     GridSearch(
                         clf_stage, 
-                        'score', 
                         params,
-                        cv))
+                        score_key, 
+                        cv_stage,
+                        cv_stage_kwargs))
             node_map['X_train_out'] > node_grid_search['X_train']
             node_map['y_train_out'] > node_grid_search['y_train']
             node_map['X_test_out'] > node_grid_search['X_test']
