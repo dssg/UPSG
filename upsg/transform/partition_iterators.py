@@ -1,8 +1,8 @@
 import numpy as np
 
-from sklearn.cross_validate import _PartitionIterator
+from sklearn.cross_validation import _PartitionIterator
 
-class Temporal(_PartitioinIterator):
+class Temporal(_PartitionIterator):
     def __init__(self, y, n_folds=3):
         # y is the time column
         # for example, say y = np.array([2010, 2009, 2010, 2012, 2009, 2014, 2015])
@@ -22,11 +22,12 @@ class Temporal(_PartitioinIterator):
         self.__y = y
         self.__n_folds = n_folds
     def _iter_test_indices(self):
-        unique_years = np.unique(self.__y):
+        unique_years = np.unique(self.__y)
         self.__train_mask = np.zeros(self.__y.shape, dtype=bool)
         self.__test_mask = y == unique_years[0]
         for test_year in unique_years[1:]:
-            self.__train_mask = np.or(self.__train_mask, self.__test_mask)
+            self.__train_mask = np.logical_or(self.__train_mask, 
+                                              self.__test_mask)
             self.__test_mask = y == test_year
             yield np.where(self.__test_mask)
     def __iter__(self):
