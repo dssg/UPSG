@@ -100,10 +100,10 @@ class TestModel(UPSGTestCase):
         y = np.random.randint(0, 2, (rows))
 
         trials = ((SKKFold, 
-                   {'random_state': 0}, 
+                   {'random_state': 0, 'n_folds': folds}, 
                    {'n': rows, 'n_folds': folds, 'random_state': 0}),
                   (StratifiedKFold, 
-                   {'random_state': 0}, 
+                   {'random_state': 0, 'n_folds': folds}, 
                    {'y': y, 'n_folds': folds, 'random_state': 0}))
 
         
@@ -116,11 +116,10 @@ class TestModel(UPSGTestCase):
 
             cv_score = p.add(CrossValidationScore(
                 wrap(SVC), 
+                {},
                 'score', 
-                {}, 
                 wrap(PartIter),
-                n_folds=folds, 
-                **res_kwargs))
+                res_kwargs))
             np_in_X['output'] > cv_score['X_train']
             np_in_y['output'] > cv_score['y_train']
 
