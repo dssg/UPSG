@@ -62,7 +62,11 @@ class TestModel(UPSGTestCase):
         node_data = p.add(NumpyRead(iris_data))
         node_target = p.add(NumpyRead(iris_target))
         node_split = p.add(SplitTrainTest(2, random_state=1))
-        node_search = p.add(GridSearch(wrap(SVC), 'score', parameters, folds))
+        node_search = p.add(GridSearch(
+            wrap(SVC), 
+            parameters, 
+            'score', 
+            cv_stage_kwargs={'n_folds': folds}))
         node_params_out = p.add(CSVWrite(self._tmp_files.get('out.csv')))
 
         node_data['output'] > node_split['input0']

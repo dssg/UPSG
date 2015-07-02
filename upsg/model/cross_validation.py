@@ -43,8 +43,7 @@ class CrossValidationScore(MetaStage):
         is used.
     cv_stage_kwargs: dict of str: ?
         Arguments corresponding to the keyword arguments of
-        sklearn.cross_validation.KFold other than n and
-        n_folds
+        sklearn.cross_validation.KFold including n_folds
 
 
     """
