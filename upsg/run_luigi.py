@@ -101,8 +101,7 @@ def run(nodes, logging_conf_file=None, worker_processes=None):
     if worker_processes is None:
         import multiprocessing
         worker_processes = multiprocessing.cpu_count()
-    #w = luigi.worker.Worker(scheduler=sch, worker_processes=worker_processes)
-    w = luigi.worker.Worker(scheduler=sch)
+    w = luigi.worker.Worker(scheduler=sch, worker_processes=worker_processes)
     while node_queue:
         node = node_queue.pop()
         if context[node] is not None:  # already computed
