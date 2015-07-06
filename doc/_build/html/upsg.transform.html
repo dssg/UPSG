@@ -115,6 +115,97 @@ is the table that was passed in with the given columns altered in-place</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-upsg.transform.generate_feature">
+<span id="upsg-transform-generate-feature-module"></span><h2>upsg.transform.generate_feature module<a class="headerlink" href="#module-upsg.transform.generate_feature" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.generate_feature.GenerateFeature">
+<em class="property">class </em><code class="descclassname">upsg.transform.generate_feature.</code><code class="descname">GenerateFeature</code><span class="sig-paren">(</span><em>gen_func</em>, <em>in_col_names</em>, <em>out_col_names=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.generate_feature.GenerateFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.MetaStage" title="upsg.stage.MetaStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.MetaStage</span></code></a></p>
+<p>Applies a given function only to the selected columns and outputs a
+table consisting only of the columns with the function applied.</p>
+<p><strong>Input Keys</strong></p>
+<dl class="docutils">
+<dt>input</dt>
+<dd>table from which to generate features</dd>
+</dl>
+<p><strong>Output Keys</strong></p>
+<dl class="docutils">
+<dt>output</dt>
+<dd>table with generated colume</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gen_func</strong> (<em>numpy structured array -&gt; numpy structured array</em>) &#8211; Function to generate features. The input array will consist of the
+columns selected. The output array should have the generated feature</li>
+<li><strong>in_col_names</strong> (<em>list of str</em>) &#8211; Names of the columns to which the transform Stage will be supplied</li>
+<li><strong>out_col_names</strong> (<em>list of str or None</em>) &#8211; Names of columns for generated features. If None, names will be
+automatically generated</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.generate_feature.GenerateFeature.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.generate_feature.GenerateFeature.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.generate_feature.GenerateFeature.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.generate_feature.GenerateFeature.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.generate_feature.GenerateFeature.pipeline">
+<code class="descname">pipeline</code><a class="headerlink" href="#upsg.transform.generate_feature.GenerateFeature.pipeline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.hstack">
+<span id="upsg-transform-hstack-module"></span><h2>upsg.transform.hstack module<a class="headerlink" href="#module-upsg.transform.hstack" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.hstack.HStack">
+<em class="property">class </em><code class="descclassname">upsg.transform.hstack.</code><code class="descname">HStack</code><span class="sig-paren">(</span><em>n_arrays</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.hstack.HStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="upsg.html#upsg.stage.RunnableStage" title="upsg.stage.RunnableStage"><code class="xref py py-class docutils literal"><span class="pre">upsg.stage.RunnableStage</span></code></a></p>
+<p>Stacks two tables column-wise in a manner similar to numpy.hstack</p>
+<p><strong>Input Keys</strong></p>
+<dl class="docutils">
+<dt>input0, input1, ...</dt>
+<dd>tables to be stacked. Must have the same number of rows</dd>
+</dl>
+<p><strong>Output Keys</strong></p>
+<p>output</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n_arrays</strong> (<em>int</em>) &#8211; Number of arrays being input</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="upsg.transform.hstack.HStack.input_keys">
+<code class="descname">input_keys</code><a class="headerlink" href="#upsg.transform.hstack.HStack.input_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="upsg.transform.hstack.HStack.output_keys">
+<code class="descname">output_keys</code><a class="headerlink" href="#upsg.transform.hstack.HStack.output_keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.transform.hstack.HStack.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.hstack.HStack.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-upsg.transform.identity">
 <span id="upsg-transform-identity-module"></span><h2>upsg.transform.identity module<a class="headerlink" href="#module-upsg.transform.identity" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -324,6 +415,49 @@ pandas.DataFrame.merge other than left_on and right_on</li>
 <code class="descname">run</code><span class="sig-paren">(</span><em>outputs_requested</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.merge.Merge.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.transform.partition_iterators">
+<span id="upsg-transform-partition-iterators-module"></span><h2>upsg.transform.partition_iterators module<a class="headerlink" href="#module-upsg.transform.partition_iterators" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.transform.partition_iterators.Temporal">
+<em class="property">class </em><code class="descclassname">upsg.transform.partition_iterators.</code><code class="descname">Temporal</code><span class="sig-paren">(</span><em>y</em>, <em>n_folds=3</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.transform.partition_iterators.Temporal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.cross_validation._PartitionIterator</span></code></p>
+<p>Generates partitions for cross-validation based on time</p>
+<p>Implements an interface similar to
+<a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedKFold.html">http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedKFold.html</a>
+Except it chooses train and test indices that progress through time. It
+will begin training on the earliest unique time and testing on the second
+earliest unique time, then it will train on the earliest and second
+earliest unique time and test on the third earliest unique time, then it
+will train on the three earliest unique times and test on the 4th earliest,
+etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>y</strong> (<em>1-dimensional np.ndarray</em>) &#8211; An array of times. Indices will be chosen based on the times in this
+array</li>
+<li><strong>n_folds</strong> (<em>int</em>) &#8211; Number of partitions to generate. If there are not enough unique times
+in the given y, then fewer than n_folds partitions will be returned</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2010</span><span class="p">,</span> <span class="mi">2009</span><span class="p">,</span> <span class="mi">2010</span><span class="p">,</span> <span class="mi">2012</span><span class="p">,</span> <span class="mi">2009</span><span class="p">,</span> <span class="mi">2014</span><span class="p">,</span> <span class="mi">2015</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_folds</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">temporal</span> <span class="o">=</span> <span class="n">Temporal</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">n_folds</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">train_index</span><span class="p">,</span> <span class="n">test_index</span> <span class="ow">in</span> <span class="n">temporal</span><span class="p">:</span>
+<span class="go">    ...    print train_index, test_index</span>
+<span class="go">[1, 4] [0 2]</span>
+<span class="go">[0, 1, 2, 4] [3]</span>
+<span class="go">[0, 1, 2, 3, 4] [5]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -732,10 +866,13 @@ tables and generate a third table, corresponding to the output key
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.apply_to_selected_cols">upsg.transform.apply_to_selected_cols module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.fill_na">upsg.transform.fill_na module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.generate_feature">upsg.transform.generate_feature module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.hstack">upsg.transform.hstack module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.identity">upsg.transform.identity module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.label_encode">upsg.transform.label_encode module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.lambda_stage">upsg.transform.lambda_stage module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.merge">upsg.transform.merge module</a></li>
+<li><a class="reference internal" href="#module-upsg.transform.partition_iterators">upsg.transform.partition_iterators module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.rename_cols">upsg.transform.rename_cols module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.split">upsg.transform.split module</a></li>
 <li><a class="reference internal" href="#module-upsg.transform.sql">upsg.transform.sql module</a></li>

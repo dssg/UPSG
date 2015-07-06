@@ -79,10 +79,13 @@
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.apply_to_selected_cols">upsg.transform.apply_to_selected_cols module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.fill_na">upsg.transform.fill_na module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.generate_feature">upsg.transform.generate_feature module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.hstack">upsg.transform.hstack module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.identity">upsg.transform.identity module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.label_encode">upsg.transform.label_encode module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.lambda_stage">upsg.transform.lambda_stage module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.merge">upsg.transform.merge module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.partition_iterators">upsg.transform.partition_iterators module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.rename_cols">upsg.transform.rename_cols module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.split">upsg.transform.split module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="upsg.transform.html#module-upsg.transform.sql">upsg.transform.sql module</a></li>
@@ -440,7 +443,7 @@ be relegated to either an external graph processing framework
 or some simplified, internal replacement.</p>
 <dl class="attribute">
 <dt id="upsg.pipeline.Pipeline.RUN_METHODS">
-<code class="descname">RUN_METHODS</code><em class="property"> = {0: &lt;function run_debug at 0x1028f7c80&gt;, 1: &lt;function run_luigi at 0x1028f7cf8&gt;, 2: &lt;function run_luigi_quiet at 0x1028f7d70&gt;}</em><a class="headerlink" href="#upsg.pipeline.Pipeline.RUN_METHODS" title="Permalink to this definition">¶</a></dt>
+<code class="descname">RUN_METHODS</code><em class="property"> = {0: &lt;function run_debug at 0x10a3a5a28&gt;, 1: &lt;function run_luigi at 0x10a3a5aa0&gt;, 2: &lt;function run_luigi_quiet at 0x10a3a5b18&gt;}</em><a class="headerlink" href="#upsg.pipeline.Pipeline.RUN_METHODS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -637,6 +640,182 @@ selected automatically</td>
 <dd></dd></dl>
 
 </dd></dl>
+
+</div>
+<div class="section" id="module-upsg.run_debug">
+<span id="upsg-run-debug-module"></span><h2>upsg.run_debug module<a class="headerlink" href="#module-upsg.run_debug" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="upsg.run_debug.BasePrinter">
+<em class="property">class </em><code class="descclassname">upsg.run_debug.</code><code class="descname">BasePrinter</code><a class="headerlink" href="#upsg.run_debug.BasePrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="upsg.run_debug.BasePrinter.footer_print">
+<code class="descname">footer_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.BasePrinter.footer_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.BasePrinter.header_print">
+<code class="descname">header_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.BasePrinter.header_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.BasePrinter.stage_print">
+<code class="descname">stage_print</code><span class="sig-paren">(</span><em>node</em>, <em>input_args</em>, <em>output_args</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.BasePrinter.stage_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="upsg.run_debug.GraphPrinter">
+<em class="property">class </em><code class="descclassname">upsg.run_debug.</code><code class="descname">GraphPrinter</code><span class="sig-paren">(</span><em>png_file</em>, <em>map_file</em>, <em>scale</em>, <em>out_file</em>, <em>term_printer</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#upsg.run_debug.BasePrinter" title="upsg.run_debug.BasePrinter"><code class="xref py py-class docutils literal"><span class="pre">upsg.run_debug.BasePrinter</span></code></a></p>
+<dl class="class">
+<dt id="upsg.run_debug.GraphPrinter.MapParser">
+<em class="property">class </em><code class="descname">MapParser</code><span class="sig-paren">(</span><em>scale</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.MapParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">HTMLParser.HTMLParser</span></code></p>
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.MapParser.get_map">
+<code class="descname">get_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.MapParser.get_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.MapParser.handle_charref">
+<code class="descname">handle_charref</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.MapParser.handle_charref" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.MapParser.handle_data">
+<code class="descname">handle_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.MapParser.handle_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.MapParser.handle_endtag">
+<code class="descname">handle_endtag</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.MapParser.handle_endtag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.MapParser.handle_entityref">
+<code class="descname">handle_entityref</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.MapParser.handle_entityref" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.MapParser.handle_starttag">
+<code class="descname">handle_starttag</code><span class="sig-paren">(</span><em>tag</em>, <em>attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.MapParser.handle_starttag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.footer_print">
+<code class="descclassname">GraphPrinter.</code><code class="descname">footer_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.footer_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.header_print">
+<code class="descclassname">GraphPrinter.</code><code class="descname">header_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.header_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.GraphPrinter.stage_print">
+<code class="descclassname">GraphPrinter.</code><code class="descname">stage_print</code><span class="sig-paren">(</span><em>node</em>, <em>input_args</em>, <em>output_args</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.GraphPrinter.stage_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="upsg.run_debug.Printer">
+<em class="property">class </em><code class="descclassname">upsg.run_debug.</code><code class="descname">Printer</code><span class="sig-paren">(</span><em>fmt_doc_header=''</em>, <em>fmt_doc_footer=''</em>, <em>fmt_node_header=''</em>, <em>fmt_node_footer=''</em>, <em>fmt_arg_header=''</em>, <em>fmt_arg_footer=''</em>, <em>fmt_row_1=''</em>, <em>fmt_row_2=''</em>, <em>max_cols=4294967296</em>, <em>str_cleanup=&lt;function &lt;lambda&gt;&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.Printer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#upsg.run_debug.BasePrinter" title="upsg.run_debug.BasePrinter"><code class="xref py py-class docutils literal"><span class="pre">upsg.run_debug.BasePrinter</span></code></a></p>
+<dl class="method">
+<dt id="upsg.run_debug.Printer.footer_print">
+<code class="descname">footer_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.Printer.footer_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.Printer.header_print">
+<code class="descname">header_print</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.Printer.header_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="upsg.run_debug.Printer.stage_print">
+<code class="descname">stage_print</code><span class="sig-paren">(</span><em>node</em>, <em>input_args</em>, <em>output_args</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.Printer.stage_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="upsg.run_debug.get_ansi_stage_printer">
+<code class="descclassname">upsg.run_debug.</code><code class="descname">get_ansi_stage_printer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.get_ansi_stage_printer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="upsg.run_debug.get_bw_stage_printer">
+<code class="descclassname">upsg.run_debug.</code><code class="descname">get_bw_stage_printer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.get_bw_stage_printer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="upsg.run_debug.get_progress_stage_printer">
+<code class="descclassname">upsg.run_debug.</code><code class="descname">get_progress_stage_printer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.get_progress_stage_printer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="upsg.run_debug.run">
+<code class="descclassname">upsg.run_debug.</code><code class="descname">run</code><span class="sig-paren">(</span><em>pipeline</em>, <em>nodes</em>, <em>output=''</em>, <em>report_path=''</em>, <em>single_step=False</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_debug.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the pipeline in the current Python process.</p>
+<p>This method of running the job runs everything in serial on a single
+process. It is provided for debugging purposes for use with small jobs.
+For larger and more performant jobs, use the run method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pipeline</strong> (<a class="reference internal" href="#upsg.pipeline.Pipeline" title="upsg.pipeline.Pipeline"><em>upsg.pipeline.Pipeline</em></a>) &#8211; The Pipeline to run</li>
+<li><strong>output</strong> (<em>str</em>) &#8211; <p>Method of displaying output. One of:</p>
+<dl class="docutils">
+<dt>&#8216;bw&#8217;</dt>
+<dd>prints progress and truncated stage output to terminal</dd>
+<dt>&#8216;color&#8217;</dt>
+<dd>prints progress and truncated stage output
+to terminal using ANSI colors</dd>
+<dt>&#8216;progress&#8217;</dt>
+<dd>only prints progress</dd>
+<dt>&#8216;html&#8217;</dt>
+<dd>prints pipeline visualization and truncated output
+in an html report. Also prints progress to terminal</dd>
+<dt>&#8216;silent&#8217;</dt>
+<dd>prints no output.</dd>
+<dt>&#8216;&#8217; [empty string]</dt>
+<dd>If the environmental variable UPSG_DEBUG_OUTPUT_MODE is set
+to one of the above strings, then the value of
+UPSG_DEBUG_OUTPUT_MODE will determine the output method.
+If the environmental variable is not set or is invalid, then
+the effect will be the same as specifying &#8216;silent&#8217;</dd>
+</dl>
+</li>
+<li><strong>report_path</strong> (<em>str</em>) &#8211; If output=&#8217;html&#8217;, the path of the html file to be generated.
+If unspecified, will use graph_out.html in the current working
+directory</li>
+<li><strong>single_step</strong> (<em>bool</em>) &#8211; If True, will invoke pdb after every stage is run</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-upsg.run_luigi">
+<span id="upsg-run-luigi-module"></span><h2>upsg.run_luigi module<a class="headerlink" href="#module-upsg.run_luigi" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="upsg.run_luigi.node_to_task">
+<code class="descclassname">upsg.run_luigi.</code><code class="descname">node_to_task</code><span class="sig-paren">(</span><em>node</em>, <em>context</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_luigi.node_to_task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="upsg.run_luigi.run">
+<code class="descclassname">upsg.run_luigi.</code><code class="descname">run</code><span class="sig-paren">(</span><em>nodes</em>, <em>logging_conf_file=None</em>, <em>worker_processes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#upsg.run_luigi.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-upsg.stage">
@@ -1419,6 +1598,8 @@ the length of the given string</p>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-upsg.pipeline">upsg.pipeline module</a></li>
+<li><a class="reference internal" href="#module-upsg.run_debug">upsg.run_debug module</a></li>
+<li><a class="reference internal" href="#module-upsg.run_luigi">upsg.run_luigi module</a></li>
 <li><a class="reference internal" href="#module-upsg.stage">upsg.stage module</a></li>
 <li><a class="reference internal" href="#module-upsg.toaster">upsg.toaster module</a></li>
 <li><a class="reference internal" href="#module-upsg.uobject">upsg.uobject module</a></li>
