@@ -23,7 +23,8 @@ usage:
 """)
     exit(0)
 
-run_modes = {'luigi_silent': ('',), 'dbg': ('silent', 'bw', 'html')}
+#run_modes = {'luigi_silent': ('',), 'dbg': ('silent', 'bw', 'html')}
+run_modes = {'luigi_silent': ('',)}
 
 if __name__ == '__main__':
     suite = unittest.defaultTestLoader.discover(utils.TESTS_PATH)
