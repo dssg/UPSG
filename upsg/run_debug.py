@@ -338,7 +338,7 @@ def run(pipeline, nodes, output='', report_path='', single_step=False):
                 in an html report. Also prints progress to terminal
             'silent'
                 prints no output.
-            ''
+            '' [empty string]
                 If the environmental variable UPSG_DEBUG_OUTPUT_MODE is set
                 to one of the above strings, then the value of 
                 UPSG_DEBUG_OUTPUT_MODE will determine the output method.

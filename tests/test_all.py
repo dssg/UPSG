@@ -45,18 +45,23 @@ if __name__ == '__main__':
             print('#' * 80)
             for suite_key in results:
                 result = results[suite_key]
-                print('suite: {}: ran {}, failed {}'.format(
+                print('suite: {}: ran {}, errors {}, failed {}'.format(
                     suite_key,
                     result.testsRun,
+                    len(result.errors),
                     len(result.failures)))
                 result.printErrors()
                 print('#' * 80)
                 print()
-            total_failures = sum((len(result.failures) for result in results.itervalues()))
+            total_failures = sum((len(result.failures) for 
+                                  result in results.itervalues()))
+            total_errors = sum((len(result.errors) for 
+                                result in results.itervalues()))
             print('Summary:')
-            print('Ran {} suites: ran {}, failed {}'.format(
+            print('Ran {} suites: ran {}, errors {}, failed {}'.format(
                 len(results),
                 sum((result.testsRun for result in results.itervalues())),
+                total_errors,
                 total_failures))
             exit(total_failures)        
         usage()    

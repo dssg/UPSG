@@ -24,6 +24,22 @@ upsg.pipeline module
     :undoc-members:
     :show-inheritance:
 
+upsg.run_debug module
+---------------------
+
+.. automodule:: upsg.run_debug
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+upsg.run_luigi module
+---------------------
+
+.. automodule:: upsg.run_luigi
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 upsg.stage module
 -----------------
 

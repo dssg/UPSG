@@ -27,6 +27,7 @@ from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
 from upsg.transform.merge import Merge
 from upsg.transform.hstack import HStack
 from upsg.transform.generate_feature import GenerateFeature
+from upsg.transform.partition_iterators import Temporal
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
@@ -642,6 +643,19 @@ class TestTransform(UPSGTestCase):
         p.run()
 
         self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
+
+    def test_partition_iterator(self):
+
+        times = np.array([2010, 2009, 2010, 2012, 2009, 2014, 2015])
+        n_folds = 3
+
+        temporal = Temporal(times, n_folds)
+        ctrl = [(set([1, 4]), set([0, 2])),
+                (set([0, 1, 2, 4]), set([3])),
+                (set([0, 1, 2, 3, 4]), set([5]))]
+        result = [(set(train_index), set(test_index)) for 
+                  train_index, test_index in temporal]
+        self.assertEqual(ctrl, result)
 
 if __name__ == '__main__':
     unittest.main()
