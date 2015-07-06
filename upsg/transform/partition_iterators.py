@@ -17,22 +17,25 @@ class Temporal(_PartitionIterator):
         # test = [0, 1, 2, 3, 4]
         # train = [5]
         n = y.shape[0]
-        super(Temporal, self).__init__(self, n)
+        super(Temporal, self).__init__(n)
         self.__n = n
         self.__y = y
         self.__n_folds = n_folds
     def _iter_test_indices(self):
         unique_years = np.unique(self.__y)
         self.__train_mask = np.zeros(self.__y.shape, dtype=bool)
-        self.__test_mask = y == unique_years[0]
+        self.__test_mask = self.__y == unique_years[0]
         for test_year in unique_years[1:]:
             self.__train_mask = np.logical_or(self.__train_mask, 
                                               self.__test_mask)
-            self.__test_mask = y == test_year
+            self.__test_mask = self.__y == test_year
             yield np.where(self.__test_mask)
     def __iter__(self):
         # _PartitionIterator assumes we're training on everything we're not
         # testing. We have to patch it so that isn't the case
-        for train_index, test_index in super(Temporal, self).__iter__(self):
-            yield np.where(self.__train_mask), test_index
+        for i, (train_index, test_index) in enumerate(
+                super(Temporal, self).__iter__()):
+            if i >= self.__n_folds:
+                break;
+            yield self.__train_mask.nonzero()[0].tolist(), test_index
             
