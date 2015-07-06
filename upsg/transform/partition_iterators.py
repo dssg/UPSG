@@ -2,20 +2,42 @@ import numpy as np
 
 from sklearn.cross_validation import _PartitionIterator
 
+"""Generates partitions for cross-validation based on time
+
+Implements an interface similar to 
+http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedKFold.html
+Except it chooses train and test indices that progress through time. It will 
+begin training on the earliest unique time and testing on the second earliest
+unique time, then it will train on the earliest and second earliest unique 
+time and test on the third earliest unique time, then it will train on the
+three earliest unique times and test on the 4th earliest, etc.
+
+Parameters
+----------
+y : 1-dimensional np.ndarray
+    An array of times. Indices will be chosen based on the times in this
+    array
+n_folds : int
+    Number of partitions to generate. If there are not enough unique times
+    in the given y, then fewer than n_folds partitions will be returned
+
+Examples
+--------
+>>> times = np.array([2010, 2009, 2010, 2012, 2009, 2014, 2015])
+>>> n_folds = 3
+
+>>> temporal = Temporal(times, n_folds)
+>>> for train_index, test_index in temporal:
+    ...    print train_index, test_index
+
+    [1, 4] [0 2]
+    [0, 1, 2, 4] [3]
+    [0, 1, 2, 3, 4] [5]
+
+"""
+
 class Temporal(_PartitionIterator):
     def __init__(self, y, n_folds=3):
-        # y is the time column
-        # for example, say y = np.array([2010, 2009, 2010, 2012, 2009, 2014, 2015])
-        # n_folds = 3.
-        # First iteration: train is 2009, test is 2010, so indices are:
-        # test = [1, 4]
-        # train = [0, 2]
-        # Second iteration, train is 2009, 2010, test is 2012
-        # test = [0, 1, 2, 4]
-        # train = [3]
-        # Third iteration, train is 2009-2012, test is 2014
-        # test = [0, 1, 2, 3, 4]
-        # train = [5]
         n = y.shape[0]
         super(Temporal, self).__init__(n)
         self.__n = n
@@ -32,7 +54,7 @@ class Temporal(_PartitionIterator):
             yield np.where(self.__test_mask)
     def __iter__(self):
         # _PartitionIterator assumes we're training on everything we're not
-        # testing. We have to patch it so that isn't the case
+        # testing. We have to patch it's __iter__ so that isn't the case
         for i, (train_index, test_index) in enumerate(
                 super(Temporal, self).__iter__()):
             if i >= self.__n_folds:
