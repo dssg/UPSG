@@ -650,20 +650,12 @@ class TestTransform(UPSGTestCase):
         n_folds = 3
 
         temporal = Temporal(times, n_folds)
-        for train_index, test_index in temporal:
-            print train_index, test_index
-        # y is the time column
-        # for example, say y = np.array()
-        # n_folds = 3.
-        # First iteration: train is 2009, test is 2010, so indices are:
-        # test = [1, 4]
-        # train = [0, 2]
-        # Second iteration, train is 2009, 2010, test is 2012
-        # test = [0, 1, 2, 4]
-        # train = [3]
-        # Third iteration, train is 2009-2012, test is 2014
-        # test = [0, 1, 2, 3, 4]
-        # train = [5]
+        ctrl = [(set([1, 4]), set([0, 2])),
+                (set([0, 1, 2, 4]), set([3])),
+                (set([0, 1, 2, 3, 4]), set([5]))]
+        result = [(set(train_index), set(test_index)) for 
+                  train_index, test_index in temporal]
+        self.assertEqual(ctrl, result)
 
 if __name__ == '__main__':
     unittest.main()
