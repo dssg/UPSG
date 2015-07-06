@@ -20,6 +20,22 @@ upsg.transform.fill_na module
     :undoc-members:
     :show-inheritance:
 
+upsg.transform.generate_feature module
+--------------------------------------
+
+.. automodule:: upsg.transform.generate_feature
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+upsg.transform.hstack module
+----------------------------
+
+.. automodule:: upsg.transform.hstack
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 upsg.transform.identity module
 ------------------------------
 
@@ -48,6 +64,14 @@ upsg.transform.merge module
 ---------------------------
 
 .. automodule:: upsg.transform.merge
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+upsg.transform.partition_iterators module
+-----------------------------------------
+
+.. automodule:: upsg.transform.partition_iterators
     :members:
     :undoc-members:
     :show-inheritance:
