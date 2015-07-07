@@ -2,13 +2,16 @@ import numpy as np
 
 from sklearn.cross_validation import _PartitionIterator
 
+class ByWindowMode(object):
+    EXPANDING, SLIDING = range(2)
 
-class Temporal(_PartitionIterator):
-    """Generates partitions for cross-validation based on time
+class ByWindow(_PartitionIterator):
+    """Generates partitions for cross-validation based on some sliding window.
 
     Implements an interface similar to 
     http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedKFold.html
-    Except it chooses train and test indices that progress through time. It 
+    Except it chooses train and test indices that progress through a
+    sliding window. For example, It 
     will begin training on the earliest unique time and testing on the second 
     earliest unique time, then it will train on the earliest and second 
     earliest unique time and test on the third earliest unique time, then it 
@@ -31,32 +34,53 @@ class Temporal(_PartitionIterator):
     >>> temporal = Temporal(times, n_folds)
     >>> for train_index, test_index in temporal:
         ...    print train_index, test_index
-    [1, 4] [0 2]
+    [1, 4] [0, 2]
     [0, 1, 2, 4] [3]
     [0, 1, 2, 3, 4] [5]
 
     """
-    def __init__(self, y, n_folds=3):
+
+    
+
+    def __init__(self, y, init_training_window_start,
+                 final_testing_window_end, window_size,
+                 mode=ByWindowMode.EXPANDING):
+                 
         n = y.shape[0]
-        super(Temporal, self).__init__(n)
+        super(ByWindow, self).__init__(n)
         self.__n = n
         self.__y = y
-        self.__n_folds = n_folds
+        self.__init_training_window_start = init_training_window_start
+        self.__window_size = window_size
+        self.__final_testing_window_end = final_testing_window_end
+        self.__mode = mode
+
     def _iter_test_indices(self):
-        unique_years = np.unique(self.__y)
-        self.__train_mask = np.zeros(self.__y.shape, dtype=bool)
-        self.__test_mask = self.__y == unique_years[0]
-        for test_year in unique_years[1:]:
-            self.__train_mask = np.logical_or(self.__train_mask, 
-                                              self.__test_mask)
-            self.__test_mask = self.__y == test_year
-            yield np.where(self.__test_mask)
+        window_size = self.__window_size
+        train_start = self.__init_training_window_start
+        train_end = train_start + window_size
+        test_end = train_end + window_size
+        test_terminate = self.__final_testing_window_end
+        y = self.__y
+        mode = self.__mode
+
+        while test_end <= test_terminate:
+            self.__train_mask = np.logical_and(
+                    y >= train_start,
+                    y <= train_end)
+            self.__test_mask = np.logical_and(
+                    y > train_end,
+                    y <= test_end)
+            if mode == ByWindowMode.SLIDING:
+                train_start = train_end
+            train_end = test_end
+            test_end += window_size
+            yield self.__test_mask.nonzero()[0]
+
     def __iter__(self):
         # _PartitionIterator assumes we're training on everything we're not
         # testing. We have to patch it's __iter__ so that isn't the case
         for i, (train_index, test_index) in enumerate(
-                super(Temporal, self).__iter__()):
-            if i >= self.__n_folds:
-                break;
-            yield self.__train_mask.nonzero()[0].tolist(), test_index
+                super(ByWindow, self).__iter__()):
+            yield self.__train_mask.nonzero()[0], test_index
             

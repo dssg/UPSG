@@ -27,7 +27,7 @@ from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
 from upsg.transform.merge import Merge
 from upsg.transform.hstack import HStack
 from upsg.transform.generate_feature import GenerateFeature
-from upsg.transform.partition_iterators import Temporal
+from upsg.transform.partition_iterators import ByWindow, ByWindowMode
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
@@ -646,16 +646,66 @@ class TestTransform(UPSGTestCase):
 
     def test_partition_iterator(self):
 
-        times = np.array([2010, 2009, 2010, 2012, 2009, 2014, 2015])
-        n_folds = 3
+        times = np.array([2009, 1999, 2003, 2003, 2013, 2015, 2000, 2013, 
+                          2005, 2010, 2011, 1999, 2011, 2001, 1999, 2009, 
+                          2001, 2012, 2007, 2015])
+        init_training_window_start = 2000
+        final_testing_window_end = 2014
+        window_size = 2
 
-        temporal = Temporal(times, n_folds)
-        ctrl = [(set([1, 4]), set([0, 2])),
-                (set([0, 1, 2, 4]), set([3])),
-                (set([0, 1, 2, 3, 4]), set([5]))]
-        result = [(set(train_index), set(test_index)) for 
-                  train_index, test_index in temporal]
-        self.assertEqual(ctrl, result)
+        print 'EXPANDING WINDOW'
+        mode = ByWindowMode.EXPANDING
+        bw = ByWindow(
+                times, 
+                init_training_window_start, 
+                final_testing_window_end,
+                window_size,
+                mode)
+
+        for train_inds, test_inds in bw:
+            print 'train_inds:'
+            print train_inds
+            print 'train_values:'
+            print times[train_inds]
+            print 'test_inds:'
+            print test_inds
+            print 'test_values:'
+            print times[test_inds]
+            print
+        print 
+
+        print 'SLIDING WINDOW'
+        mode = ByWindowMode.SLIDING
+        bw = ByWindow(
+                times, 
+                init_training_window_start, 
+                final_testing_window_end,
+                window_size,
+                mode)
+
+        for train_inds, test_inds in bw:
+            print 'train_inds:'
+            print train_inds
+            print 'train_values:'
+            print times[train_inds]
+            print 'test_inds:'
+            print test_inds
+            print 'test_values:'
+            print times[test_inds]
+            print
+
+#        result = [(train_index, test_index) for 
+#                  train_index, test_index in bw]
+#        print result
+
+#        temporal = Temporal(times, n_folds)
+#        ctrl = [(set([1, 4]), set([0, 2])),
+#                (set([0, 1, 2, 4]), set([3])),
+#                (set([0, 1, 2, 3, 4]), set([5]))]
+#        result = [(set(train_index), set(test_index)) for 
+#                  train_index, test_index in temporal]
+#        self.assertEqual(ctrl, result)
+        
 
 if __name__ == '__main__':
     unittest.main()
