@@ -106,7 +106,7 @@ class ByWindow(_PartitionIterator):
     def _iter_test_indices(self):
         window_size = self.__window_size
         train_start = self.__init_training_window_start
-        train_end = train_start + window_size
+        train_end = train_start + window_size - 1
         test_end = train_end + window_size
         test_terminate = self.__final_testing_window_end
         y = self.__y
