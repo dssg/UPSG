@@ -646,66 +646,34 @@ class TestTransform(UPSGTestCase):
 
     def test_partition_iterator(self):
 
-        times = np.array([2009, 1999, 2003, 2003, 2013, 2015, 2000, 2013, 
-                          2005, 2010, 2011, 1999, 2011, 2001, 1999, 2009, 
-                          2001, 2012, 2007, 2015])
-        init_training_window_start = 2000
-        final_testing_window_end = 2014
+        fines_issued = np.array([(2001, 12.31), (1999, 14.32), (1999, 120.76),
+                                 (2002, 32.12), (2004, 98.64), (2005, 32.21),
+                                 (2002, 100.23), (2006, 123.40), (2000, 72.21)],
+                                dtype=[('year', int), ('fine', float)])
+        y = fines_issued['year']
+        init_training_window_start = 1999
+        final_testing_window_end = 2006
         window_size = 2
-
-        print 'EXPANDING WINDOW'
-        mode = ByWindowMode.EXPANDING
-        bw = ByWindow(
-                times, 
-                init_training_window_start, 
-                final_testing_window_end,
-                window_size,
-                mode)
-
-        for train_inds, test_inds in bw:
-            print 'train_inds:'
-            print train_inds
-            print 'train_values:'
-            print times[train_inds]
-            print 'test_inds:'
-            print test_inds
-            print 'test_values:'
-            print times[test_inds]
-            print
-        print 
-
-        print 'SLIDING WINDOW'
         mode = ByWindowMode.SLIDING
-        bw = ByWindow(
-                times, 
-                init_training_window_start, 
-                final_testing_window_end,
-                window_size,
-                mode)
+        ctrls = {ByWindowMode.SLIDING: [(set([8, 1, 2]), set([0, 3, 6])), 
+                                        (set([0, 8, 3, 6]), set([4])), 
+                                        (set([3, 4, 6]), set([5, 7]))],
+                 ByWindowMode.EXPANDING: [(set([8, 1, 2]), set([0, 3, 6])), 
+                                          (set([0, 1, 2, 3, 6, 8]), 
+                                           set([4])), 
+                                          (set([0, 1, 2, 3, 4, 6, 8]), 
+                                           set([5, 7]))]}
 
-        for train_inds, test_inds in bw:
-            print 'train_inds:'
-            print train_inds
-            print 'train_values:'
-            print times[train_inds]
-            print 'test_inds:'
-            print test_inds
-            print 'test_values:'
-            print times[test_inds]
-            print
-
-#        result = [(train_index, test_index) for 
-#                  train_index, test_index in bw]
-#        print result
-
-#        temporal = Temporal(times, n_folds)
-#        ctrl = [(set([1, 4]), set([0, 2])),
-#                (set([0, 1, 2, 4]), set([3])),
-#                (set([0, 1, 2, 3, 4]), set([5]))]
-#        result = [(set(train_index), set(test_index)) for 
-#                  train_index, test_index in temporal]
-#        self.assertEqual(ctrl, result)
-        
+        for mode in ctrls:
+            bw = ByWindow(y,
+                          init_training_window_start, 
+                          final_testing_window_end,
+                          window_size,
+                          mode)
+            result = [(set(train_inds), set(test_inds)) for 
+                      train_inds, test_inds in bw]
+            ctrl = ctrls[mode]
+            self.assertEqual(result, ctrl) 
 
 if __name__ == '__main__':
     unittest.main()
