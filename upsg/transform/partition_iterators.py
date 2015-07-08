@@ -103,6 +103,20 @@ class ByWindow(_PartitionIterator):
         self.__final_testing_window_end = final_testing_window_end
         self.__mode = mode
 
+    @staticmethod
+    def n_arrays(y, init_training_window_start,
+                 final_testing_window_end, window_size,
+                 mode=ByWindowMode.EXPANDING):
+        """
+        
+        Estimates the number of folds (i.e. train/test sets) that will be
+        produced given a set of init arguments. This is a consolation to the
+        equiment in UPSG, which needs to know this before the class is initialized
+
+        """
+        return ((final_testing_window_end - init_training_window_start) / 
+                window_size)
+
     def _iter_test_indices(self):
         window_size = self.__window_size
         train_start = self.__init_training_window_start

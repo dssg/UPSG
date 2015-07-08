@@ -674,6 +674,12 @@ class TestTransform(UPSGTestCase):
                       train_inds, test_inds in bw]
             ctrl = ctrls[mode]
             self.assertEqual(result, ctrl) 
+            self.assertEqual(ByWindow.n_arrays(
+                y,
+                init_training_window_start, 
+                final_testing_window_end,
+                window_size,
+                mode), len(result))
 
 if __name__ == '__main__':
     unittest.main()
