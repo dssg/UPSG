@@ -104,9 +104,9 @@ class ByWindow(_PartitionIterator):
         self.__mode = mode
 
     @staticmethod
-    def n_arrays(y, init_training_window_start,
-                 final_testing_window_end, window_size,
-                 mode=ByWindowMode.EXPANDING):
+    def est_n_folds(y, init_training_window_start,
+                    final_testing_window_end, window_size,
+                    mode=ByWindowMode.EXPANDING):
         """
         
         Estimates the number of folds (i.e. train/test sets) that will be

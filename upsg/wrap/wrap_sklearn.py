@@ -22,12 +22,15 @@ def __wrap_partition_iterator(sk_cls):
         __sk_cls = sk_cls
         expected_kwargs = inspect.getargspec(__sk_cls.__init__).args
 
-        if 'n_folds' not in expected_kwargs:
+        if 'n_folds' not in expected_kwargs and not hasattr(sk_cls, est_n_folds):
+
             raise WrapSKLearnException(('LeaveOut Partition iterators are not '
                                         'supported yet.'))
 
         def __init__(self, n_arrays=1, n_folds=2, **kwargs):
             self.__n_arrays = n_arrays
+            if hasattr(sk_cls, est_n_folds):
+                n_folds = self.__sk_cls.est_n_folds(**kwargs)
             self.__n_folds = n_folds
             self.__kwargs = kwargs
             self.__expected_kwargs = self.expected_kwargs
