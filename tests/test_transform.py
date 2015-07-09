@@ -27,7 +27,8 @@ from upsg.transform.apply_to_selected_cols import ApplyToSelectedCols
 from upsg.transform.merge import Merge
 from upsg.transform.hstack import HStack
 from upsg.transform.generate_feature import GenerateFeature
-from upsg.transform.partition_iterators import Temporal
+from upsg.transform.partition_iterators import ByWindow, ByWindowMode
+from upsg.transform.partition_iterators import by_window_ranges
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
@@ -644,18 +645,46 @@ class TestTransform(UPSGTestCase):
 
         self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
 
+    def test_by_window_ranges(self):
+        self.assertEqual(
+                by_window_ranges(1999, 2000, 2006, 2),
+                [(1999, 2000), (2001, 2002), (2003, 2004), (2005, 2006)])
+        self.assertEqual(by_window_ranges(1, 3, 7, 1),
+                         [(1, 3), (2, 4), (3, 5), (4, 6), (5, 7)])
+        
+
     def test_partition_iterator(self):
 
-        times = np.array([2010, 2009, 2010, 2012, 2009, 2014, 2015])
-        n_folds = 3
+        fines_issued = np.array([(2001, 12.31), (1999, 14.32), (1999, 120.76),
+                                 (2002, 32.12), (2004, 98.64), (2005, 32.21),
+                                 (2002, 100.23), (2006, 123.40), (2000, 72.21)],
+                                dtype=[('year', int), ('fine', float)])
+        y = fines_issued['year']
+        training_windows = by_window_ranges(1999, 2000, 2004, 2)
+        testing_windows = by_window_ranges(2001, 2002, 2006, 2)
+        ctrls = {ByWindowMode.SLIDING: [(set([8, 1, 2]), set([0, 3, 6])), 
+                                        (set([0, 3, 6]), set([4])), 
+                                        (set([4]), set([5, 7]))],
+                 ByWindowMode.EXPANDING: [(set([8, 1, 2]), set([0, 3, 6])), 
+                                          (set([0, 1, 2, 3, 6, 8]), 
+                                           set([4])), 
+                                          (set([0, 1, 2, 3, 4, 6, 8]), 
+                                           set([5, 7]))]}
 
-        temporal = Temporal(times, n_folds)
-        ctrl = [(set([1, 4]), set([0, 2])),
-                (set([0, 1, 2, 4]), set([3])),
-                (set([0, 1, 2, 3, 4]), set([5]))]
-        result = [(set(train_index), set(test_index)) for 
-                  train_index, test_index in temporal]
-        self.assertEqual(ctrl, result)
+        for mode in ctrls:
+            bw = ByWindow(y,
+                          training_windows,
+                          testing_windows,
+                          mode)
+            result = [(set(train_inds), set(test_inds)) for 
+                      train_inds, test_inds in bw]
+            ctrl = ctrls[mode]
+            self.assertEqual(result, ctrl) 
+            self.assertEqual(ByWindow.est_n_folds(
+                y,
+                training_windows,
+                testing_windows,
+                mode), len(result))
 
 if __name__ == '__main__':
     unittest.main()
