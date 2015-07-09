@@ -660,9 +660,6 @@ class TestTransform(UPSGTestCase):
                                  (2002, 100.23), (2006, 123.40), (2000, 72.21)],
                                 dtype=[('year', int), ('fine', float)])
         y = fines_issued['year']
-        init_training_window_start = 1999
-        final_testing_window_end = 2006
-        window_size = 2
         training_windows = by_window_ranges(1999, 2000, 2004, 2)
         testing_windows = by_window_ranges(2001, 2002, 2006, 2)
         ctrls = {ByWindowMode.SLIDING: [(set([8, 1, 2]), set([0, 3, 6])), 

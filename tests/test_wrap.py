@@ -33,6 +33,7 @@ from upsg.export.plot import Plot
 from upsg.export.np import NumpyWrite
 from upsg.transform.split import SplitY, SplitTrainTest
 from upsg.transform.partition_iterators import ByWindow, ByWindowMode
+from upsg.transform.partition_iterators import by_window_ranges
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, get_resource_path
 from upsg.utils import import_object_by_name
 
@@ -351,28 +352,27 @@ class TestWrap(UPSGTestCase):
         ctrl = np.array(['f2', 'f0', 'f1'])
         self.assertTrue(np.array_equal(ctrl, result))
 
-#    def test_wrap_cross_validation(self):
-#        fines_issued = np.array([(2001, 12.31), (1999, 14.32), (1999, 120.76),
-#                                 (2002, 32.12), (2004, 98.64), (2005, 32.21),
-#                                 (2002, 100.23), (2006, 123.40), (2000, 72.21)],
-#                                dtype=[('year', int), ('fine', float)])
-#        p = Pipeline()
-#
-#        node_in = p.add(NumpyRead(fines_issued))
-#
-#        y = fines_issued['year']
-#        init_training_window_start = 1999
-#        final_testing_window_end = 2006
-#        window_size = 2
-#        mode = ByWindowMode.SLIDING
-#        node_cv = p.add(wrap_and_make_instance(
-#            'upsg.transform.partition_iterators.ByWindow',
-#            init_training_window_start=1999,
-#            final_testing_window_end=2006,
-#            window_size=2,
-#            mode=ByWindowMode.SLIDING))
-#        node_cv(node_in)
-#        print node_cv.output_keys
+    def test_wrap_cross_validation(self):
+        fines_issued = np.array([(2001, 12.31), (1999, 14.32), (1999, 120.76),
+                                 (2002, 32.12), (2004, 98.64), (2005, 32.21),
+                                 (2002, 100.23), (2006, 123.40), (2000, 72.21)],
+                                dtype=[('year', int), ('fine', float)])
+        p = Pipeline()
+
+        node_in = p.add(NumpyRead(fines_issued))
+
+        y = fines_issued['year']
+        training_windows = by_window_ranges(1999, 2000, 2004, 2)
+        testing_windows = by_window_ranges(2001, 2002, 2006, 2)
+        mode = ByWindowMode.SLIDING
+        node_cv = p.add(wrap_and_make_instance(
+            'upsg.transform.partition_iterators.ByWindow',
+            init_training_window_start=1999,
+            final_testing_window_end=2006,
+            window_size=2,
+            mode=ByWindowMode.SLIDING))
+        node_cv(node_in)
+        print node_cv.output_keys
 
 if __name__ == '__main__':
     unittest.main()

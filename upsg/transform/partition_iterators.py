@@ -62,12 +62,11 @@ class ByWindow(_PartitionIterator):
     sklearn.cross_validation.StratifiedKFold. 
 
     ByWindow can operate in either "sliding" mode or "expanding" mode. In 
-    sliding mode, the beginning and ending of the training set are both
-    incremented by the size of the window in each parition. The example in
-    the last paragraph with years used sliding mode. In expanding mode, only
-    the end of the training set is incremented, and the training set continues
-    to grow with each partition. If we had used expanding mode with the 
-    previous example, then our partitions would be: 
+    sliding mode, the training set includes only the current training window. 
+    The example in the last paragraph with years used sliding mode. 
+    In expanding mode, the training set includes the current training window
+    and all previous windows. If we had used expanding mode with the previous 
+    example, then our partitions would be: 
 
     1. training on 1999-2000, testing on 2001-2002
     2. training on 1999-2002, testing on 2003-2004
@@ -81,21 +80,16 @@ class ByWindow(_PartitionIterator):
         column of your table that signifies year. If you want to partition by
         distance from a point, this is the column of your table that signifies
         distance from a point.
-    init_training_window_start : number
-        The lower limit of the values of y used to select the first training
-        set. If y is an array of years and we want our first training set
-        to cover the years 1999-2000, this variable should be set to 1999
-    final_testing_window_end : number
-        The upper limit of the values of y used to select the final testing 
-        set. If y is an array of years and we want our last testing set to 
-        cover the years 2005-2006, this variable should be set to 2006
-    window_size : number
-        The distance to move the testing window for each partition. Both the
-        start and end of the testing window are incremented by window_size.
-        If ByWindow is operating in sliding mode, the start and end of the 
-        training window will also be incremented by window_size. If ByWindow
-        is operating in expanding mode, only the end of the testing window 
-        will be incremented by window_size.
+    training_windows : list of (number, number)
+        A list of ranges to be used as training windows. For example, 
+        ``[(1999, 2000), (2001, 2002), (2003, 2004)]`` specifies 3 windows:
+        the first from 1999-2000, the second from 2001-2002, and the third 
+        from 2003-2004. All of these boundaries are inclusive.
+    testing_windows : list of (number, number)
+        A list of ranges to be used as testing windows. For example, 
+        ``[(1999, 2000), (2001, 2002), (2003, 2004)]`` specifies 3 windows:
+        the first from 1999-2000, the second from 2001-2002, and the third 
+        from 2003-2004. All of these boundaries are inclusive.
     mode : {ByWindowMode.SLIDING, ByWindowMode.EXPANDING}
         Mode in which ByWindow is operating. In sliding mode, the start 
         and end of the training set are incremented in each partition.
@@ -108,21 +102,47 @@ class ByWindow(_PartitionIterator):
     ...                          (2002, 100.23)],
     ...                         dtype=[('year', int), ('fine', float)])
     >>> y = fines_issued['year']
-    >>> init_training_window_start = 1999
-    >>> final_testing_window_end = 2006
-    >>> window_size = 2
     >>> mode = ByWindowMode.SLIDING
+    >>> training_windows = by_window_ranges(1999, 2000, 2004, 2)
+    >>> testing_windows = by_window_ranges(2001, 2002, 2006, 2)
+    >>> print training_windows
+    [(1999, 2000), (2001, 2002), (2003, 2004)]
+    >>> print testing_windows
+    [(2001, 2002), (2003, 2004), (2005, 2006)]
     >>> bw = ByWindow(y, 
-    ...               init_training_window_start, 
-    ...               final_testing_window_end,
-    ...               window_size,
+    ...               training_windows
+    ...               testing_windows
     ...               mode)
     >>> for train_index, test_index in bw:
-    ...     print train_index, test_index
-
+    ...     print 'train_inds:'
+    ...     print train_inds
+    ...     print 'train_values:'
+    ...     print y[train_inds]
+    train_inds:
+    [1 2 8]
+    train_values:
+    [1999 1999 2000]
+    test_inds:
+    [0 3 6]
+    test_values:
+    [2001 2002 2002]
+    train_inds:
+    [0 3 6]
+    train_values:
+    [2001 2002 2002]
+    test_inds:
+    [4]
+    test_values:
+    [2004]
+    train_inds:
+    [4]
+    train_values:
+    [2004]
+    test_inds:
+    [5 7]
+    test_values:
+    [2005 2006]
     """
-
-    
 
     def __init__(self, y, training_windows, testing_windows, 
                  mode=ByWindowMode.EXPANDING):
