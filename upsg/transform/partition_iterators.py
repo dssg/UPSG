@@ -1,6 +1,40 @@
+import itertools as it
 import numpy as np
 
 from sklearn.cross_validation import _PartitionIterator
+
+def by_window_ranges(init_window_start, init_window_end, final_window_end,
+                     velocity):
+    """Returns an iterator of windows for use as ByWindow input
+
+    Given a starting window, a terminus, and a velocity, generates a sequence
+    of windows. This may be used, for example, to generate a sequence of
+    start years and end years to use to delimit a training set or a test set
+    that is partitioned by year.
+
+    Parameters
+    ----------
+    init_window_start : number
+        The lower boundry of the first window
+    init_window_end : number
+        The upper boundary of the first window
+    final_window_end : number
+        The upper boundary of the final window
+    velocity : number
+        The distance that the upper and lower boundary are moved for each
+        subsequent window
+
+    Examples
+    --------
+    >>> print by_window_ranges(1999, 2000, 2006, 2)
+    [(1999, 2000), (2001, 2002), (2003, 2004), (2005, 2006)]
+    >>> print by_window_ranges(1, 3, 7, 1)
+    [(1, 3), (2, 4), (3, 5), (4, 6), (5, 7)]
+    """
+
+    return zip(
+            xrange(init_window_start, final_window_end, velocity),
+            xrange(init_window_end, final_window_end + velocity, velocity))
 
 class ByWindowMode(object):
     EXPANDING, SLIDING = range(2)
@@ -90,53 +124,50 @@ class ByWindow(_PartitionIterator):
 
     
 
-    def __init__(self, y, init_training_window_start,
-                 final_testing_window_end, window_size,
+    def __init__(self, y, training_windows, testing_windows, 
                  mode=ByWindowMode.EXPANDING):
-                 
         n = y.shape[0]
         super(ByWindow, self).__init__(n)
         self.__n = n
         self.__y = y
-        self.__init_training_window_start = init_training_window_start
-        self.__window_size = window_size
-        self.__final_testing_window_end = final_testing_window_end
+        self.__training_windows = training_windows
+        self.__testing_windows = testing_windows
         self.__mode = mode
 
     @staticmethod
-    def est_n_folds(y, init_training_window_start,
-                    final_testing_window_end, window_size,
+    def est_n_folds(y, training_windows, testing_windows,
                     mode=ByWindowMode.EXPANDING):
         """
         
         Estimates the number of folds (i.e. train/test sets) that will be
         produced given a set of init arguments. This is a consolation to the
-        equiment in UPSG, which needs to know this before the class is initialized
+        equiment in UPSG, which needs to know this before the class is 
+        initialized
 
         """
-        return ((final_testing_window_end - init_training_window_start) / 
-                window_size)
+        return min(len(training_windows), 
+                   len(testing_windows))
 
     def _iter_test_indices(self):
-        window_size = self.__window_size
-        train_start = self.__init_training_window_start
-        train_end = train_start + window_size - 1
-        test_end = train_end + window_size
-        test_terminate = self.__final_testing_window_end
+        training_windows = self.__training_windows
+        testing_windows = self.__testing_windows
         y = self.__y
         mode = self.__mode
 
-        while test_end <= test_terminate:
-            self.__train_mask = np.logical_and(
-                    y >= train_start,
-                    y <= train_end)
+        self.__train_mask = np.zeros((self.__n,), dtype=bool)
+        for training_window, testing_window in it.izip(training_windows,
+                                                       testing_windows):
+            new_train_mask = np.logical_and(
+                    y >= training_window[0],
+                    y <= training_window[1])
             self.__test_mask = np.logical_and(
-                    y > train_end,
-                    y <= test_end)
+                    y >= testing_window[0],
+                    y <= testing_window[1])
             if mode == ByWindowMode.SLIDING:
-                train_start = train_end
-            train_end = test_end
-            test_end += window_size
+                self.__train_mask = new_train_mask
+            else:
+                self.__train_mask = np.logical_or(self.__train_mask, 
+                                                  new_train_mask)
             yield self.__test_mask.nonzero()[0]
 
     def __iter__(self):

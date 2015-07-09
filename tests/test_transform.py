@@ -28,6 +28,7 @@ from upsg.transform.merge import Merge
 from upsg.transform.hstack import HStack
 from upsg.transform.generate_feature import GenerateFeature
 from upsg.transform.partition_iterators import ByWindow, ByWindowMode
+from upsg.transform.partition_iterators import by_window_ranges
 from upsg.wrap.wrap_sklearn import wrap
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, is_sa, obj_to_str
 
@@ -644,6 +645,14 @@ class TestTransform(UPSGTestCase):
 
         self.assertTrue(np.array_equal(ctrl, out.get_stage().result))
 
+    def test_by_window_ranges(self):
+        self.assertEqual(
+                by_window_ranges(1999, 2000, 2006, 2),
+                [(1999, 2000), (2001, 2002), (2003, 2004), (2005, 2006)])
+        self.assertEqual(by_window_ranges(1, 3, 7, 1),
+                         [(1, 3), (2, 4), (3, 5), (4, 6), (5, 7)])
+        
+
     def test_partition_iterator(self):
 
         fines_issued = np.array([(2001, 12.31), (1999, 14.32), (1999, 120.76),
@@ -654,7 +663,8 @@ class TestTransform(UPSGTestCase):
         init_training_window_start = 1999
         final_testing_window_end = 2006
         window_size = 2
-        mode = ByWindowMode.SLIDING
+        training_windows = by_window_ranges(1999, 2000, 2004, 2)
+        testing_windows = by_window_ranges(2001, 2002, 2006, 2)
         ctrls = {ByWindowMode.SLIDING: [(set([8, 1, 2]), set([0, 3, 6])), 
                                         (set([0, 8, 3, 6]), set([4])), 
                                         (set([3, 4, 6]), set([5, 7]))],
@@ -666,9 +676,8 @@ class TestTransform(UPSGTestCase):
 
         for mode in ctrls:
             bw = ByWindow(y,
-                          init_training_window_start, 
-                          final_testing_window_end,
-                          window_size,
+                          training_windows,
+                          testing_windows,
                           mode)
             result = [(set(train_inds), set(test_inds)) for 
                       train_inds, test_inds in bw]
@@ -676,9 +685,8 @@ class TestTransform(UPSGTestCase):
             self.assertEqual(result, ctrl) 
             self.assertEqual(ByWindow.est_n_folds(
                 y,
-                init_training_window_start, 
-                final_testing_window_end,
-                window_size,
+                training_windows,
+                testing_windows,
                 mode), len(result))
 
 if __name__ == '__main__':
