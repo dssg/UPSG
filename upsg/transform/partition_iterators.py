@@ -156,7 +156,7 @@ class ByWindow(_PartitionIterator):
 
     @staticmethod
     def est_n_folds(training_windows, testing_windows,
-                    mode=ByWindowMode.EXPANDING):
+                    mode=ByWindowMode.EXPANDING, *args, **kwargs):
         """
         
         Estimates the number of folds (i.e. train/test sets) that will be
