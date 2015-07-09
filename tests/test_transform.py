@@ -666,8 +666,8 @@ class TestTransform(UPSGTestCase):
         training_windows = by_window_ranges(1999, 2000, 2004, 2)
         testing_windows = by_window_ranges(2001, 2002, 2006, 2)
         ctrls = {ByWindowMode.SLIDING: [(set([8, 1, 2]), set([0, 3, 6])), 
-                                        (set([0, 8, 3, 6]), set([4])), 
-                                        (set([3, 4, 6]), set([5, 7]))],
+                                        (set([0, 3, 6]), set([4])), 
+                                        (set([4]), set([5, 7]))],
                  ByWindowMode.EXPANDING: [(set([8, 1, 2]), set([0, 3, 6])), 
                                           (set([0, 1, 2, 3, 6, 8]), 
                                            set([4])), 
