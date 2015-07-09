@@ -32,6 +32,7 @@ from upsg.export.csv import CSVWrite
 from upsg.export.plot import Plot
 from upsg.export.np import NumpyWrite
 from upsg.transform.split import SplitY, SplitTrainTest
+from upsg.transform.split import SplitColumns
 from upsg.transform.partition_iterators import ByWindow, ByWindowMode
 from upsg.transform.partition_iterators import by_window_ranges
 from upsg.utils import np_nd_to_sa, np_sa_to_nd, get_resource_path
@@ -353,26 +354,67 @@ class TestWrap(UPSGTestCase):
         self.assertTrue(np.array_equal(ctrl, result))
 
     def test_wrap_cross_validation(self):
-        fines_issued = np.array([(2001, 12.31), (1999, 14.32), (1999, 120.76),
-                                 (2002, 32.12), (2004, 98.64), (2005, 32.21),
-                                 (2002, 100.23), (2006, 123.40), (2000, 72.21)],
-                                dtype=[('year', int), ('fine', float)])
+        X = np.array([(0, 2001, 12.31), (1, 1999, 14.32), 
+                      (2, 1999, 120.76), (3, 2002, 32.12), 
+                      (4, 2004, 98.64), (5, 2005, 32.21),
+                      (6, 2002, 100.23), (7, 2006, 123.40), 
+                      (8, 2000, 72.21)],
+                     dtype=[('id', int), ('year', int), 
+                            ('fine', float)])
+        y = np.array([(0,), (1,), (0,), (1,), (0,), (1,), (0,), (1,), (0,)],
+                     dtype=[('category', int)])
+        ctrl_inds = [([1, 2, 8], [0, 3, 6]), 
+                     ([0, 3, 6], [4]), 
+                     ([4], [5, 7])]
         p = Pipeline()
 
-        node_in = p.add(NumpyRead(fines_issued))
+        node_X_in = p.add(NumpyRead(X))
 
-        y = fines_issued['year']
+        node_y_in = p.add(NumpyRead(y))
+
+        node_just_time = p.add(SplitColumns(['year']))
+        node_just_time(node_X_in)
+
         training_windows = by_window_ranges(1999, 2000, 2004, 2)
         testing_windows = by_window_ranges(2001, 2002, 2006, 2)
         mode = ByWindowMode.SLIDING
         node_cv = p.add(wrap_and_make_instance(
             'upsg.transform.partition_iterators.ByWindow',
-            init_training_window_start=1999,
-            final_testing_window_end=2006,
-            window_size=2,
+            n_arrays=2,
+            training_windows=training_windows,
+            testing_windows=testing_windows,
             mode=ByWindowMode.SLIDING))
-        node_cv(node_in)
-        print node_cv.output_keys
+        node_cv(input0=node_X_in, input1=node_y_in, y=node_just_time)
+
+        self.assertEqual(len(node_cv.output_keys), 2 * 2 * len(ctrl_inds))
+        out_nodes = []
+        for i in xrange(len(ctrl_inds)):
+            train_node_X = p.add(NumpyWrite())
+            train_node_X(node_cv['train0_{}'.format(i)])
+
+            train_node_y = p.add(NumpyWrite())
+            train_node_y(node_cv['train1_{}'.format(i)])
+
+            test_node_X = p.add(NumpyWrite())
+            test_node_X(node_cv['test0_{}'.format(i)])
+
+            test_node_y = p.add(NumpyWrite())
+            test_node_y(node_cv['test1_{}'.format(i)])
+
+            out_nodes.append((train_node_X, train_node_y, test_node_X,
+                              test_node_y))
+        p.run()
+
+        for i, (train_node_X, train_node_y, test_node_X, test_node_y) in \
+            enumerate(out_nodes):
+            self.assertTrue(np.array_equal(train_node_X.get_stage().result,
+                                          X[ctrl_inds[i][0]]))
+            self.assertTrue(np.array_equal(train_node_y.get_stage().result,
+                                          y[ctrl_inds[i][0]]))
+            self.assertTrue(np.array_equal(test_node_X.get_stage().result,
+                                          X[ctrl_inds[i][1]]))
+            self.assertTrue(np.array_equal(test_node_y.get_stage().result,
+                                          y[ctrl_inds[i][1]]))
 
 if __name__ == '__main__':
     unittest.main()

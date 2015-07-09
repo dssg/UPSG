@@ -31,7 +31,6 @@ def __wrap_partition_iterator(sk_cls):
         def __init__(self, n_arrays=1, n_folds=2, **kwargs):
             self.__n_arrays = n_arrays
             if hasattr(sk_cls, 'est_n_folds'):
-                import pdb; pdb.set_trace()
                 n_folds = self.__sk_cls.est_n_folds(**kwargs)
             self.__n_folds = n_folds
             self.__kwargs = kwargs
@@ -545,7 +544,7 @@ def wrap_and_make_instance(target, **kwargs):
     or 
 
     >>> kfold_stage = wrap_and_make_instance('sklearn.cross_validation.KFold',
-            n_arrays=2, n_folds=3)
+    ...                                      n_arrays=2, n_folds=3)
 
     """
     cls = wrap(target)

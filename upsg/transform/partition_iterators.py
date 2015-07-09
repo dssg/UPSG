@@ -155,7 +155,7 @@ class ByWindow(_PartitionIterator):
         self.__mode = mode
 
     @staticmethod
-    def est_n_folds(y, training_windows, testing_windows,
+    def est_n_folds(training_windows, testing_windows,
                     mode=ByWindowMode.EXPANDING):
         """
         
